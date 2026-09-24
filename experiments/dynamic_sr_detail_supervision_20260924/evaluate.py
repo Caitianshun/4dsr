@@ -1,0 +1,409 @@
+#!/usr/bin/env python3
+"""Fixed float-render evaluation for detail-supervision U/W/F and declared references.
+
+Calls the existing 9/18 metric and GT-flow/cache functions directly. The
+time-changing/static regions are evaluation-only proxies, not person masks.
+No RGB compositing, official masks, or held-out pixel inputs to rendering.
+"""
+from __future__ import annotations
+
+import argparse
+import hashlib
+import importlib.util
+import json
+import os
+from pathlib import Path
+import sys
+import time
+
+import cv2
+import numpy as np
+from PIL import Image
+import torch
+import torch.nn.functional as F
+
+ROOT = Path(__file__).resolve().parents[2]
+OLD = ROOT / 'experiments/dynamic_sr_20260918'
+if str(OLD) not in sys.path:
+    sys.path.append(str(OLD))
+spec = importlib.util.spec_from_file_location('soft_motion_legacy_metrics', OLD / 'evaluate.py')
+legacy = importlib.util.module_from_spec(spec)
+spec.loader.exec_module(legacy)
+from n3dv_data import load_manifest, observation_to_4dgs_camera
+
+VERSION = 'detail_supervision_eval_v1'
+MOTION = ROOT / 'experiments/dynamic_sr_motion_bound_20260923/motion_model.py'
+LR_PROTOCOL = {
+    'source_precision': 'float32_raw_render_before_png_quantization',
+    'operator': 'torch.interpolate(raw[None].float(),size=observed_LR_HW,mode=bicubic,align_corners=False,antialias=True)[0].clamp(0,1)',
+    'reference': 'Original observed uint8 LR PNG divided by 255; SHA256 checked against prepared manifest',
+    'regions': 'Fixed HR time-changing mask reduced with INTER_AREA to fractional LR weights; static=1-dynamic; full=ones',
+    'metrics': 'RGB weighted MSE, L1 and PSNR; equal-frame averages and pooled-MSE PSNR separately reported',
+    'information_boundary': 'Held-out LR read only after rendering for evaluation; never supplied to the renderer or optimized',
+}
+
+
+def json_metadata(value):
+    """Record lightweight metadata without accidentally serializing a cache."""
+    if torch.is_tensor(value):
+        return value.item() if value.numel() == 1 else {'tensor_shape': list(value.shape), 'dtype': str(value.dtype), 'values_omitted': True}
+    if isinstance(value, dict):
+        return {str(k): json_metadata(v) for k, v in value.items()}
+    if isinstance(value, (list, tuple)):
+        return [json_metadata(v) for v in value]
+    if isinstance(value, Path):
+        return str(value)
+    return value
+
+
+def lr_reprojection_metrics(raw, observed_lr, dynamic):
+    """Training-matched degradation of the same unquantized HR render.
+
+    Filtering precedes clamping, including at saturated pixels. The observed
+    LR is quantized data, but no prediction quantization enters these metrics.
+    Fractional ROI weights preserve HR boundary coverage at the LR grid.
+    """
+    height, width = observed_lr.shape[:2]
+    projected = F.interpolate(raw[None].float(), size=(height, width), mode='bicubic',
+                              align_corners=False, antialias=True)[0].clamp(0, 1)
+    pred = projected.permute(1, 2, 0).cpu().numpy()
+    if observed_lr.shape != pred.shape or not np.isfinite(observed_lr).all():
+        raise ValueError('Invalid observed LR shape or values')
+    error = pred.astype(np.float64) - observed_lr.astype(np.float64)
+    squared, absolute = (error ** 2).mean(-1), np.abs(error).mean(-1)
+    dynamic_lr = cv2.resize(dynamic.astype(np.float32), (width, height), interpolation=cv2.INTER_AREA)
+    weights = {'full': np.ones((height, width), dtype=np.float32),
+               'dynamic': dynamic_lr, 'static': 1.0 - dynamic_lr}
+    result = {}
+    for region, weight in weights.items():
+        mass = float(weight.sum(dtype=np.float64))
+        if mass <= 0:
+            result[region] = {'mse': None, 'l1': None, 'psnr': None, 'weight_fraction': 0.0}
+            continue
+        mse = float((squared * weight).sum() / mass)
+        result[region] = {'mse': mse, 'l1': float((absolute * weight).sum() / mass),
+                          'psnr': legacy.metric_psnr(mse), 'weight_fraction': mass / (height * width)}
+    return result
+
+
+def render_camera(manifest, observation, uid):
+    width, height = manifest['resolutions']['hr']
+    calibration = manifest['cameras'][observation['camera_id']]
+    item = {'image': torch.zeros((3, height, width), dtype=torch.float32),
+            'camera_id': observation['camera_id'], 'frame_index': observation['frame_index'],
+            'time': observation['time'], 'width': width, 'height': height,
+            'K': np.asarray(calibration['K_hr'], dtype=np.float64),
+            'w2c': np.asarray(calibration['w2c'], dtype=np.float64)}
+    return observation_to_4dgs_camera(item, uid)
+
+
+def training_mask_cache(manifest, camera, args):
+    """Same full-window mask as legacy, without computing unused train flows."""
+    observations = sorted((o for o in manifest['observations'] if o['split'] == 'train'
+                           and o['camera_id'] == camera), key=lambda o: o['frame_index'])
+    if [o['frame_index'] for o in observations] != list(range(0, 120, 2)):
+        raise ValueError('Training region masks require the registered 60-frame window')
+    identity = legacy.cache_identity(manifest, observations, args)
+    identity.update(cache_kind='same_legacy_temporal_mask_without_flow', actual_split='train', camera=camera)
+    key = hashlib.sha256(json.dumps(identity, sort_keys=True).encode()).hexdigest()[:16]
+    cache = (args.cache_dir or (Path(manifest['_root']) / 'evaluation_cache')) / key
+    cache.mkdir(parents=True, exist_ok=True)
+    if (cache / 'cache.json').exists():
+        info = json.loads((cache / 'cache.json').read_text())
+        if info['identity'] != identity or not (cache / 'dynamic_mask.png').is_file():
+            raise ValueError('Training evaluation mask cache mismatch/incomplete')
+        return cache, info
+    mean = m2 = None
+    for index, observation in enumerate(observations):
+        path = Path(manifest['_root']) / observation['hr_path']
+        if legacy.file_sha(path) != observation['hr_sha256']:
+            raise ValueError(f'Training evaluation HR identity mismatch: {path}')
+        image = legacy.read_rgb(path).astype(np.float64)
+        if mean is None:
+            mean, m2 = np.zeros_like(image), np.zeros_like(image)
+        delta = image - mean
+        mean += delta / (index + 1)
+        m2 += delta * (image - mean)
+    std = np.sqrt((m2 / len(observations)).mean(axis=2)).astype(np.float32)
+    mask = (std > args.dynamic_threshold).astype(np.uint8)
+    mask = cv2.morphologyEx(mask, cv2.MORPH_OPEN, np.ones((3, 3), np.uint8))
+    mask = cv2.morphologyEx(mask, cv2.MORPH_CLOSE, np.ones((5, 5), np.uint8))
+    mask = cv2.dilate(mask, np.ones((5, 5), np.uint8)).astype(bool)
+    Image.fromarray(mask.astype(np.uint8) * 255).save(cache / 'dynamic_mask.png')
+    info = dict(identity=identity, cache_key=key, dynamic_fraction=float(mask.mean()),
+                dynamic_bbox_xyxy=legacy.bbox_of_mask(mask), flow_pairs=[],
+                mask_definition='Legacy sqrt(mean_RGB population temporal variance)>threshold; open3 close5 dilate5; full60 HR evaluation only',
+                temporal_status='Not measured for sparse train_fixed frames; no extra flow cache')
+    legacy.write_json(cache / 'cache.json', info)
+    return cache, info
+
+
+def main(argv=None):
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('--manifest', type=Path, required=True)
+    parser.add_argument('--checkpoint', type=Path)
+    parser.add_argument('--out', type=Path, required=True)
+    parser.add_argument('--split', choices=['train_fixed', 'dev', 'test'], default='test')
+    parser.add_argument('--prior-cameras', '--original-prior-cameras', dest='prior_cameras', help='Four training teacher cameras; default follows dataset family')
+    parser.add_argument('--method', help='Display identity, e.g. U/W/F/B4/B4_post; forward branch recorded separately')
+    parser.add_argument('--cache-dir', type=Path)
+    parser.add_argument('--flow-scale', type=float, default=.5)
+    parser.add_argument('--dynamic-threshold', type=float, default=.025)
+    parser.add_argument('--prepare-cache-only', action='store_true')
+    parser.add_argument('--skip-lpips', action='store_true', help='Smoke only; explicitly marked unavailable')
+    parser.add_argument('--lpips-device', choices=['cpu', 'cuda'], default='cuda')
+    parser.add_argument('--no-video', action='store_true', help='Compatibility option; this entry writes PNGs only')
+    parser.add_argument('--roi-protocol', type=Path, required=True, help='Existing frozen cam00/cam02 ROI protocol; no new ROI selection')
+    parser.add_argument('--prior-subdir', default='sr_swinir_x4')
+    parser.add_argument('--postrender-sr', action='store_true', help='Separate B4 inference-only reference; network sees D(raw render) only')
+    parser.add_argument('--sr-network', type=Path)
+    parser.add_argument('--sr-checkpoint', type=Path)
+    parser.add_argument('--sr-tile', type=int, default=0)
+    parser.add_argument('--sr-overlap', type=int, default=32)
+    args = parser.parse_args(argv)
+    if not 0 < args.flow_scale <= 1 or args.dynamic_threshold <= 0:
+        parser.error('flow-scale must be (0,1] and dynamic-threshold positive')
+    if not args.prepare_cache_only and args.checkpoint is None:
+        parser.error('--checkpoint is required for model evaluation')
+    result_path = args.out / ('cache_preparation.json' if args.prepare_cache_only else 'metrics.json')
+    if result_path.exists():
+        raise FileExistsError(f'Refusing to overwrite completed evaluation: {result_path}')
+    args.out.mkdir(parents=True, exist_ok=True)
+    cv2.setNumThreads(4)
+    cv2.setRNGSeed(20260918)
+    torch.set_num_threads(4)
+    started = time.monotonic()
+    manifest = load_manifest(args.manifest)
+    if args.split == 'train_fixed':
+        default = 'cam02,cam04,cam08,cam12' if 'MeetRoom' in manifest.get('dataset_family', '') else 'cam02,cam06,cam12,cam18'
+        prior_cameras = (args.prior_cameras or default).split(',')
+        if len(prior_cameras) != 4 or len(set(prior_cameras)) != 4 or not set(prior_cameras) <= set(manifest['splits']['train']):
+            raise ValueError('train_fixed requires four distinct training teacher cameras')
+        observations = sorted((o for o in manifest['observations'] if o['split'] == 'train'
+            and o['camera_id'] in prior_cameras and o['frame_index'] in [0, 40, 80, 118]),
+            key=lambda o: (o['camera_id'], o['frame_index']))
+        if len(observations) != 16:
+            raise ValueError('train_fixed must contain exactly four cameras by four fixed frames')
+    else:
+        observations = sorted((o for o in manifest['observations'] if o['split'] == args.split),
+                              key=lambda o: (o['camera_id'], o['frame_index']))
+    if not observations:
+        raise ValueError(f'No observations in split {args.split}')
+    cameras = sorted({o['camera_id'] for o in observations})
+    train_cameras = {o['camera_id'] for o in manifest['observations'] if o['split'] == 'train'}
+    if args.split != 'train_fixed' and set(cameras) & train_cameras:
+        raise ValueError('Held-out-camera evaluation cannot overlap training cameras')
+    keys = [(o['camera_id'], o['frame_index']) for o in observations]
+    if len(keys) != len(set(keys)):
+        raise ValueError('Duplicate evaluation observation')
+    roi_protocol = json.loads(args.roi_protocol.read_text())
+    if roi_protocol['manifest_sha256'] != legacy.file_sha(args.manifest) or roi_protocol['status'] != 'fixed_before_prediction_reads':
+        raise ValueError('Frozen ROI protocol does not match manifest')
+    for reference in roi_protocol['reference_images']:
+        matches = [o for o in manifest['observations']
+                   if (o['camera_id'],o['frame_index']) == (reference['camera'],reference['frame'])]
+        if len(matches) != 1 or matches[0]['hr_sha256'] != reference['sha256']:
+            raise ValueError('Frozen ROI reference identity differs from manifest')
+        local_reference = Path(manifest['_root']) / matches[0]['hr_path']
+        if legacy.file_sha(local_reference) != reference['sha256']:
+            raise ValueError('Frozen ROI reference changed')
+    from detail_loss import highpass, OPERATOR
+    width, height = manifest['resolutions']['hr']
+    lr_size = (manifest['resolutions']['lr'][1], manifest['resolutions']['lr'][0])
+    grouped = {camera: [o for o in observations if o['camera_id'] == camera] for camera in cameras}
+    caches, cache_info, dynamic_masks = {}, {}, {}
+    for camera, records in grouped.items():
+        caches[camera], cache_info[camera] = (training_mask_cache(manifest, camera, args)
+            if args.split == 'train_fixed' else legacy.prepare_cache(manifest, records, args))
+        with Image.open(caches[camera] / 'dynamic_mask.png') as image:
+            dynamic_masks[camera] = np.asarray(image) > 0
+        if dynamic_masks[camera].shape != (height, width):
+            raise ValueError('Fixed evaluation region shape differs from HR resolution')
+    base = {'version': VERSION, 'scene': manifest['scene'], 'manifest': manifest['_manifest_path'],
+            'manifest_sha256': legacy.file_sha(manifest['_manifest_path']), 'script_sha256': legacy.file_sha(__file__),
+            'metric_helpers_sha256': legacy.file_sha(OLD / 'evaluate.py'), 'split': args.split,
+            'evaluation_cameras': cameras, 'observation_keys': [{'camera_id': c, 'frame_index': f} for c, f in keys],
+            'frame_indices_by_camera': {c: [o['frame_index'] for o in records] for c, records in grouped.items()},
+            'evaluation_caches': {c: {'path': str(caches[c]), 'cache_key': info['cache_key'], 'identity': info['identity'],
+                                     'dynamic_mask_sha256': legacy.file_sha(caches[c] / 'dynamic_mask.png')}
+                                  for c, info in cache_info.items()},
+            'dynamic_fraction_by_camera': {c: float(mask.mean()) for c, mask in dynamic_masks.items()},
+            'dynamic_bbox_by_camera': {c: info['dynamic_bbox_xyxy'] for c, info in cache_info.items()},
+            'versions': {'torch': str(torch.__version__), 'numpy': np.__version__, 'opencv': cv2.__version__},
+            'protocol': 'Fixed16 training diagnostic' if args.split == 'train_fixed' else 'Full-scene RGB short-window held-out-camera development comparison',
+            'temporal_status': 'not_measured_on_sparse_training_frames' if args.split == 'train_fixed' else 'adjacent_registered_frames',
+            'information_boundary': 'Camera calibration/time and a zero-image placeholder enter rendering. HR-derived time-changing masks and flows are fixed evaluation-only caches, never model or training inputs; no official mask or RGB compositing.',
+            'cache_split_note': 'Legacy cache internal split label is test; actual split and exact observation/image identity are recorded here.',
+            'video': {'status': 'not_encoded', 'reason': 'No physical FPS is inferred from normalized time'}}
+    if args.prepare_cache_only:
+        legacy.write_json(result_path, {**base, 'cache_info': cache_info, 'elapsed_seconds': time.monotonic() - started})
+        print(json.dumps({'path': str(result_path), 'mode': 'CPU cache only'}), flush=True)
+        return
+
+    model_spec = importlib.util.spec_from_file_location('soft_eval_frozen_motion_model', MOTION)
+    motion_model = importlib.util.module_from_spec(model_spec)
+    sys.modules[model_spec.name] = motion_model
+    model_spec.loader.exec_module(motion_model)
+    load_model, render_model, capacity_summary = motion_model.load_model, motion_model.render_model, motion_model.capacity_summary
+    model = load_model(args.checkpoint, manifest=manifest, restore_rng=False)
+    detail_metadata = model.checkpoint.get('detail_supervision')
+    if detail_metadata is not None and (model.branch != 'ordinary_split' or 'soft_motion' in model.checkpoint):
+        raise ValueError('U/W/F must use ordinary B forward without soft motion')
+    postprocessor = None
+    if args.postrender_sr:
+        if args.split == 'train_fixed' or model.branch != 'ordinary_split' or detail_metadata is not None or 'soft_motion' in model.checkpoint:
+            raise ValueError('Post-SR is a separate held-out-view reference using the old ordinary B4 checkpoint only')
+        from postprocess import FrozenPostprocess
+        postprocessor = FrozenPostprocess(args.sr_network, args.sr_checkpoint, tile=args.sr_tile, overlap=args.sr_overlap)
+    teacher_config = None
+    if args.split == 'train_fixed':
+        config_path = args.checkpoint.resolve().parent / 'config.json'
+        teacher_config = json.loads(config_path.read_text())
+        if teacher_config['manifest_sha256'] != base['manifest_sha256']:
+            raise ValueError('Train teacher config/manifest mismatch')
+    model.g._deformation.eval()
+    if model.branch not in ('joint', 'ordinary_split', 'bound_split'):
+        raise ValueError(f'Unexpected model branch: {model.branch}')
+    if model.checkpoint['metadata'].get('manifest_sha') != base['manifest_sha256']:
+        raise ValueError('Checkpoint/manifest identity mismatch')
+    base.update({'checkpoint': str(args.checkpoint.resolve()), 'checkpoint_sha256': legacy.file_sha(args.checkpoint),
+                 'checkpoint_metadata': model.checkpoint['metadata'], 'branch': model.branch,
+                 'method': args.method or ('soft_motion' if 'soft_motion' in model.checkpoint else model.branch),
+                 'soft_motion': json_metadata(model.checkpoint.get('soft_motion')),
+                 'detail_supervision': json_metadata(detail_metadata),
+                 'postprocess': postprocessor.protocol if postprocessor is not None else None,
+                 'detail_operator': OPERATOR,
+                 'detail_operator_sha256': legacy.file_sha(Path(__file__).with_name('detail_loss.py')),
+                 'roi_protocol_sha256': legacy.file_sha(args.roi_protocol),
+                 'roi_protocol': str(args.roi_protocol.resolve()),
+                 'detail_protocol': 'H on unquantized raw float render and HR/teacher RGB float in [0,1]; signed residual never clipped; same fixed operator on both. Full-image H precedes fixed mask/ROI aggregation. No held-out teacher.',
+                 'gaussian_count': len(model.g._xyz), 'capacity': capacity_summary(model),
+                 'motion_model_sha256': legacy.file_sha(motion_model.__file__),
+                 'lr_reprojection_protocol': LR_PROTOCOL,
+                 'gpu': torch.cuda.get_device_name(), 'visible_cuda': os.environ.get('CUDA_VISIBLE_DEVICES'),
+                 'lpips_device': args.lpips_device})
+    metric = None
+    if not args.skip_lpips:
+        import lpips
+        metric = lpips.LPIPS(net='alex', spatial=False).to(args.lpips_device).eval().requires_grad_(False)
+    rows, render_seconds = [], 0.0
+    with torch.inference_mode():
+        uid = 0
+        for camera, records in grouped.items():
+            previous_pred = previous_gt = None
+            dynamic = dynamic_masks[camera]
+            for index, observation in enumerate(records):
+                cam = render_camera(manifest, observation, uid)
+                uid += 1
+                torch.cuda.synchronize()
+                render_started = time.monotonic()
+                raw = render_model(model, cam)['render']
+                torch.cuda.synchronize()
+                render_s = time.monotonic() - render_started
+                render_seconds += render_s
+                if tuple(raw.shape) != (3, height, width) or not torch.isfinite(raw).all():
+                    raise ValueError(f'Invalid render: {camera}/{observation["frame_index"]}')
+                post_stats = None
+                if postprocessor is not None:
+                    raw, post_stats = postprocessor(raw, lr_size)
+                pred = legacy.image_array(raw)
+                gt_path = Path(manifest['_root']) / observation['hr_path']
+                if legacy.file_sha(gt_path) != observation['hr_sha256']:
+                    raise ValueError(f'HR hash mismatch: {gt_path}')
+                gt = legacy.read_rgb(gt_path)
+                if gt.shape != pred.shape:
+                    raise ValueError(f'HR/render shape mismatch: {gt_path}')
+                lr_path = Path(manifest['_root']) / observation['lr_path']
+                if legacy.file_sha(lr_path) != observation['lr_sha256']:
+                    raise ValueError(f'Observed LR hash mismatch: {lr_path}')
+                observed_lr = legacy.read_rgb(lr_path)
+                if observed_lr.shape != (manifest['resolutions']['lr'][1], manifest['resolutions']['lr'][0], 3):
+                    raise ValueError(f'Observed LR resolution mismatch: {lr_path}')
+                masks = {'full': np.ones((height, width), bool), 'dynamic': dynamic, 'static': ~dynamic}
+                for roi_name, box in roi_protocol['regions_by_camera_xyxy_exclusive'].get(camera, {}).items():
+                    x0, y0, x1, y1 = box
+                    if not (0 <= x0 < x1 <= width and 0 <= y0 < y1 <= height):
+                        raise ValueError('Frozen ROI exceeds image bounds')
+                    mask = np.zeros((height, width), bool); mask[y0:y1, x0:x1] = True
+                    masks['roi:' + roi_name] = mask
+                h_raw = highpass(raw.float(), lr_size)
+                gt_tensor = torch.from_numpy(np.ascontiguousarray(gt)).permute(2,0,1).to(raw.device)
+                h_gt = highpass(gt_tensor, lr_size)
+                def detail_metrics(reference):
+                    delta = (h_raw - reference).double()
+                    l1 = delta.abs().mean(0).cpu().numpy()
+                    mse = delta.square().mean(0).cpu().numpy()
+                    return {name: {'l1': legacy.masked_mean(l1, mask), 'mse': legacy.masked_mean(mse, mask),
+                                   'pixel_count': int(mask.sum())} for name, mask in masks.items()}
+                h_hr = detail_metrics(h_gt)
+                h_teacher = None
+                teacher_sha = None
+                if args.split == 'train_fixed':
+                    matches = [v for v in teacher_config['teacher_inputs']
+                               if (v['camera'], v['frame']) == (camera, observation['frame_index'])]
+                    if len(matches) != 1:
+                        raise ValueError('Original fixed16 teacher record missing/duplicated')
+                    teacher_path = Path(manifest['_root']) / args.prior_subdir / camera / Path(observation['lr_path']).name
+                    teacher_sha = legacy.file_sha(teacher_path)
+                    if teacher_sha != matches[0]['sha256']:
+                        raise ValueError('Train teacher identity mismatch')
+                    teacher = legacy.read_rgb(teacher_path)
+                    if teacher.shape != gt.shape:
+                        raise ValueError('Train teacher shape mismatch')
+                    teacher_tensor = torch.from_numpy(np.ascontiguousarray(teacher)).permute(2,0,1).to(raw.device)
+                    h_teacher = detail_metrics(highpass(teacher_tensor, lr_size))
+                row = {'camera_id': camera, 'frame_index': observation['frame_index'], 'time': observation['time'],
+                        'render_seconds': render_s, 'postprocess_cost': post_stats,
+                        'h_hr': h_hr, 'h_teacher': h_teacher or {},
+                        'train_teacher_sha256': teacher_sha,
+                        'registered_roi_names': [n for n in masks if n.startswith('roi:')],
+                        'spatial': legacy.spatial_metrics(pred, gt, dynamic, metric, args.lpips_device),
+                        'lr_reprojection': lr_reprojection_metrics(raw, observed_lr, dynamic),
+                        'observed_lr_sha256': observation['lr_sha256'],
+                        'render_clipped_fraction': float(((raw < 0) | (raw > 1)).float().mean())}
+                if previous_pred is not None and args.split != 'train_fixed':
+                    pair = cache_info[camera]['flow_pairs'][index - 1]
+                    if pair['previous_frame'] != records[index - 1]['frame_index'] or pair['current_frame'] != observation['frame_index']:
+                        raise ValueError('Flow-cache pair identity mismatch')
+                    with np.load(caches[camera] / pair['file'], allow_pickle=False) as values:
+                        flow, valid = legacy.full_flow(values['backward'], values['valid'], height, width)
+                    row['temporal'] = legacy.temporal_metrics(previous_pred, pred, previous_gt, gt, flow, valid, dynamic)
+                legacy.write_rgb(args.out / 'predictions' / camera / f'{observation["frame_index"]:04d}.png', pred)
+                rows.append(row)
+                previous_pred, previous_gt = pred, gt
+                if (index + 1) % 10 == 0:
+                    print(f'EVAL {args.split} {camera} {index + 1}/{len(records)}', flush=True)
+    result = {**base, 'rows': rows, 'aggregate': legacy.aggregate(rows, 'spatial'),
+              'temporal_aggregate': legacy.aggregate(rows, 'temporal'),
+              'h_hr_aggregate': legacy.aggregate(rows, 'h_hr'),
+              'h_teacher_aggregate': legacy.aggregate(rows, 'h_teacher'),
+              'postprocess_cost': postprocessor.cost_summary() if postprocessor is not None else None,
+              'lr_reprojection_aggregate': legacy.aggregate(rows, 'lr_reprojection'),
+              'by_camera': {c: {'aggregate': legacy.aggregate([r for r in rows if r['camera_id'] == c], 'spatial'),
+                                 'temporal_aggregate': legacy.aggregate([r for r in rows if r['camera_id'] == c], 'temporal'),
+                                 'lr_reprojection_aggregate': legacy.aggregate([r for r in rows if r['camera_id'] == c], 'lr_reprojection')}
+                            for c in cameras},
+              'lpips_status': 'explicitly_skipped' if args.skip_lpips else 'alex_v0.1_standard_full_and_fixed_mask_spatial_map',
+              'metric_definitions': {
+                  'psnr': 'Legacy RGB [0,1], no shaving; equal-frame mean PSNR; pooled MSE PSNR separately named',
+                  'ssim': 'Legacy RGB mean 11x11 Gaussian sigma1.5 population SSIM; outer5 excluded; real full-image map',
+                  'lpips': 'Full uses standard scalar AlexNet v0.1 LPIPS. Dynamic/static average the spatial=True map computed from the COMPLETE unmasked RGB pair. Outside-mask RGB is never zeroed; outside-mask receptive-field context is retained. Region means cannot reconstruct standard scalar full LPIPS.',
+                  'regions': 'Full-scene RGB is primary. Dynamic is fixed HR temporal std>.025 by default, open3/close5/dilate5; static is its complement. Time-changing proxy only, not human/semantic segmentation; evaluation-only.',
+                  'temporal': 'Legacy mean abs((P_t-warp(P_prev))-(GT_t-warp(GT_prev))) on fixed GT DIS valid correspondences; same camera only; valid coverage reported; not geometry accuracy',
+                  'lr_reprojection': LR_PROTOCOL,
+                  'detail_error': 'Mean RGB absolute/squared difference of signed H(raw render) and H(HR), plus H(train teacher) only on original fixed16. Apply H on full images then aggregate; fixed ROIs only where previously registered, no cam01 ROI invented. Lower is better, not texture authenticity proof.',
+                  'std_frames': 'Descriptive over correlated frames/pairs; not independent-sample uncertainty'},
+              'dynamic_threshold': args.dynamic_threshold, 'flow_scale': args.flow_scale,
+              'render_seconds': render_seconds, 'render_seconds_per_frame': render_seconds / len(rows),
+              'render_timing': 'CUDA-synchronized render_model only, includes first frame; excludes camera construction, CPU copies, metrics and I/O; not end-to-end FPS',
+              'elapsed_seconds': time.monotonic() - started, 'parameter_updates': 0}
+    legacy.write_json(result_path, result)
+    legacy.write_json(args.out / 'complete.json', {'status': 'completed_evaluation', 'metrics_sha256': legacy.file_sha(result_path),
+                                                  'checkpoint_sha256': base['checkpoint_sha256'], 'observations': len(rows),
+                                                  'split': args.split, 'method': base['method'], 'parameter_updates': 0})
+    print(json.dumps({'path': str(result_path), 'aggregate': result['aggregate'],
+                      'temporal': result['temporal_aggregate']}, ensure_ascii=False), flush=True)
+
+
+if __name__ == '__main__':
+    main()

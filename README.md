@@ -30,3 +30,7 @@ This is research code, including historical pilots and negative controls. The cu
 ## Updates
 
 The publication boundary and update procedure are in [PROJECT_GUIDELINES.md](PROJECT_GUIDELINES.md). Completed, checked changes to the non-HOI SR code are synced to this repository promptly from the private research workspace.
+
+## Fixed geometry-residual prototype
+
+`experiments/dynamic_sr_geometry_residual_20260924/` adds matched eight-term Legendre or cubic B-spline world-center residuals to previously split children after the shared 4DGaussians deformation. The coefficients share the original world-position learning-rate schedule and use the unchanged full-camera U supervision. It depends on the preceding detail-supervision and motion-refinement adapters, externally installed 4DGaussians/CUDA extensions, and private prepared manifests, frozen teacher caches and LR-parent checkpoints. This is a controlled short-window development prototype, not a full reproduction of Gaussian-Flow or SplineGS, and the source alone does not establish a quality gain.
