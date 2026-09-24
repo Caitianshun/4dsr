@@ -11,6 +11,7 @@ This repository publishes the **code and necessary text configuration** for the 
 | `experiments/dynamic_sr_motion_bound_20260923` | Spatial splitting and parent-motion experiments |
 | `experiments/dynamic_sr_scene_residual_20260923` | Scene residual experiment |
 | `experiments/dynamic_sr_soft_motion_20260924` | Soft motion constraint experiment |
+| `experiments/dynamic_sr_multi4d_20260924` | Pinned Multi4D LR/SR adapters, full-state validation, and extended Wu controls |
 | `experiments/sr4d_20260922` | SR4D comparison adapters and evaluation |
 | `experiments/dynamic_sr_surface_20260923` | Archived non-HOI ZJU single-person exploration; **not** evidence for the current full-scene route |
 | `deployment/` | Host-specific setup and run scripts; paths and device identifiers describe the original machines |
@@ -34,3 +35,11 @@ The publication boundary and update procedure are in [PROJECT_GUIDELINES.md](PRO
 ## Fixed geometry-residual prototype
 
 `experiments/dynamic_sr_geometry_residual_20260924/` adds matched eight-term Legendre or cubic B-spline world-center residuals to previously split children after the shared 4DGaussians deformation. The coefficients share the original world-position learning-rate schedule and use the unchanged full-camera U supervision. It depends on the preceding detail-supervision and motion-refinement adapters, externally installed 4DGaussians/CUDA extensions, and private prepared manifests, frozen teacher caches and LR-parent checkpoints. This is a controlled short-window development prototype, not a full reproduction of Gaussian-Flow or SplineGS, and the source alone does not establish a quality gain.
+
+## Multi4D and longer Wu validation
+
+The Multi4D adapter requires a separate checkout of [the author repository](https://github.com/BatFaceWayne/Multi4D) at `c483e82cd8daa1b4fdc460ed45882fc2fe7a22b0`, its DyNeRF configuration, and independently compiled native CUDA extensions. `prepare_upstream.py` applies explicit compiler headers and confirmed hybrid-rasterizer fixes (an unwritten backward cutoff statistic and empty transient-branch handling). `multi_data.py` also replaces an undefined singleton KNN scale with the scale of the corresponding persistent seed. These changes are disclosed adaptations; this is not an unchanged author implementation.
+
+`build_adapter.py` generates the training adapter from the pinned source. It retains the native three-branch model, controls and losses while projecting HR renders onto observed LR targets. The optional teacher term uses frozen SR images from the same two training samples. The scripts prepare a legal frame-zero LR cloud, save/reload complete three-branch states, check gradients and phase transitions, and evaluate fixed endpoints. The Wu continuation retains the original learning-rate schedule and exact existing training prefix. Full inference-state archives include all branches, networks and fixed buffers, separately from Adam/training checkpoints; they are explicit-schema archives, not upstream PLY exports or a compressed codec.
+
+Use an isolated environment for Multi4D, set `MULTI4D_UPSTREAM`, and supply manifests, teacher inventories, checkpoints and run specifications separately. Local service/GPU paths in the orchestration scripts describe the original workspace and must be configured for another host. Neither training launch nor engineering preflight is evidence of an SR quality gain; final comparisons require fixed-view metrics, visual review and cost analysis.

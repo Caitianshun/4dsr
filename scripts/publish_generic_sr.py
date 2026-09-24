@@ -29,6 +29,7 @@ EXPERIMENTS = (
     "dynamic_sr_detail_supervision_20260924",
     "dynamic_sr_geometry_residual_20260924",
     "dynamic_sr_motion_bound_20260923",
+    "dynamic_sr_multi4d_20260924",
     "dynamic_sr_scene_residual_20260923",
     "dynamic_sr_soft_motion_20260924",
     "dynamic_sr_surface_20260923",
