@@ -1,0 +1,6 @@
+#!/usr/bin/env bash
+set -euo pipefail
+export FOURDSR_ROOT=/home/ubuntu/3DGS/4dsr
+source /home/ubuntu/3DGS/4dsr/activate_a100.sh
+cd /home/ubuntu/3DGS/4dsr/runs/soft_motion_20260924
+exec /home/ubuntu/3DGS/4dsr/.venv/bin/python /home/ubuntu/3DGS/4dsr/runs/soft_motion_20260924/experiments/dynamic_sr_soft_motion_20260924/run_job.py --manifest /home/ubuntu/3DGS/4dsr/runs/soft_motion_20260924/data/dynamic_sr/n3dv_prepared/cook_spinach/manifest.json --parent /home/ubuntu/3DGS/4dsr/checkpoints/bootstrap/cook_spinach/checkpoint_integrated.pt --out /home/ubuntu/3DGS/4dsr/runs/soft_motion_20260924/output/dynamic_sr_soft_motion_20260924/cook_S_a100_v1 --method S --train-gpu GPU-5c08f287-3ffd-edf9-91ed-cd6db2690f3b --eval-gpu GPU-5c08f287-3ffd-edf9-91ed-cd6db2690f3b --prior-cameras cam02,cam06,cam12,cam18 --selection /home/ubuntu/3DGS/4dsr/runs/soft_motion_20260924/output/dynamic_sr_soft_motion_20260924/cook_selection_v1/selection.pt --reference /home/ubuntu/3DGS/4dsr/runs/soft_motion_20260924/output/dynamic_sr_soft_motion_20260924/cook_reference_v1/reference.pt --calibration /home/ubuntu/3DGS/4dsr/runs/soft_motion_20260924/output/dynamic_sr_soft_motion_20260924/cook_reference_v1/calibration.json

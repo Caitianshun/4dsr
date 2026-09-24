@@ -1,0 +1,6 @@
+#!/usr/bin/env bash
+set -euo pipefail
+export FOURDSR_ROOT=/home/ubuntu/3DGS/4dsr
+source /home/ubuntu/3DGS/4dsr/activate_a100.sh
+cd /home/ubuntu/3DGS/4dsr/runs/soft_motion_20260924
+exec /home/ubuntu/3DGS/4dsr/.venv/bin/python /home/ubuntu/3DGS/4dsr/runs/soft_motion_20260924/experiments/dynamic_sr_soft_motion_20260924/run_job.py --manifest /home/ubuntu/3DGS/4dsr/runs/soft_motion_20260924/data/dynamic_sr/meetroom_prepared/discussion/manifest.json --parent /home/ubuntu/3DGS/4dsr/checkpoints/bootstrap/meetroom_discussion/checkpoint_integrated.pt --out /home/ubuntu/3DGS/4dsr/runs/soft_motion_20260924/output/dynamic_sr_soft_motion_20260924/discussion_S_a100_v1 --method S --train-gpu GPU-b79cd3fe-81f0-f449-30be-432e2857e517 --eval-gpu GPU-b79cd3fe-81f0-f449-30be-432e2857e517 --prior-cameras cam02,cam04,cam08,cam12 --selection /home/ubuntu/3DGS/4dsr/runs/soft_motion_20260924/output/dynamic_sr_motion_bound_20260923/selection_v1/selection.pt --reference /home/ubuntu/3DGS/4dsr/runs/soft_motion_20260924/output/dynamic_sr_soft_motion_20260924/discussion_reference_v1/reference.pt --calibration /home/ubuntu/3DGS/4dsr/runs/soft_motion_20260924/output/dynamic_sr_soft_motion_20260924/discussion_reference_v1/calibration.json
