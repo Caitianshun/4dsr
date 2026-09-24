@@ -153,7 +153,7 @@
     "experiments/dynamic_sr_geometry_residual_20260924/evaluate.py": "4ec1ea15d045c27906ff36b72c86acbdd83ee12195369ea8fd9a3b3ddc2267b4",
     "experiments/dynamic_sr_geometry_residual_20260924/finalize.py": "8d3f917533086d794f0d8c9435d9961b84ef6f2d1821d4e0cd912d159af01187",
     "experiments/dynamic_sr_geometry_residual_20260924/geometry_model.py": "231cc97440fdf6c5628e907bde47bf019f9ba21e37d2ab79fbaf372793432859",
-    "experiments/dynamic_sr_geometry_residual_20260924/package_evidence.py": "a855197d38da04a901c9600b6209d50ade820f51ba9acd96bad0dcb93fad8f43",
+    "experiments/dynamic_sr_geometry_residual_20260924/package_evidence.py": "65a2a71ac89c85ac52e44b347c81f4ecea806d8e56b54521a621bcf32ad20b5e",
     "experiments/dynamic_sr_geometry_residual_20260924/package_inference.py": "73603f2c30870c1c6230e0c66fc09ad3fd1e1286bc18c8ed30d67953d035d299",
     "experiments/dynamic_sr_geometry_residual_20260924/remote_batch.py": "459147ced6a8799d52bb4702ffdaf14ce573185fe91b3a25ec23fd6fa02de0b8",
     "experiments/dynamic_sr_geometry_residual_20260924/report_tables.py": "121b416517f72a1a8d52d76e6dfed2954bf8463685ebe08009232319c0bd0a9a",

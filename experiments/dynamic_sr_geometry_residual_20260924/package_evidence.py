@@ -22,7 +22,7 @@ def main():
         for name in ['G','L']:
             folder=Path(mapping[name]['train_dir'])
             files += [folder/'config.json',folder/'complete.json',folder/'training.jsonl',folder/'residual_statistics_1200.json',folder/'residual_statistics_6000.json']
-    files += [ROOT/'docs/dynamic_sr_geometry_residual_2026-09-24.md',ROOT/'docs/dynamic_sr_geometry_residual_2026-09-24.codex.md',OUT/'user_plan.md',OUT/'implementation_freeze_v1.json',OUT/'checks_cook_v3/checks.json',OUT/'cts_deployment_v1/checks_discussion.json']
+    files += [OUT/'result_tables.md', OUT/'environment_local.json', OUT/'environment_cts.json', OUT/'cts_deployment_v1/checks_discussion_failed.log', OUT/'checks_cook_v1.log', OUT/'checks_cook_v2.log', ROOT/'docs/dynamic_sr_geometry_residual_2026-09-24.md',ROOT/'docs/dynamic_sr_geometry_residual_2026-09-24.codex.md',OUT/'user_plan.md',OUT/'implementation_freeze_v1.json',OUT/'checks_cook_v3/checks.json',OUT/'cts_deployment_v1/checks_discussion.json']
     files += list((ROOT/'docs/assets/codex_math/dynamic_sr_geometry_residual_2026-09-24').glob('*'))
     files += list(Path(__file__).parent.glob('*.py'))
     for name in ['decision.json','checkpoint_index.json','protocol_integrity.json','publication_receipt.json']:
