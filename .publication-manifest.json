@@ -176,6 +176,7 @@
     "experiments/dynamic_sr_motion_bound_20260923/summarize_confirmation.py": "d0f81c65e2a009328c562b8b4f105125f0442e1bfe2331a441394777df903aa4",
     "experiments/dynamic_sr_motion_bound_20260923/train.py": "5ee33c25d822a3ae5b64f6c5c5114ee649a458fa008425481f5ce561ea8378df",
     "experiments/dynamic_sr_multi4d_20260924/after_exit.py": "ba6fa5889bea0ab86625c13df4b0fb5800a4216564e5f0b0908a814532d5e616",
+    "experiments/dynamic_sr_multi4d_20260924/audit_completion.py": "5a30893cc8fc03a4af2ad4f7379a8e514184cad05369a763cb494722f4976185",
     "experiments/dynamic_sr_multi4d_20260924/build_adapter.py": "9774d5490c2183cec8425bd1ccbfff03588b3e6b915abca9d5d9f82969644d4d",
     "experiments/dynamic_sr_multi4d_20260924/export_views.py": "7010a241e1f8dcc05fc1124d9fc148160369b1d4287a6a540ca77660765ec003",
     "experiments/dynamic_sr_multi4d_20260924/finalize.py": "675bc86923ebbe2b9a5c42b543b4ae4123e6b9f4c959475b3d41770b902a2570",
