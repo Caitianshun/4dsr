@@ -12,6 +12,7 @@ This repository publishes the **code and necessary text configuration** for the 
 | `experiments/dynamic_sr_scene_residual_20260923` | Scene residual experiment |
 | `experiments/dynamic_sr_soft_motion_20260924` | Soft motion constraint experiment |
 | `experiments/dynamic_sr_multi4d_20260924` | Pinned Multi4D LR/SR adapters, full-state validation, and extended Wu controls |
+| `experiments/dynamic_sr_controlled_headroom_20260926` | Fixed-topology Z/U/O teacher-removal and privileged training-HR supervision controls |
 | `experiments/sr4d_20260922` | SR4D comparison adapters and evaluation |
 | `experiments/dynamic_sr_surface_20260923` | Archived non-HOI ZJU single-person exploration; **not** evidence for the current full-scene route |
 | `deployment/` | Host-specific setup and run scripts; paths and device identifiers describe the original machines |
@@ -43,3 +44,9 @@ The Multi4D adapter requires a separate checkout of [the author repository](http
 `build_adapter.py` generates the training adapter from the pinned source. It retains the native three-branch model, controls and losses while projecting HR renders onto observed LR targets. The optional teacher term uses frozen SR images from the same two training samples. The scripts prepare a legal frame-zero LR cloud, save/reload complete three-branch states, check gradients and phase transitions, and evaluate fixed endpoints. The Wu continuation retains the original learning-rate schedule and exact existing training prefix. Full inference-state archives include all branches, networks and fixed buffers, separately from Adam/training checkpoints; they are explicit-schema archives, not upstream PLY exports or a compressed codec.
 
 Use an isolated environment for Multi4D, set `MULTI4D_UPSTREAM`, and supply manifests, teacher inventories, checkpoints and run specifications separately. Local service/GPU paths in the orchestration scripts describe the original workspace and must be configured for another host. Neither training launch nor engineering preflight is evidence of an SR quality gain; final comparisons require fixed-view metrics, visual review and cost analysis.
+
+## Controlled teacher increment and supervision headroom
+
+`experiments/dynamic_sr_controlled_headroom_20260926/` holds a fixed Wu split topology, paired LR/SR camera streams and the original continuation schedule constant. Z retains the second render and graph-connected zero backward without reading SR/HR targets. U uses the existing frozen SwinIR target with weight 0.1. O substitutes only the legal training-camera HR target at the same weight and is always labeled **privileged**; it is a diagnostic, not an LR-only method or a guaranteed upper bound. Shared point selection previously used teacher gradients, so Z removes subsequent teacher loss rather than all historical teacher information.
+
+The entrypoints save/restore complete optimizer, sampler and RNG state, evaluate registered update endpoints, add fixed-training-view teacher RGB errors, and use process-exit events for result return and uniform evaluation. Supply the original manifests, selection/checkpoints, frozen sampling/LR records and target inventories separately. `prepare.py` validates the common start, `train.py` accepts the fixed intervention, and orchestration scripts consume workspace-specific JSON specifications. These private run assets and result artifacts are intentionally excluded. Original metric/video helpers and external Wu dependencies remain required; this code does not claim a successful scientific result.
