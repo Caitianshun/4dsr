@@ -1,5 +1,6 @@
 """Wait once on controller process exit, verify artifacts, export fixed visuals."""
 import argparse
+import ctypes
 import hashlib
 import json
 import os
@@ -17,13 +18,30 @@ def sha(p):return hashlib.sha256(Path(p).read_bytes()).hexdigest()
 def write(p,v):
     p=Path(p);p.parent.mkdir(parents=True,exist_ok=True);tmp=p.with_suffix('.tmp');tmp.write_text(json.dumps(v,indent=2));tmp.replace(p)
 
+def open_pidfd(pid):
+    """Use the Linux process-exit event on Python builds without os.pidfd_open."""
+    if hasattr(os,'pidfd_open'):
+        return os.pidfd_open(pid)
+    libc=ctypes.CDLL(None,use_errno=True)
+    function=libc.pidfd_open
+    function.argtypes=[ctypes.c_int,ctypes.c_uint];function.restype=ctypes.c_int
+    fd=function(pid,0)
+    if fd<0:
+        error=ctypes.get_errno();raise OSError(error,os.strerror(error))
+    return fd
+
 def main():
-    parser=argparse.ArgumentParser();parser.add_argument('--pid',type=int,required=True);a=parser.parse_args()
-    out=OUT/'final_v1';out.mkdir(exist_ok=False);started=time.time()
+    parser=argparse.ArgumentParser();parser.add_argument('--pid',type=int,required=True)
+    parser.add_argument('--out',type=Path,default=OUT/'final_v1');a=parser.parse_args()
+    out=a.out;out.mkdir(exist_ok=False);started=time.time()
     write(out/'status.json',dict(status='waiting_for_controller_exit',pid=os.getpid(),controller_pid=a.pid))
     try:
-        try:fd=os.pidfd_open(a.pid)
-        except ProcessLookupError:fd=None
+        # Completed durable state takes precedence over a historical, possibly reused PID.
+        controller=read(OUT/'controller_v1/status.json')
+        fd=None
+        if controller['status']!='completed':
+            try:fd=open_pidfd(a.pid)
+            except ProcessLookupError:pass
         if fd is not None:
             try:poll=select.poll();poll.register(fd,select.POLLIN);poll.poll()
             finally:os.close(fd)
