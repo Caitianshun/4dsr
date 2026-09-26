@@ -131,6 +131,7 @@
     "experiments/dynamic_sr_20260923/teacher_model_pipeline_audit.py": "cf4673a27bb3a7dc526fd0bd16eebdf775eeeb595c02323d297db71b062e830e",
     "experiments/dynamic_sr_20260923/temporal_sharing.py": "75fb96b73f885b2169140ecc5c7315bb14757188eb5e3767a8c51ca8c694d013",
     "experiments/dynamic_sr_20260923/train_sharing_control.py": "ab856d408b12f5ff53c6ff238330de28c08c1ed9a93611523fe06237ef5a4111",
+    "experiments/dynamic_sr_controlled_headroom_20260926/audit_completion.py": "0ffe68a43b812cd2de5609973296e48b9cbc157ed678ae480d8f0c131215c485",
     "experiments/dynamic_sr_controlled_headroom_20260926/evaluate.py": "6a09498c2eafe583d923de0e7adb6f120c1e63f12c2676b15f221109ac5521a2",
     "experiments/dynamic_sr_controlled_headroom_20260926/export_views.py": "76b4661ead0732c29848d2b11bea5a4d8b45a795026b6181bca8fa5483793727",
     "experiments/dynamic_sr_controlled_headroom_20260926/finalize.py": "24d67abafd75493372a2d90a92edcb80b9fb11d50ebf8bfb1bafc50f431d4e64",
