@@ -1,0 +1,90 @@
+"""Wait once on controller process exit, verify artifacts, export fixed visuals."""
+import argparse
+import ctypes
+import hashlib
+import json
+import os
+from pathlib import Path
+import select
+import subprocess
+import sys
+import time
+import traceback
+
+ROOT=Path(__file__).resolve().parents[2];OUT=ROOT/'output/dynamic_sr_prior_guidance_20260927'
+
+def read(p):return json.loads(Path(p).read_text())
+def sha(p):return hashlib.sha256(Path(p).read_bytes()).hexdigest()
+def write(p,v):
+    p=Path(p);p.parent.mkdir(parents=True,exist_ok=True);tmp=p.with_suffix('.tmp');tmp.write_text(json.dumps(v,indent=2));tmp.replace(p)
+
+def open_pidfd(pid):
+    """Use the Linux process-exit event on Python builds without os.pidfd_open."""
+    if hasattr(os,'pidfd_open'):
+        return os.pidfd_open(pid)
+    libc=ctypes.CDLL(None,use_errno=True)
+    function=libc.pidfd_open
+    function.argtypes=[ctypes.c_int,ctypes.c_uint];function.restype=ctypes.c_int
+    fd=function(pid,0)
+    if fd<0:
+        error=ctypes.get_errno();raise OSError(error,os.strerror(error))
+    return fd
+
+def main():
+    parser=argparse.ArgumentParser();parser.add_argument('--pid',type=int,required=True)
+    parser.add_argument('--out',type=Path,default=OUT/'final_v1');a=parser.parse_args()
+    out=a.out;out.mkdir(exist_ok=False);started=time.time()
+    write(out/'status.json',dict(status='waiting_for_controller_exit',pid=os.getpid(),controller_pid=a.pid))
+    try:
+        # Completed durable state takes precedence over a historical, possibly reused PID.
+        controller=read(OUT/'controller_v1/status.json')
+        fd=None
+        if controller['status']!='completed':
+            try:fd=open_pidfd(a.pid)
+            except ProcessLookupError:pass
+        if fd is not None:
+            try:poll=select.poll();poll.register(fd,select.POLLIN);poll.poll()
+            finally:os.close(fd)
+        controller=read(OUT/'controller_v1/status.json');assert controller['status']=='completed',controller
+        methods=read(OUT/'methods.json')['methods'];new_names=list(methods)
+        old=read(ROOT/'output/dynamic_sr_controlled_headroom_20260926/final_v1/methods.json')['methods']
+        methods={**{k:old[k] for k in ['U6000']},**methods}
+        write(out/'methods.json',dict(methods=methods));audits=[]
+        schedule=read(OUT/'protocol.json')['schedule'];schedule=read(schedule['path']);frozen=[]
+        for name in new_names:
+            item=methods[name];cp=Path(item['checkpoint']);train=Path(item['train_dir']);config=read(train/'config.json');complete=read(train/'complete.json');step=item['updates']
+            assert sha(cp)==item['sha256']==read(train/f'checkpoint_{step}.json')['sha256']
+            h=hashlib.sha256()
+            for li,si,_ in schedule['rows'][:step]:h.update(f'{li},{si}\n'.encode())
+            assert complete['metadata']['draw_sha256']==h.hexdigest()
+            assert complete['actual_updates']==step-config['segment_start']
+            for source in config['sources']:assert sha(source['path'])==sha(source['snapshot'])==source['sha256']
+            reads=read(train/'image_reads.json')['actual_high_resolution_opens']
+            allowed={str((ROOT/'data/dynamic_sr/n3dv_prepared/cook_spinach'/e['relative_path']).resolve()) for e in config['target_inputs']}
+            assert set(reads)<=allowed and all('/sr_swinir_x4/' in p for p in reads)
+            check=read(train/'routing_audit.json');assert len(check['checks'])>=2
+            assert all(q['topology_unchanged'] and q['lr_full_path'] and q['finite'] for q in check['checks'])
+            assert config['policy']['actual_trainable']==10307903
+            for split,path in item['evaluations'].items():
+                folder=Path(path);receipt=read(folder/'complete.json');metric=read(folder/'metrics.json')
+                assert receipt['metrics_sha256']==sha(folder/'metrics.json')
+                assert metric['checkpoint_sha256']==sha(cp) and len(metric['rows'])==(16 if split=='train_fixed' else 60)
+                assert metric['gpu']==config['gpu']
+                audits.append(dict(method=name,split=split,metrics_sha256=sha(folder/'metrics.json'),observations=len(metric['rows'])))
+            metric=read(Path(item['train76'])/'metrics.json');assert len(metric['rows'])==76 and metric['checkpoint_sha256']==sha(cp)
+            audits.append(dict(method=name,split='train76',observations=76,metrics_sha256=sha(Path(item['train76'])/'metrics.json')))
+        fork_sha=methods['shared_17550']['sha256']
+        assert all(read(Path(methods[k+'_18000']['train_dir'])/'config.json')['resume_sha256']==fork_sha for k in ['C_joint','P_late','A_late'])
+        write(OUT/'artifact_audit.json',dict(status='passed',evaluations=audits,same_fork_sha256=fork_sha,completed_unix=time.time(),
+            sampling_suffix_equal=True,original_source_unchanged=True,image_read_boundary_passed=True))
+        write(out/'status.json',dict(status='exporting_fixed_views',pid=os.getpid()))
+        p=read(OUT/'protocol.json');roi=ROOT/'output/dynamic_sr_soft_motion_20260924/roi_registry/cook_spinach/roi_protocol.json'
+        command=[sys.executable,'-u',str(Path(__file__).with_name('export_views.py')),'--manifest',p['manifest']['path'],'--methods',str(out/'methods.json'),
+            '--teacher-index',p['teacher']['path'],'--roi-protocol',str(roi),'--out',str(out/'views')]
+        with (out/'export.log').open('w') as log:subprocess.run(command,cwd=ROOT,stdout=log,stderr=subprocess.STDOUT,check=True)
+        write(out/'status.json',dict(status='completed_pending_visual_scientific_review',seconds=time.time()-started,completed_unix=time.time(),
+            auto_report='metrics and fixed images ready; no claim of chat notification or human visual review'))
+    except BaseException:
+        write(out/'status.json',dict(status='failed',traceback=traceback.format_exc()));raise
+
+if __name__=='__main__':main()
