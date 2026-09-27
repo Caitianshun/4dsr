@@ -3,7 +3,7 @@
   "sha256": {
     ".gitignore": "4d8f0d3abdeb43a5c0abfcd62bf5d0a9399e99bda4e8bc0caa1e6b6ba97a673b",
     "PROJECT_GUIDELINES.md": "5484840c4474733e04a6a2ebc54c071fba99250e6d41b7439366da59f5d5b17a",
-    "README.md": "5e6ad0f6d686fa8228f71a3dec7a224dada0eef6debb6d8874c0843b670779e5",
+    "README.md": "1010f7f4bb29f2533bd5bbfb52d6a03071b9bbeb8880792fc3caf0d6f18b5e60",
     "deployment/a100_20260920/acquire_public_data.py": "978c24120a003144f57463f76bd6f625ed41c2599d5ef052b9fd24251521783b",
     "deployment/a100_20260920/activate_a100.sh": "06f6f786d6657353c1d6d40732bffd1869b5768acec7d4aa25ae4342faa94661",
     "deployment/a100_20260920/finalize_deployment.py": "5b82f2a66c0dbf61ba407f195f441a76e1cd421f8269203c81abd521aabfeca8",
@@ -131,6 +131,20 @@
     "experiments/dynamic_sr_20260923/teacher_model_pipeline_audit.py": "cf4673a27bb3a7dc526fd0bd16eebdf775eeeb595c02323d297db71b062e830e",
     "experiments/dynamic_sr_20260923/temporal_sharing.py": "75fb96b73f885b2169140ecc5c7315bb14757188eb5e3767a8c51ca8c694d013",
     "experiments/dynamic_sr_20260923/train_sharing_control.py": "ab856d408b12f5ff53c6ff238330de28c08c1ed9a93611523fe06237ef5a4111",
+    "experiments/dynamic_sr_attribute_routing_20260928/dv_common.py": "464aa68b47a717807eaccc2a4478db42cdf89f840c5bc0105554d5199afaaaee",
+    "experiments/dynamic_sr_attribute_routing_20260928/evaluate_endpoint.py": "ec004c89f43ea7f33a878ac2d91a4aa7d809364c8a8298cb1549271807695e27",
+    "experiments/dynamic_sr_attribute_routing_20260928/quality.py": "0bfdbad18db4b5083bbc77bdc51c2e4545b23d3936f783d5b79a35bae3949f0e",
+    "experiments/dynamic_sr_attribute_routing_20260928/readiness.py": "1bb701b58bfb63483da01cd4c948dbd62b1297456c47e1bb911321fb61ebc4d3",
+    "experiments/dynamic_sr_attribute_routing_20260928/register.py": "8b3a52e92456571475815694219c6518d6093acb56ea22d5174dc4842098eca2",
+    "experiments/dynamic_sr_attribute_routing_20260928/remote_task.py": "4bf937d541ee4c9c33628ce6d18f699fe99aa8e766ebbdd641283adfce739c69",
+    "experiments/dynamic_sr_attribute_routing_20260928/run_batch.py": "804d8aa77b6847580351d99b2792c3610b3d76111618f01e1c00fa5373ed5d61",
+    "experiments/dynamic_sr_attribute_routing_20260928/schedule.py": "581f05a4ce05ffff075047e6174e2f30eb9f9ecb995acd2b3a11f2378689491d",
+    "experiments/dynamic_sr_attribute_routing_20260928/service_wait.py": "637d396ed65ce23d4aeef63857042e006f170f2203bf188395be397fb413c9e9",
+    "experiments/dynamic_sr_attribute_routing_20260928/sr_attribute_router.py": "8b89dd2a90fa6046911bce3e7f83c43a51b0e766ef3e0b44c4d0f3ecc85b72a2",
+    "experiments/dynamic_sr_attribute_routing_20260928/task_state.py": "01fc6367490724225dbbb56915e69c0f2c8daef579d4d15b97ffd0b8b5acfb19",
+    "experiments/dynamic_sr_attribute_routing_20260928/test_controls.py": "9a3399846de216e5b0787d09ad43ff755cfeacae640728b134df8061411a303f",
+    "experiments/dynamic_sr_attribute_routing_20260928/train.py": "c90bdd51496228f117226c4add6ad87fca888daa10fcd70ddcc6f579565e306c",
+    "experiments/dynamic_sr_attribute_routing_20260928/train76.py": "b901b29db8787d2547fd18214afdea150998fc3bb1a0ab24aa58e1f7688bfb9d",
     "experiments/dynamic_sr_conflict_probe_20260927/decide.py": "6a5a2f390d0746d92dd3efb3f10570d606954ed26634c7354851305399324cb0",
     "experiments/dynamic_sr_conflict_probe_20260927/engineering.py": "3e598dd08722c1ba7d9fef9c19837c7e6b9bdf3c53d2dbef9d68ecfc54dc4236",
     "experiments/dynamic_sr_conflict_probe_20260927/evaluate_probe.py": "1a2b64af4179377c54de4dd4dea8bf1bf3ad9ab3fd4bec204c0aa8082512bb3e",
@@ -342,7 +356,7 @@
     "experiments/sr4d_20260922/summarize_minimal.py": "8e2e3e7c1c331e6651b72a1dc84db585d88bc85e0007a7aca44e700d0145d057",
     "experiments/sr4d_20260922/train_sr4d.py": "0f12fb92c513b135a31d3578dc11b36fcb15ae9101a848361ccc9f184f22ae8f",
     "experiments/sr4d_20260922/wu_entry.py": "57e74af4ea68ef3c485735179d0d15f7b2eec5245d670e9aa88e4fd7eabd05a9",
-    "scripts/publish_generic_sr.py": "7d96afb095f4d68ef00e146cb4599f6f7afd38d7999b6a9f1cd9b2c68414789f",
+    "scripts/publish_generic_sr.py": "834099ad71bc9efd5e9050c20c7f031f538b918156326e03fea3d212d2d75b05",
     "scripts/summarize_quality_headroom_20260923.py": "bbc8e37ad918ec6055f4b79df37ec8d9b50db4828ab2f8587155d6d0a1d468b2"
   }
 }

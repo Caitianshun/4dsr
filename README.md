@@ -152,3 +152,21 @@ The repository contains source only. The parent checkpoint, frozen teacher cache
 input manifest, registered protocols, and evaluation assets must be supplied
 separately; the controller is specific to the documented local/A100 deployment.
 A complete success-path orchestration was not executed after the failed gate.
+
+### Paired SR attribute routing experiment
+
+`experiments/dynamic_sr_attribute_routing_20260928/` provides an independent
+`SRAttributeRouter` facade over the previously audited derivative arithmetic.
+The revised experiment registers both J/A/S suffix sets unconditionally, keeps
+the old numerical replay failure as a diagnostic warning, and requires a
+separate research-readiness receipt for state, data, and routing correctness.
+Full-image PSNR, SSIM, and LPIPS are all primary metrics; no auxiliary quality
+threshold controls whether the second set executes.
+
+Immutable attempts support reuse of a verified SR12000 endpoint or recovery
+from SR9000, with separate effective and actual update budgets. Persistent
+services use process-exit events for checkpoint return and uniform evaluation.
+The module adds no learnable parameters or inference operations. Two suffixes
+sharing U6000 are paired continuations, not independent from-scratch trials.
+As with the earlier experiment, all checkpoint, input, teacher, protocol, and
+evaluation assets are external to this source-only repository.
