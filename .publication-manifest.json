@@ -3,7 +3,7 @@
   "sha256": {
     ".gitignore": "4d8f0d3abdeb43a5c0abfcd62bf5d0a9399e99bda4e8bc0caa1e6b6ba97a673b",
     "PROJECT_GUIDELINES.md": "5484840c4474733e04a6a2ebc54c071fba99250e6d41b7439366da59f5d5b17a",
-    "README.md": "de3fcbc399f44b4126ab7df387a6cf9be981162b75c181bd9887fd278cfb2178",
+    "README.md": "2cf0031f986b11b1bffe73e574c69345915e8317a62e2e31afd7820ca40489ed",
     "deployment/a100_20260920/acquire_public_data.py": "978c24120a003144f57463f76bd6f625ed41c2599d5ef052b9fd24251521783b",
     "deployment/a100_20260920/activate_a100.sh": "06f6f786d6657353c1d6d40732bffd1869b5768acec7d4aa25ae4342faa94661",
     "deployment/a100_20260920/finalize_deployment.py": "5b82f2a66c0dbf61ba407f195f441a76e1cd421f8269203c81abd521aabfeca8",
@@ -154,6 +154,16 @@
     "experiments/dynamic_sr_controlled_headroom_20260926/run_segment.py": "c85f6842926e4e4209fa9a1da6a50e34ec730d91157079b5aa83bd325cc8108b",
     "experiments/dynamic_sr_controlled_headroom_20260926/summarize.py": "e74481578c129eb1b34f2aa5e79c672f778b021233bff0af316acd9d4ac19f99",
     "experiments/dynamic_sr_controlled_headroom_20260926/train.py": "16a6e05628ecc2bba44abac7aece37c439b58f7ee4ee6ddf3361f41d6432f1f9",
+    "experiments/dynamic_sr_covariance_probe_20260927/audit.py": "e4780de94d6de7530aeabd0ff78df91395c7292e55dbfce8b7411d462ad54d47",
+    "experiments/dynamic_sr_covariance_probe_20260927/common_cov.py": "4773b3def9ec94da024db06a848af58df1d556a32b23054e4ef2354d9c1e3129",
+    "experiments/dynamic_sr_covariance_probe_20260927/decide.py": "48b2997f9c01310566c5da68883664cc39593b2ba106f1cee43eaba92666ba65",
+    "experiments/dynamic_sr_covariance_probe_20260927/engineering.py": "12b95937f4bbea9036f2f102a5a9e9d6b935b730fc57469b19cde66a3e63eb25",
+    "experiments/dynamic_sr_covariance_probe_20260927/evaluate.py": "bbd39944f1865bcee8fed37989c5998ef3e0505d9798b1dbe712e83681e3d267",
+    "experiments/dynamic_sr_covariance_probe_20260927/footprint.py": "531200ca11dd023b436750ce0ffcbc0559f2a63010eab75bd647de693ca2dc60",
+    "experiments/dynamic_sr_covariance_probe_20260927/register.py": "7ea5fd1a446cebc677922dc9d4752ec6a131e8ef20b4582893ce2d056d674cf9",
+    "experiments/dynamic_sr_covariance_probe_20260927/run_stage_a.py": "c1ab97eb801a73736afc5dc7c62b0d1aadc802a5d70a9607c39459e628fa6526",
+    "experiments/dynamic_sr_covariance_probe_20260927/summarize.py": "2afc739b6901966d49eb3470df966a5d2604fd35a10ffe2627b2b85eca07b061",
+    "experiments/dynamic_sr_covariance_probe_20260927/train.py": "29e952931a7f12b361010f8e66b19fe45bd1420473624a37e8888d8afc66edd8",
     "experiments/dynamic_sr_detail_supervision_20260924/calibrate.py": "b2306bfa23d8320fd77309677b014955fa59a4b57da101987054438aaa923018",
     "experiments/dynamic_sr_detail_supervision_20260924/detail_loss.py": "ff899066cc31850486f9d6cead1f5fc7c90e6e071d217b6d21ca5a293c7e048f",
     "experiments/dynamic_sr_detail_supervision_20260924/evaluate.py": "217611f3bbbb4d5c2c3f38bb10b64a68934cb08768545512316df454d0c09e8f",
@@ -317,7 +327,7 @@
     "experiments/sr4d_20260922/summarize_minimal.py": "8e2e3e7c1c331e6651b72a1dc84db585d88bc85e0007a7aca44e700d0145d057",
     "experiments/sr4d_20260922/train_sr4d.py": "0f12fb92c513b135a31d3578dc11b36fcb15ae9101a848361ccc9f184f22ae8f",
     "experiments/sr4d_20260922/wu_entry.py": "57e74af4ea68ef3c485735179d0d15f7b2eec5245d670e9aa88e4fd7eabd05a9",
-    "scripts/publish_generic_sr.py": "c8d9a2858d8d88e95a4986eb3796355d3f05839e15df971af3c087b88cbd1b55",
+    "scripts/publish_generic_sr.py": "d1cfc226680af5089fbaeee708ee555073dfa81a41df16b9677e34bf69ae5d04",
     "scripts/summarize_quality_headroom_20260923.py": "bbc8e37ad918ec6055f4b79df37ec8d9b50db4828ab2f8587155d6d0a1d468b2"
   }
 }

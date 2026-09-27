@@ -109,3 +109,24 @@ reuse saved Adam candidates without spending additional optimizer updates.
 Prepared project-specific protocols, upstream extensions, checkpoints, teachers
 and track files must be supplied separately; the public source is not a turnkey
 benchmark and makes no claim of a positive research result.
+
+
+### Fixed-time covariance adaptation probe
+
+`experiments/dynamic_sr_covariance_probe_20260927/` loads the indexed AB600
+baked endpoint and compares 600 additional SH-only updates against SH plus
+scale/rotation updates. Both arms start with empty Adam state, use identical
+LR sampling, and preserve centers, opacity, point order and the native renderer.
+LR-defined person/interaction ROIs are evaluation-only. Full-image residuals
+are formed before cropping; HR evaluation follows a frozen training decision.
+
+The Stage A controller conditionally admits one paired repeat and records
+whether dynamic validation is eligible. It does not automatically implement
+or launch Stage B; that requires a separately verified dynamic routing entry
+if all Stage A gates pass. The exercised Stage A failure path ends the branch.
+The engineering fixture verifies complete parameter/Adam/RNG/sampler restoration
+against the project's established CUDA replay envelope. Endpoint footprint
+measurements use actual native alpha contributions and explicit checkpoint
+identities. Private prepared protocols, teacher data, parent checkpoints and
+upstream extensions are required. Results, plots and reports stay outside this
+public source repository.
