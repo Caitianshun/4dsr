@@ -154,7 +154,7 @@
     "experiments/dynamic_sr_controlled_headroom_20260926/run_segment.py": "c85f6842926e4e4209fa9a1da6a50e34ec730d91157079b5aa83bd325cc8108b",
     "experiments/dynamic_sr_controlled_headroom_20260926/summarize.py": "e74481578c129eb1b34f2aa5e79c672f778b021233bff0af316acd9d4ac19f99",
     "experiments/dynamic_sr_controlled_headroom_20260926/train.py": "16a6e05628ecc2bba44abac7aece37c439b58f7ee4ee6ddf3361f41d6432f1f9",
-    "experiments/dynamic_sr_covariance_probe_20260927/audit.py": "e4780de94d6de7530aeabd0ff78df91395c7292e55dbfce8b7411d462ad54d47",
+    "experiments/dynamic_sr_covariance_probe_20260927/audit.py": "559fc91fcd5564bdd8c54f0b546fa95610c921fe0e66e74d40c72ba73060919a",
     "experiments/dynamic_sr_covariance_probe_20260927/common_cov.py": "4773b3def9ec94da024db06a848af58df1d556a32b23054e4ef2354d9c1e3129",
     "experiments/dynamic_sr_covariance_probe_20260927/decide.py": "48b2997f9c01310566c5da68883664cc39593b2ba106f1cee43eaba92666ba65",
     "experiments/dynamic_sr_covariance_probe_20260927/engineering.py": "12b95937f4bbea9036f2f102a5a9e9d6b935b730fc57469b19cde66a3e63eb25",

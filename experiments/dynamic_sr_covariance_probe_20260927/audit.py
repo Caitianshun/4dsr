@@ -1,6 +1,8 @@
 """Read-only independent endpoint and identity audit; no renderer or optimizer step."""
-from common_cov import *
 from decide import pair,hr
+import decide as decision_module
+from common_cov import *
+assert Path(decision_module.__file__).resolve()==HERE/"decide.py"
 
 def main():
     p=load_protocol(OUT/'protocol.json');d=read(OUT/'decision.json');checks=[];parent=torch.load(p['parent']['path'],map_location='cpu',weights_only=False)['baked'];pv=parent['values']
