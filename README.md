@@ -130,3 +130,25 @@ measurements use actual native alpha contributions and explicit checkpoint
 identities. Private prepared protocols, teacher data, parent checkpoints and
 upstream extensions are required. Results, plots and reports stay outside this
 public source repository.
+
+
+### Bounded dynamic SR routing validation
+
+`experiments/dynamic_sr_dynamic_validation_20260927/` contains the three-arm
+`J_joint` / `A_sh` / `S_cov` continuation, explicit SR-gradient routing,
+registered three-RNG suffix schedules, protocol-driven decisions, and an exact
+19-camera by four-frame evaluator. The original data adapters, two Adam states,
+renderer, and recorded learning-rate curve are retained. Full dynamic training
+requires a current engineering acceptance receipt tied to the source, protocol,
+and U6000 parent. A failed or absent receipt prevents launch.
+
+The current execution stopped at its 32-round engineering budget: an ordinary
+CUDA replay exceeded the registered absolute rendering error bound. No formal
+three-arm endpoint or method-quality conclusion was produced. The prior static
+failure remains unchanged. The supplementary replay controls retain the original
+failure and numerical limits; they do not authorize retraining or threshold search.
+
+The repository contains source only. The parent checkpoint, frozen teacher cache,
+input manifest, registered protocols, and evaluation assets must be supplied
+separately; the controller is specific to the documented local/A100 deployment.
+A complete success-path orchestration was not executed after the failed gate.
