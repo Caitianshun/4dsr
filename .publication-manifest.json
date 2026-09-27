@@ -3,7 +3,7 @@
   "sha256": {
     ".gitignore": "4d8f0d3abdeb43a5c0abfcd62bf5d0a9399e99bda4e8bc0caa1e6b6ba97a673b",
     "PROJECT_GUIDELINES.md": "5484840c4474733e04a6a2ebc54c071fba99250e6d41b7439366da59f5d5b17a",
-    "README.md": "365dfcc506df469a86cd5b2eb12999c2f5bd3ee9f94d169037069bcb259ff036",
+    "README.md": "de3fcbc399f44b4126ab7df387a6cf9be981162b75c181bd9887fd278cfb2178",
     "deployment/a100_20260920/acquire_public_data.py": "978c24120a003144f57463f76bd6f625ed41c2599d5ef052b9fd24251521783b",
     "deployment/a100_20260920/activate_a100.sh": "06f6f786d6657353c1d6d40732bffd1869b5768acec7d4aa25ae4342faa94661",
     "deployment/a100_20260920/finalize_deployment.py": "5b82f2a66c0dbf61ba407f195f441a76e1cd421f8269203c81abd521aabfeca8",
@@ -131,6 +131,18 @@
     "experiments/dynamic_sr_20260923/teacher_model_pipeline_audit.py": "cf4673a27bb3a7dc526fd0bd16eebdf775eeeb595c02323d297db71b062e830e",
     "experiments/dynamic_sr_20260923/temporal_sharing.py": "75fb96b73f885b2169140ecc5c7315bb14757188eb5e3767a8c51ca8c694d013",
     "experiments/dynamic_sr_20260923/train_sharing_control.py": "ab856d408b12f5ff53c6ff238330de28c08c1ed9a93611523fe06237ef5a4111",
+    "experiments/dynamic_sr_conflict_probe_20260927/decide.py": "6a5a2f390d0746d92dd3efb3f10570d606954ed26634c7354851305399324cb0",
+    "experiments/dynamic_sr_conflict_probe_20260927/engineering.py": "3e598dd08722c1ba7d9fef9c19837c7e6b9bdf3c53d2dbef9d68ecfc54dc4236",
+    "experiments/dynamic_sr_conflict_probe_20260927/evaluate_probe.py": "1a2b64af4179377c54de4dd4dea8bf1bf3ad9ab3fd4bec204c0aa8082512bb3e",
+    "experiments/dynamic_sr_conflict_probe_20260927/footprint_bins.py": "1cc950ad2b3e3526dde67b3ba8520df84cc658f78ea2c7f227d1caf6fe337abf",
+    "experiments/dynamic_sr_conflict_probe_20260927/parameter_groups.py": "55a8fe5c7ce606e7f17e3e05810dde72b66c91ba2b848315ee85dbafc33de664",
+    "experiments/dynamic_sr_conflict_probe_20260927/prepare_initial.py": "54c33fb7a088d0069d17e39e734e289216846b73212f2b208cd42f0f643325f9",
+    "experiments/dynamic_sr_conflict_probe_20260927/probe_common.py": "08afba8d91d4722c89a7e4b809566aa6a7a4acf86b660babceadd36ec6f8143e",
+    "experiments/dynamic_sr_conflict_probe_20260927/probe_updates.py": "83ed328de59459015a69f66c79858b0e973a0b03b5caf92570075510e51ff5d3",
+    "experiments/dynamic_sr_conflict_probe_20260927/register_protocol.py": "c74455998bd612afd56470788c62c731461a6618fe5ee423cf479140019c80a7",
+    "experiments/dynamic_sr_conflict_probe_20260927/run_pipeline.py": "140ed83e888727c01e356bb6cd089dd455fed31c46323be7e0af813fa59de2c3",
+    "experiments/dynamic_sr_conflict_probe_20260927/summarize.py": "669743550e24f326a03996331868922ee7ed5c5fd1dd0e7f71df7c2c79015bc6",
+    "experiments/dynamic_sr_conflict_probe_20260927/train_probe.py": "c2e63c5f9431e9a45aecb524700fa386e405d91fd1d9089768e8443f0f28fa76",
     "experiments/dynamic_sr_controlled_headroom_20260926/audit_completion.py": "0ffe68a43b812cd2de5609973296e48b9cbc157ed678ae480d8f0c131215c485",
     "experiments/dynamic_sr_controlled_headroom_20260926/evaluate.py": "6a09498c2eafe583d923de0e7adb6f120c1e63f12c2676b15f221109ac5521a2",
     "experiments/dynamic_sr_controlled_headroom_20260926/export_views.py": "76b4661ead0732c29848d2b11bea5a4d8b45a795026b6181bca8fa5483793727",
@@ -305,7 +317,7 @@
     "experiments/sr4d_20260922/summarize_minimal.py": "8e2e3e7c1c331e6651b72a1dc84db585d88bc85e0007a7aca44e700d0145d057",
     "experiments/sr4d_20260922/train_sr4d.py": "0f12fb92c513b135a31d3578dc11b36fcb15ae9101a848361ccc9f184f22ae8f",
     "experiments/sr4d_20260922/wu_entry.py": "57e74af4ea68ef3c485735179d0d15f7b2eec5245d670e9aa88e4fd7eabd05a9",
-    "scripts/publish_generic_sr.py": "8ff3711c5a2349fa096f29aeff0b66291f37a55c358ff6651d6e9988946ede67",
+    "scripts/publish_generic_sr.py": "c8d9a2858d8d88e95a4986eb3796355d3f05839e15df971af3c087b88cbd1b55",
     "scripts/summarize_quality_headroom_20260923.py": "bbc8e37ad918ec6055f4b79df37ec8d9b50db4828ab2f8587155d6d0a1d468b2"
   }
 }

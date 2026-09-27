@@ -90,3 +90,22 @@ Paths and hashes are resolved in the local protocol. The public repository does
 not contain datasets, weights, checkpoints or generated experiment results, and
 cloning it alone does not reproduce these studies. Source snapshots and historical
 renderer versions must remain distinct when comparing runs.
+
+
+### Fixed-footprint two-teacher probe
+
+`experiments/dynamic_sr_conflict_probe_20260927/` registers a training-LR-only
+anchor pair and shared camera sequence, bakes one posed state, and compares four
+600-step SH-only objectives with exactly three forwards per step. Geometry and
+opacity stay fixed. Disposable copies of actual Adam updates provide isolated
+and conditional attribute-transfer diagnostics; native auxiliary rendering
+measures footprint-bucket alpha contributions without changing the renderer.
+
+The controller attaches evaluation to process completion, freezes the train-only
+decision before loading HR/development images, and admits at most one complete
+four-arm repeat under fixed gates. `summarize.py` checks logs, checkpoints, frozen
+attributes, data identities and information boundaries. A diagnostic repair can
+reuse saved Adam candidates without spending additional optimizer updates.
+Prepared project-specific protocols, upstream extensions, checkpoints, teachers
+and track files must be supplied separately; the public source is not a turnkey
+benchmark and makes no claim of a positive research result.
