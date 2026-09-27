@@ -63,3 +63,30 @@ The module includes zero-step, freeze and short save/resume checks, separate rec
 `experiments/dynamic_sr_prior_guidance_20260927/` keeps the original LR and regularization gradients while controlling the SR-only pathway. It compares a full joint continuation, final-center detachment from an early endpoint, final-center detachment in a shared late tail, and an SR-only appearance whitelist. Base and child posed centers are concatenated before detachment; covariance, opacity and SH stay connected. Shared parameters can still change future positions indirectly.
 
 The experiment reuses full model/Adam/RNG/sampler checkpoints and a fixed shared prefix, with exit-triggered evaluation, a predeclared early safety gate and fixed final endpoints. Auxiliary scripts audit independent one-step gradients, unclamped alpha/depth moments, grayscale operator consistency and a fixed Depth Anything V2 Small prior. Depth inference requires the separately obtained official source and checkpoint; it is diagnostic and is not added to the RGB training objective. Masks and HR-supervised reference comparisons remain privileged diagnostics. No private manuscript, dataset, model weight or generated result is included. Local protocol and history files referenced by the controllers must be provided or explicitly adapted; these research entry points are not a turnkey benchmark.
+
+
+### Bounded evidence repair and fixed-time fitting probes
+
+`experiments/dynamic_sr_evidence_repair_20260927/` contains explicit legacy-import
+pinning, named-gradient/Adam repeat comparisons, continuous-versus-restart controls,
+train-LR three-view track validation, raw depth-moment audits, and two fixed-time
+fitting probes. `register_protocol.py` registers the fixed thresholds and input
+identities before measurements. `run_replay.py` and `run_remaining.py` chain
+independent evaluation to successful training exits; `finish_receipts.py` uses a
+Linux process-exit event to complete diagnostics and machine-readable receipts.
+
+The Shared40 and Baked40 probes use the same posed point state and camera sequence,
+with new zero-state Adam optimizers. They are not equal-capacity dynamic methods.
+`evaluate_probes.py` and `audit_roi.py` preserve raw teacher, signed residual, HR,
+and LR-reprojection metrics, and distinguish raster candidates from composited
+group contributions. `audit_depth_evidence.py` requires third-view geometry,
+nonnegative moment validity, actual pixel-weight coverage and sampler exposure;
+a failing gate does not trigger depth training. Numerical repeat envelopes are
+kept fixed even when a comparison fails.
+
+These scripts require the already prepared generic-scene assets, upstream
+4DGaussians environment, frozen teachers and complete historical checkpoints.
+Paths and hashes are resolved in the local protocol. The public repository does
+not contain datasets, weights, checkpoints or generated experiment results, and
+cloning it alone does not reproduce these studies. Source snapshots and historical
+renderer versions must remain distinct when comparing runs.
