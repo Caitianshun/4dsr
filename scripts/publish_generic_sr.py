@@ -35,6 +35,7 @@ EXPERIMENTS = (
     "dynamic_sr_covariance_probe_20260927",
     "dynamic_sr_dynamic_validation_20260927",
     "dynamic_sr_attribute_routing_20260928",
+    "dynamic_sr_sync_multiview_20260928",
     "dynamic_sr_geometry_residual_20260924",
     "dynamic_sr_motion_bound_20260923",
     "dynamic_sr_multi4d_20260924",
