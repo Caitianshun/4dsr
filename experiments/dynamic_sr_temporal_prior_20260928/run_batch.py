@@ -9,6 +9,7 @@ from dv_common import *
 from readiness import validate
 from task_state import next_action, fixed_tasks
 from summarize import summarize
+from service_wait import open_pidfd
 
 REMOTE='/home/ubuntu/3DGS/4dsr'
 
@@ -18,7 +19,8 @@ def main():
     p=require_run_root(a.run_root);validate(p);tasks=fixed_tasks(p)
     controller=OUT/'controller';controller.mkdir(exist_ok=True)
     lock=(OUT/'controller.lock').open('a');fcntl.flock(lock,fcntl.LOCK_EX|fcntl.LOCK_NB)
-    started=time.time();status={};commands=read(controller/'commands.json') if (controller/'commands.json').exists() else []
+    invocation_started=time.time();status={};commands=read(controller/'commands.json') if (controller/'commands.json').exists() else []
+    started=min([invocation_started]+[e['started_unix'] for e in commands])
     command_lock=threading.Lock()
     def state(**kw):
         status.update(kw);status.update(updated_unix=time.time(),wall_seconds=time.time()-started);write(controller/'status.json',status)
@@ -58,9 +60,10 @@ def main():
                 occ=subprocess.check_output(['nvidia-smi','--query-compute-apps=gpu_uuid,pid,process_name','--format=csv,noheader'],text=True)
                 pids=[int(line.split(',')[1].strip()) for line in occ.splitlines() if p['evaluation']['physical_gpu'] in line]
                 if not pids:break
+                write(OUT/'evaluation'/label/'resource_wait.json',dict(status='waiting_for_existing_process_exit',pids=pids,physical_gpu=p['evaluation']['physical_gpu'],observed_unix=time.time(),method='Linux pidfd exit event; existing jobs unchanged'))
                 fds=[]
                 for pid in pids:
-                    try:fds.append(os.pidfd_open(pid))
+                    try:fds.append(open_pidfd(pid))
                     except ProcessLookupError:pass
                 try:
                     while fds:
@@ -68,6 +71,9 @@ def main():
                         for fd in done:os.close(fd);fds.remove(fd)
                 finally:
                     for fd in fds:os.close(fd)
+            wait_receipt=OUT/'evaluation'/label/'resource_wait.json'
+            if wait_receipt.exists():
+                record=read(wait_receipt);record.update(status='gpu_available_for_evaluation',available_unix=time.time());write(wait_receipt,record)
         run([sys.executable,'-u',str(HERE/'evaluate_endpoint.py'),'--run-root',str(OUT),'--checkpoint',str(checkpoint),'--label',label],label+'_eval',evalenv)
         complete=read(OUT/'evaluation'/label/'complete.json');assert complete['checkpoint_sha256']==sha(checkpoint)
         return complete
