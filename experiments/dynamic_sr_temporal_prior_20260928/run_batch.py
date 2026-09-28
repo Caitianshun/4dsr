@@ -9,7 +9,7 @@ from dv_common import *
 from readiness import validate
 from task_state import next_action, fixed_tasks
 from summarize import summarize
-from service_wait import open_pidfd
+from service_wait import open_pidfd, process_matches
 
 REMOTE='/home/ubuntu/3DGS/4dsr'
 
@@ -56,6 +56,19 @@ def main():
     def evaluate(label,checkpoint):
         # Existing complete is validated inside the evaluator before any render.
         if not (OUT/'evaluation'/label/'complete.json').exists():
+            owner_file=OUT/'evaluation_resource_owners.json'
+            if owner_file.exists():
+                owners=[e for e in read(owner_file)['owners'] if process_matches(e['pid'],e['start_ticks'])]
+                if owners:
+                    write(OUT/'evaluation'/label/'resource_wait.json',dict(status='waiting_for_existing_batch_exit',owners=owners,physical_gpu=p['evaluation']['physical_gpu'],observed_unix=time.time(),method='Linux pidfd exit event; preserve the existing batch between its GPU jobs'))
+                for owner in owners:
+                    try:fd=open_pidfd(owner['pid'])
+                    except ProcessLookupError:continue
+                    try:
+                        if process_matches(owner['pid'],owner['start_ticks']):
+                            while not select.select([fd],[],[],3600)[0]:
+                                write(OUT/'evaluation'/label/'resource_watchdog.json',dict(status='waiting_for_existing_batch_exit',owner=owner,checked_unix=time.time()))
+                    finally:os.close(fd)
             while True:
                 occ=subprocess.check_output(['nvidia-smi','--query-compute-apps=gpu_uuid,pid,process_name','--format=csv,noheader'],text=True)
                 pids=[int(line.split(',')[1].strip()) for line in occ.splitlines() if p['evaluation']['physical_gpu'] in line]

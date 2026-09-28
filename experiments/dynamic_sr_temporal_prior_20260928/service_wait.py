@@ -4,6 +4,15 @@ import json
 import os
 import select
 import subprocess
+from pathlib import Path
+
+def process_matches(pid, start_ticks):
+    """Distinguish an existing batch owner from a later process reusing its PID."""
+    try:
+        fields = (Path('/proc') / str(pid) / 'stat').read_text().rsplit(')', 1)[1].split()
+    except (FileNotFoundError, ProcessLookupError):
+        return False
+    return int(fields[19]) == start_ticks
 
 def open_pidfd(pid, force_libc=False):
     """Open the same Linux exit-event descriptor in Python builds lacking the API."""
