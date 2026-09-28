@@ -170,3 +170,23 @@ The module adds no learnable parameters or inference operations. Two suffixes
 sharing U6000 are paired continuations, not independent from-scratch trials.
 As with the earlier experiment, all checkpoint, input, teacher, protocol, and
 evaluation assets are external to this source-only repository.
+
+### Frozen temporal prior experiment
+
+`experiments/dynamic_sr_temporal_prior_20260928/` replaces the offline SR target
+while retaining the complete joint 4D Gaussian continuation and both Adam states.
+The official BasicVSR++ REDS BI x4 c64n7 checkpoint is used with seven registered
+training frames, comparing real neighbors against seven copies of the center.
+Targets are quantized RGB PNGs with per-observation source and generator hashes.
+The official model and MMCV deformable alignment are external dependencies;
+the isolated inference environment uses PyTorch 1.12.0 cu113 and MMCV-full 1.6.0.
+The wrapper resets the mirror flag and strictly loads the generator after
+excluding only the restorer's scalar `step_counter` buffer.
+
+Four paired suffix tasks use the existing U6000 state, fixed sampling and
+learning-rate schedules, and one physical training GPU. Native LR and HR
+checkpoints are evaluated separately on the common HR output grid; the
+native-LR bicubic reference upsamples a floating-point model render.
+Process-exit listeners return caches and checkpoints and start uniform
+evaluation. Historical checkpoints, model downloads, prepared images,
+teacher caches and experimental results are not distributed here.
