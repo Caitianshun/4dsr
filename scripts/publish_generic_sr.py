@@ -38,6 +38,7 @@ EXPERIMENTS = (
     "dynamic_sr_sync_multiview_20260928",
     "dynamic_sr_temporal_prior_20260928",
     "dynamic_sr_prior_diagnosis_20260929",
+    "dynamic_sr_same_observation_20260930",
     "dynamic_sr_geometry_residual_20260924",
     "dynamic_sr_motion_bound_20260923",
     "dynamic_sr_multi4d_20260924",

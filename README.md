@@ -216,3 +216,23 @@ checkpoint return and evaluation on one RTX 3090. Prepared protocols, upstream
 complete parent states are external assets. The scripts assume the documented
 research deployment; cloning this repository alone cannot reproduce the run.
 The manuscript-facing reports and all generated results remain local.
+
+### Same-observation supervision from initialization
+
+`experiments/dynamic_sr_same_observation_20260930/` registers one independent
+4DGaussians training run from the original training-LR point cloud, without
+loading a reconstruction checkpoint. From the first coarse update onward,
+each step renders one HR image and jointly minimizes its downsampled error to
+the corresponding real LR image and its error to the corresponding frozen
+SwinIR target, with SR weight 0.1. One combined backward and one Adam update
+follow. The original coarse/fine deformation policy and warmup densification
+schedule are retained; both stages use LR and SR supervision.
+
+The fixed budget is 1,000 coarse plus 19,200 fine updates. Registration validates
+the 19 training cameras, 60 frames and all cached targets. Training returns
+complete checkpoints and legal-input audits, and the deployment controller
+connects remote process completion to local evaluation. Prepared manifests,
+LR point clouds, teacher caches, CUDA extensions and deployment environments
+are external dependencies. Historical U6000 continuations differ in capacity,
+initialization history and SR exposure, so equal update counts alone do not
+establish a controlled improvement from pairing.
