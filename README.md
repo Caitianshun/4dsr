@@ -190,3 +190,29 @@ native-LR bicubic reference upsamples a floating-point model render.
 Process-exit listeners return caches and checkpoints and start uniform
 evaluation. Historical checkpoints, model downloads, prepared images,
 teacher caches and experimental results are not distributed here.
+
+### Image-prior diagnosis and selective SR supervision
+
+`experiments/dynamic_sr_prior_diagnosis_20260929/` audits native LR, enlarged LR,
+and HR image priors, additive orthonormal DCT/RGB error budgets, offline oracle
+counterfactuals, native output sampling, and Gaussian ray moments. Diagnostic
+HR inputs remain separate from the training input allowlist. Different Gaussian
+topologies are compared through contributions and common spatial statistics,
+not Gaussian indices.
+
+The bounded training experiment transfers the view-dependent demand-selection
+mechanism from [SplatSuRe](https://github.com/pranav-asthana/SplatSuRe), upstream
+commit `df40abb8d92a02656268cb0a0b97acc2495b9307`, to same-time dynamic views.
+This is a mechanism adaptation, not a reproduction of its complete static
+pipeline. Demand maps are frozen from U6000 and use the existing SwinIR targets;
+the project retains its joint two-Adam update and LR loss. A fixed calibration
+matches the initial geometric SR-gradient scale using legal training inputs.
+The source also contains diagnostic sampling utilities; the executed protocol
+selects T only and does not enable supersampling or depth/flow supervision.
+
+Two registered suffixes run concurrently on distinct A100 GPUs, with process-exit
+checkpoint return and evaluation on one RTX 3090. Prepared protocols, upstream
+4DGaussians/SplatSuRe code, DAv2/RAFT weights, legal images, frozen targets, and
+complete parent states are external assets. The scripts assume the documented
+research deployment; cloning this repository alone cannot reproduce the run.
+The manuscript-facing reports and all generated results remain local.
