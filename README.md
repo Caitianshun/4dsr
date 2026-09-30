@@ -236,3 +236,13 @@ LR point clouds, teacher caches, CUDA extensions and deployment environments
 are external dependencies. Historical U6000 continuations differ in capacity,
 initialization history and SR exposure, so equal update counts alone do not
 establish a controlled improvement from pairing.
+
+The optional `frequency.py` diagnostic partitions render-minus-HR residuals
+into radial FFT bands at 0.125 and 0.25 cycles per HR pixel. It reports
+additive band MSE, mean per-frame band PSNR and pooled error-energy shares,
+and validates numerical compatibility against a separately supplied reference
+script. Main comparisons retain floating renders before PNG quantization.
+`frequency_operator.py` checks the actual bicubic operator: a resize residual
+is not automatically in its nullspace. HR-dependent statistics are diagnostic
+only, and cannot serve as LR-only training masks. The local reports discuss
+possible constraints without implementing or claiming a new trained method.

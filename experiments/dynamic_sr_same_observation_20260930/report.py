@@ -173,6 +173,14 @@ def append_report(doc,md):
     table(['区域与模型 40和80帧均值','PSNR dB','SSIM','区域LPIPS'],selected,[7.6,3.3,3.3,3.3])
     text('证据源：output/dynamic_sr_same_observation_20260930内的protocol.json、train/config.json、first_update_coarse.json、first_update_fine.json、checkpoint_inventory.json、comparison_quality.csv、quality_gaps.csv、training_budgets.csv、metrics_per_frame.csv、regional_quality.csv及figures/index.json。历史指标只读复用9月29日final_summary.json，来源SHA256已写入comparison_summary.json。',small=True)
 
+    # Keep the separately completed FFT supplement on future report regeneration.
+    if (OUT/'frequency/summary.json').exists():
+        import importlib.util
+        path=ROOT/'experiments/dynamic_sr_same_observation_20260930/frequency_report.py'
+        spec=importlib.util.spec_from_file_location('same_observation_frequency_report',path)
+        extension=importlib.util.module_from_spec(spec);spec.loader.exec_module(extension)
+        extension.append_report(doc,md)
+
 
 def main():
     backup=OUT/'document_before_update';backup.mkdir(exist_ok=False)
