@@ -14,6 +14,7 @@ This repository publishes the **code and necessary text configuration** for the 
 | `experiments/dynamic_sr_multi4d_20260924` | Pinned Multi4D LR/SR adapters, full-state validation, and extended Wu controls |
 | `experiments/dynamic_sr_controlled_headroom_20260926` | Fixed-topology Z/U/O teacher-removal and privileged training-HR supervision controls |
 | `experiments/dynamic_sr_confidence_geometry_20261006` | Registered observation permutations, image-nullspace SR supervision, LR-only depth ordering, and finite cause probes |
+| `experiments/dynamic_sr_multiview_footprint_20261007` | Same-time LR multiview controls, differentiable HR footprint reconstruction, paired continuation and event-driven evaluation |
 | `experiments/sr4d_20260922` | SR4D comparison adapters and evaluation |
 | `experiments/dynamic_sr_surface_20260923` | Archived non-HOI ZJU single-person exploration; **not** evidence for the current full-scene route |
 | `deployment/` | Host-specific setup and run scripts; paths and device identifiers describe the original machines |
@@ -275,3 +276,83 @@ separately. Deployment scripts describe the original local/A100 machines.
 No training quality result or completed full-scene benchmark is implied by
 publishing these development controls; datasets, weights, generated metrics
 and research reports remain outside this repository.
+
+### Same-time multiview and cross-view pixel footprints
+
+`experiments/dynamic_sr_multiview_footprint_20261007/` defines six paired
+controls: the existing complete-SR baseline, same-time grouping, three-view
+LR averaging (M), cross-view footprint reconstruction (X), M+X, and a simple
+L1/MSE objective control. All controls retain complete frozen SR supervision.
+Same-time schedules preserve each registered observation multiset within
+the declared block and use three distinct training cameras.
+
+X warps current source HR RGB using current target axial depth, then applies
+the original antialiased bicubic degradation and clamp to match real target
+LR. Its differentiable RGB mip pyramid approximates minification; detached
+levels and complete interpolation/filter support are explicit. Frozen support
+aggregates raw opacity-weighted physical moments before depth normalization.
+Unknown variance has neutral weight. There is no HR-error or photometric-error
+threshold for choosing training views or hiding difficult pixels. RGB follows
+normal appearance/geometry gradients, while the auxiliary moment path detaches
+covariance and opacity. This is a reconstruction constraint, not verified
+metric depth or a pure geometry update.
+
+`run_suite.py` preserves full model, two disjoint Adam states, RNG and registered
+learning rates. Its resource checks protect foreign compute processes and bind
+physical GPU UUIDs. Independent suffixes can use different machines, but all
+arms within one suffix use the same training platform. A separate uniform
+evaluator must be registered before deferred evaluation is used. Preparation,
+calibration, diagnostics and failed work have separate counters; paired suffixes
+from one parent do not constitute independent from-scratch seeds.
+
+The source also contains full-time input preparation and legal training-LR
+initialization adapters. Full-time manifests, complete SR caches and independently
+trained LR prefixes are separate prerequisites. Dataset splits and project
+resolution adaptation must be reported separately. Publishing these tools
+does not imply a completed quality comparison or an official full benchmark.
+
+`full_prefix.py` adapts the pinned Wu N3DV coarse3000/fine14000 training loop.
+It retains stage optimizer resets, original multiview densification statistics
+and the author's final fine iteration without an Adam step. Adaptations include
+known-camera LR sparse initialization in place of supplied COLMAP points,
+project crop/resolution, and resumable serial sampling in place of prefetched
+workers. The initial adapter accepts Cook/Cut at the declared LR resolution;
+other datasets require an explicit configuration adaptation. Its native parent
+has no historical child optimizer, so full-scene SR refinement needs a separate
+adapter rather than the short-window continuation entry.
+
+
+`full_refine.py` continues the native full-time parent with one eight-group Adam
+optimizer and all shared state. It uses three RGB forwards and one backward per
+update; same-time controls reuse one deformation state. All methods use the same
+SUM gradient, maximum radius and OR visibility statistics for original topology
+operations. The declared SR-stage topology clock starts at one, while learning
+rate and SH clocks continue the parent. LR pixel-unit screen statistics are reset
+once at that boundary; resumed segments retain their saved statistics. These
+are explicit protocol adaptations, not an unchanged original training run.
+
+`full_support_prepare.py` requires a selected configuration, a native full parent
+and its own full schedule before exporting raw HR parent moments and frozen
+support. Short-window support cannot satisfy that identity. `full_evaluate.py`
+accepts native full parents/refinements, checks model/optimizer/RNG immutability,
+and evaluates all registered test frames from floating-point renders. It records
+PSNR, SSIM, LPIPS, fixed available ROI, absolute residual-frequency energies and
+test-only LR closure diagnostics. Test LR is read after rendering for evaluation
+and does not supervise inference. Code publication and CPU contract checks do
+not constitute native CUDA acceptance, full-scene quality results or confirmation
+on unseen scenes.
+
+`dispatch_prepared_remote.py` can attach or dispatch the fixed remote paired
+worker after an exact preparation exit and remote SHA validation, while immutable
+assets are returned. It never publishes the local preparation gate early. The
+uniform evaluator and local worker still require complete SHA-verified return.
+Its worker identity matches the original continuation, preventing a second launch.
+
+The root-controlled remote launcher requires its owned output log directory to
+exist before dispatch. `observe_prepared_remote.py` retains the exact existing
+worker invocation with pidfd and systemd events, reconnecting after SSH transport
+failures without redispatching training. `preparation_transfer_reuse.py` seeds
+only complete immutable payloads with matching path, size and SHA into a new
+transfer stage. It leaves final all-file verification and completion publication
+to the original return callback. Cache permissions alone are not an immutability
+claim; content hashes are checked again before each reuse.
