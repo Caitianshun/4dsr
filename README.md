@@ -13,6 +13,7 @@ This repository publishes the **code and necessary text configuration** for the 
 | `experiments/dynamic_sr_soft_motion_20260924` | Soft motion constraint experiment |
 | `experiments/dynamic_sr_multi4d_20260924` | Pinned Multi4D LR/SR adapters, full-state validation, and extended Wu controls |
 | `experiments/dynamic_sr_controlled_headroom_20260926` | Fixed-topology Z/U/O teacher-removal and privileged training-HR supervision controls |
+| `experiments/dynamic_sr_confidence_geometry_20261006` | Registered observation permutations, image-nullspace SR supervision, LR-only depth ordering, and finite cause probes |
 | `experiments/sr4d_20260922` | SR4D comparison adapters and evaluation |
 | `experiments/dynamic_sr_surface_20260923` | Archived non-HOI ZJU single-person exploration; **not** evidence for the current full-scene route |
 | `deployment/` | Host-specific setup and run scripts; paths and device identifiers describe the original machines |
@@ -246,3 +247,31 @@ script. Main comparisons retain floating renders before PNG quantization.
 is not automatically in its nullspace. HR-dependent statistics are diagnostic
 only, and cannot serve as LR-only training masks. The local reports discuss
 possible constraints without implementing or claiming a new trained method.
+
+### Frozen confidence and soft geometry controls
+
+`experiments/dynamic_sr_confidence_geometry_20261006/` compares a same-image
+LR/SR continuation with one or two permuted SR observations, retaining the
+complete parent model, both Adam states, topology and recorded learning rates.
+The R module projects image residuals through the nullspace of the actual
+linear antialiased bicubic degradation before applying frozen confidence.
+The G module uses relative inverse-depth ordering from legal training LR,
+nonnegative area-aggregated ray moments, and gradients through the same
+posed centers used by the RGB renderer. Covariance and opacity are detached
+only from this auxiliary geometry path.
+
+Offline confidence uses LR closure and valid same-time training-view support;
+missing support is explicitly unknown. Conditional time/view confidence caches
+require complete registered LR-only flow coverage. Source includes finite
+LR-only position/SH interventions, full-state shadow updates, numerical
+repeat diagnostics, metric/FFT/region evaluation and process-exit orchestration.
+The image nullspace property does not guarantee that a renderer/Adam parameter
+update preserves LR output. Relative depth is not metric geometry truth, and
+two suffixes from one parent are not independent from-scratch trials.
+
+Prepared manifests, frozen teachers, complete parent checkpoints, registered
+run records and official Depth Anything V2 source/weights must be supplied
+separately. Deployment scripts describe the original local/A100 machines.
+No training quality result or completed full-scene benchmark is implied by
+publishing these development controls; datasets, weights, generated metrics
+and research reports remain outside this repository.
