@@ -24,6 +24,9 @@ FUTURE_ASSETS_SHA256='7c657e7590f5917e9a337232d93ecafba128bb976f6d131959ae04fba1
 EXTERNAL_BASELINE_SHA256='d94137430e2f67ca19648e440f26cee955eb2c663a8d3d73ca3c0cc83b831601'
 RECOVERY_INCIDENT=RUN/'recovery_incidents/a100_control_disconnect_20261007T0400/incident.json'
 RECOVERY_INCIDENT_SHA256='b26a411a7912c5be33580426886db81480e5e4cb97a641ce03744caaccaacd9f'
+REBOOT_DIR=RUN/'recovery_incidents/local_host_reboot_20261007T0802'
+ROOT_REVIEW=RUN/'core_research_review_root.json'
+VISUAL_REVIEW=RUN/'figures/visual_review.json'
 
 
 def readiness():
@@ -47,6 +50,8 @@ def readiness():
         except (AssertionError,KeyError,OSError,ValueError) as error:reasons.append('Preprocessing cost identity invalid: '+str(error))
     try:verify_new_sources()
     except (AssertionError,KeyError,OSError,ValueError) as error:reasons.append('External/recovery source identity invalid: '+str(error))
+    try:verify_research_and_recovery()
+    except (AssertionError,KeyError,OSError,ValueError) as error:reasons.append('Final research/visual/recovery review incomplete: '+str(error))
     return dict(status='ready_for_final_core_report' if not reasons else 'waiting_core_completion',reasons=reasons,
                 completed_primary=summary.get('execution',{}).get('completed_primary_endpoints',0))
 
@@ -57,6 +62,9 @@ def snapshot():
         P1_recovery=RUN/'P1_recovery_matrix_v1/complete.json',calibration_total=RUN/'calibration_total_cost.json',
         preprocessing=RUN/'preprocessing_cost_ledger.json',future_assets=RUN/'future_benchmark_readiness.json',
         external_baseline=RUN/'external_baseline_existing_status.json',recovery_incident=RECOVERY_INCIDENT,
+        root_review=ROOT_REVIEW,numeric_review=RUN/'root_complete_core_numeric_review.json',visual_review=VISUAL_REVIEW,
+        reboot_incident=REBOOT_DIR/'incident.json',evaluation_corruption=REBOOT_DIR/'evaluation_cache_corruption.json',
+        retry_cost=REBOOT_DIR/'retry_cost_supplement.json',completed_extra_audit=REBOOT_DIR/'completed_extra_byte_audit.json',
         phase13=RUN/'phase13_decision.json',integrity=RUN/'final_integrity.json',finalization=RUN/'core_finalization_state.json',
         accounting=RUN/'accounting_final_core/execution_index.json',gallery=RUN/'figures/index.json',roi=ROI)
     for candidate in (RUN/'phase13/state.json',RUN/'phase13_dispatch_state.json'):
@@ -129,6 +137,69 @@ def verify_new_sources():
                 extra_formal_training_budget=0,SR4D_rerenders=0)
 
 
+def require_nested_bindings(value):
+    if isinstance(value,dict):
+        if 'path' in value and 'sha256' in value:require_bound(value)
+        else:
+            for item in value.values():require_nested_bindings(item)
+    elif isinstance(value,list):
+        for item in value:require_nested_bindings(item)
+
+
+def verify_research_and_recovery():
+    review=stage.read(ROOT_REVIEW,{})
+    status=str(review.get('status','')).lower()
+    assert ('complete' in status or status.startswith('passed')) and not any(x in status for x in ('pending','waiting')),'Formal root research review incomplete'
+    require_nested_bindings(review)
+    assert stage.sha(RUN/'quality_summary.json') in json.dumps(review),'Root review does not bind current quality summary'
+    assert stage.sha(RUN/'core_finalization_state.json') in json.dumps(review),'Root review does not bind current core finalization'
+    decision=stage.read(RUN/'phase13_decision.json',{});assert decision,'Section13 decision absent'
+    require_nested_bindings(decision)
+    visual=stage.read(VISUAL_REVIEW,{})
+    assert visual.get('status')=='completed_fixed_visual_review','Fixed gallery visual review incomplete'
+    require_nested_bindings(visual.get('bindings',{}))
+    assert visual['completeness']['actually_inspected_images']==visual['completeness']['expected_images']==24
+    assert visual['completeness']['all_selected_png_sha_match_registered_index'] is True
+    assert len(visual['images'])==24
+    for row in visual['images']:
+        require_bound(row['image']);assert row['inspection']['actual_pixels_inspected'] is True
+    reboot=stage.read(REBOOT_DIR/'incident.json')
+    assert reboot['new_formal_training_updates_authorized_by_resume']==0
+    for row in reboot['archive']:require_bound(dict(path=row['archive'],sha256=row['sha256']))
+    corruption=stage.read(REBOOT_DIR/'evaluation_cache_corruption.json')
+    assert corruption['new_training_updates']==0 and corruption['partial_complete_absent'] is True
+    archive=ROOT/corruption['archive']
+    for row in corruption['files']:require_bound(dict(path=str(archive/row['path']),sha256=row['sha256']))
+    require_nested_bindings(corruption['failure_records'])
+    retry=stage.read(REBOOT_DIR/'retry_cost_supplement.json');require_bound(retry['source_log'])
+    assert retry['training_repeated'] is False and retry['new_formal_updates']==0
+    assert retry['minimum_logged_prior_RGB_and_moment_forwards_each']==40
+    audit=stage.read(REBOOT_DIR/'completed_extra_byte_audit.json')
+    assert audit['status']=='passed' and audit['completed_extra_count']==11
+    assert all(row['completed_receipt_present'] and row['bad_count']==0 for row in audit['rows'])
+    return dict(root_research_review='complete_current_core_bound',fixed_gallery_actual_image_checks=24,
+                recovery_formal_updates_added=0,prior_partial_RGB_and_moment_minimum_each=40,
+                minimum_partial_elapsed_seconds=retry['minimum_logged_partial_evaluation_elapsed_seconds'],
+                prior_partial_total_GPU_time_and_peak='unknown',earlier_completed_extra_audit_count=11,
+                final_endpoint_evidence=12,report_page_QA='must_follow_build')
+
+
+def confirm_page_QA(stem):
+    receipt=stage.read(RUN/'report_final_snapshot.json');qa=stage.read(RUN/'report_QA.json')
+    assert qa['status']=='passed_render_and_each_page_visual_review'
+    assert qa['docx_sha256']==receipt['docx_sha256']==stage.sha(stem.with_suffix('.docx'))
+    assert qa['md_sha256']==receipt['md_sha256']==stage.sha(stem.with_suffix('.md'))
+    assert qa['generator_sha256']==receipt['source_sha256']==stage.sha(__file__)
+    assert qa['page_count']==len(qa['pages']) and qa['page_count']>0
+    assert {row['page'] for row in qa['pages']}==set(range(1,qa['page_count']+1))
+    for row in qa['pages']:
+        require_bound(row);assert row['actual_view_image'] is True
+    receipt.update(status='core_completed_report_visual_QA_passed',visual_QA='passed_render_and_each_page_visual_review',
+                   report_QA=dict(path=str(RUN/'report_QA.json'),sha256=stage.sha(RUN/'report_QA.json')),page_count=qa['page_count'])
+    (RUN/'report_final_snapshot.json').write_text(json.dumps(receipt,ensure_ascii=False,indent=2)+'\n')
+    print(json.dumps(dict(status=receipt['status'],pages=qa['page_count']),ensure_ascii=False))
+
+
 def fmt(x,n=6):return stage.fmt(x,n)
 def sci(x):return '待记录' if x is None else f'{float(x):.6g}'
 def signed(x,n=6):return '待记录' if x is None else f'{float(x):+.{n}f}'
@@ -144,7 +215,8 @@ def content(data):
     summary=data['summary'];means=summary['means'];cal=data['calibration'];cost=data['calibration_total']
     blocks.append(dict(type='title',text='动态场景超分置信度与软几何核心结果'))
     p('2026年10月6日执行协议  cook_spinach完整场景短窗四倍超分  核心六臂两套已完成')
-    p('本轮检验超分辨率（SR）教师细节是否通过共享动态表示影响真实低分辨率（LR）观测。我们比较置信选择与软几何约束对新视角的作用。高分辨率（HR）只用于评价。12个追加6000步端点、主评价和每端点196观察的浮点评价均通过完整性核验。完成范围是固定开发短窗的受控比较，独立完整场景仍待验证。')
+    p('核心结果未支持R与G互补：RG相对G的两套三指标均不利。G保留成本与质量候选价值，但其相对C1的两套方向反转，尚不构成稳定新视角收益。')
+    p('本轮检验超分辨率（SR）教师细节如何影响真实低分辨率（LR）观测与新视角。高分辨率（HR）只用于评价。12个追加6000步端点、主评价和每端点196观察的浮点评价均通过完整性核验。证据限于固定开发短窗，独立完整场景待验证。')
     h('统一质量结果')
     p('PSNR是峰值信噪比，衡量像素误差；SSIM是结构相似度；LPIPS是学习式感知图像块相似度，用预训练特征比较感知差异。前两者越高越好，LPIPS越低越好。')
     q=[]
@@ -153,9 +225,14 @@ def content(data):
         q.append([arm,fmt(row['psnr'],5),fmt(row['ssim']),fmt(row['lpips']),'核心两套' if arm in stage.CORE else '历史复用'])
     table(['方法','PSNR','SSIM','LPIPS','来源'],q,[3.3,3.4,3.4,3.4,3.9])
     pair=summary['paired']['RG-minus-C1']
-    p('RG相对C1的配对均值变化：PSNR '+signed(pair['delta']['psnr'],5)+' dB，SSIM '+signed(pair['delta']['ssim'])+'，LPIPS '+signed(pair['delta']['lpips'])+'。逐后缀差值与方向一致性保存在quality_summary.json。相关帧不作为独立样本做显著性检验，三指标不合并为综合分。')
+    p('RG相对C1：PSNR '+signed(pair['delta']['psnr'],5)+' dB，SSIM '+signed(pair['delta']['ssim'])+'，LPIPS '+signed(pair['delta']['lpips'])+'。逐后缀差值见quality_summary.json。相关帧不作独立样本检验，三指标不合并为综合分。')
     best=[min(means,key=lambda m:means[m][metric]) if metric=='lpips' else max(means,key=lambda m:means[m][metric]) for metric in ('psnr','ssim','lpips')]
-    p('本表三指标各自最佳依次为'+ '、'.join(best)+'。最终取舍还需结合频带、区域、时序与成本；只超过较弱C1不能据此声称超过当前最佳。cam00/01已经用于开发，两套共享同一U6000，只检验续训重复性。训练硬件以配置和完成收据为准。统一3090评价不消除硬件对优化的影响。')
+    p('三指标各自最佳依次为'+ '、'.join(best)+'，选择还需结合频带、区域、时序与成本。cam00/01已用于开发，两套共享U6000，只检验续训重复性。训练硬件以配置为准；统一3090评价不消除训练硬件对优化的影响。')
+    pairs=summary['paired']
+    p('Jperm相对C1的PSNR与LPIPS两套方向相反，SSIM均提高。B2perm相对Jperm的PSNR与LPIPS均改善，SSIM均下降。R相对C1三指标方向反转，不能据均值或单套宣布稳定收益。')
+    freq=data['numeric_review']['frequency']
+    low_share={c:100*freq['C1'][c]['low_mse']/freq['C1'][c]['mse'] for c in ('cam00','cam01')}
+    p('C1的HR误差中，cam01低频占'+fmt(low_share['cam01'],1)+'%，cam00占'+fmt(low_share['cam00'],1)+'%。R/RG在cam00中、高频误差更大，墙角未修复。LR误差降低不证明真实细节；自身warp误差也可能因模糊下降。24张固定图未验证真实三维几何。')
     page();h('监督分工与冻结置信度')
     p('同一时刻的教师纹理可能随相机变化。共享高斯和形变网络会把局部监督传播到其他视角与时间，因此表面锐利不自动表示真实细节。C1在同一HR渲染上连接真实LR与完整SR；Jperm将LR与置换SR分别渲染后累积更新；B2perm再平均两张置换SR梯度，每张系数0.05。六臂保持相同更新数与登记观察曝光。')
     p('R将实际双三次（bicubic）抗混叠降采样的线性部分记为D0。D0的伴随把LR梯度回传到HR网格，伪逆估计LR可见分量。零空间投影Q去除该分量。先投影渲染与教师的差，再在投影后的绝对误差上乘冻结空间权重，系数为0.1*k_R；权重与投影不能交换，普通图像放大不是伴随。Q中的变化在图像域不改变D0，但通过渲染器导数和继承动量的Adam以后，参数更新仍可能改变真实LR、邻视角及邻时间。')
@@ -184,7 +261,7 @@ def content(data):
     incident=data['source_incident']
     p('缓存启动后depth_prior.py曾追加来源/验收字段，实际加载初始源码与末尾文件哈希存在漂移。已重建实际源码并核对核心算法字节一致：初始SHA前12位'+incident['actual_loaded_source_sha256'][:12]+'，后续'+incident['later_file_sha256'][:12]+'。原收据保留，另以关联记录纠正身份，未静默改写历史。全部12端点的源码快照、父状态、两个Adam、随机状态、合法读取和检查点/浮点字节由final_integrity核验。')
     recovery=data['recovery_control'];assert recovery['B2perm_retrained'] is False and recovery['new_training_budget']==18000
-    p('远端SSH控制连接中断后，B2perm已完成6000步，仅回传、不重训；当时R/G/RG尚未启动，恢复只补原登记18000步。相对原计划的额外正式更新为0，原失败状态与日志保留，恢复完成链见core_finalization_state.recovery。')
+    p('远端SSH控制连接中断后，B2perm已完成6000步，仅回传、不重训。R/G/RG只补原登记18000步。本机随后重启，打断回传与评价控制，A100训练仍成功完成。r2_G额外评价留下空partial，完整主评价保留，坏partial与失败日志归档后只重做额外评价。两次恢复均未增加正式训练更新。')
     page();h('原因干预与历史资产恢复')
     cause=data['cause_interpretation'];counts=Counter(r['status'] for r in cause['cause_matrix_statuses'])
     p('三条各500步LR-only探针及冻结、颜色、配准、贡献支持诊断已完成。九项原因中：已确认实现问题'+str(counts['已确认实现问题'])+'，有干预支持的贡献因素'+str(counts['有干预支持的贡献因素'])+'，相关现象'+str(counts['相关现象'])+'，证据不足'+str(counts['证据不足'])+'。没有确认单一主因，不能用某项oracle收益宣布相机或几何错误。')
@@ -209,22 +286,30 @@ def content(data):
         resource.append([method,*[hardware(r['training_gpu'])+' / '+fmt(r['training_seconds'],1) for r in rr],
                          fmt(rr[0]['peak_gb'],2)+' / '+fmt(rr[1]['peak_gb'],2)])
     table(['分支','后缀1硬件 / 训练秒','后缀2硬件 / 训练秒','峰值GB 1 / 2'],resource,[2.4,5.7,5.7,3.6])
+    g_times=[float(next(row for row in data['costs'] if row['endpoint']==f'r{repeat}_G')['training_seconds']) for repeat in ('1','2')]
+    b_times=[float(next(row for row in data['costs'] if row['endpoint']==f'r{repeat}_B2perm')['training_seconds']) for repeat in ('1','2')]
+    p('同硬件内，G训练时间比B2perm分别低'+fmt(100*(1-g_times[0]/b_times[0]),1)+'%与'+fmt(100*(1-g_times[1]/b_times[1]),1)+'%，但G相对B2perm三指标两套均稍差。G另需深度先验与每步辅助矩，不能把较短训练时间称完整方法更便宜。R/G/RG未显示足以支持互补主张的稳定收益。')
     total=cost['total']
     pre=data['preprocessing'];recorded=pre['summary'];intervals=recorded['recorded_nonoverlapping_receipt_interval_seconds_by_resource_class']
     p('预处理账本含27阶段和76个哈希绑定引用。已记录且不重叠的CPU区间为'+fmt(intervals['CPU'],2)+'秒，GPU区间为'+fmt(intervals['GPU'],2)+'秒，CPU/GPU混合区间为'+fmt(intervals['CPU+GPU'],2)+'秒。合计'+fmt(recorded['recorded_interval_total_seconds_excluding_calibration_and_historical'],2)+'秒只是已记录区间之和，不是完整墙钟或并行完成时间。'+str(len(recorded['unknown_duration_stage_ids']))+'阶段未记录完整时长，相关峰值缺项也保留未知。历史资产复用不计本轮新增推理，不能视为免费。')
     p('子区间与外层控制器重叠区间不重复相加。校准失败、数值诊断和影子更新全部由calibration_total_cost.json单独负责：RGB '+str(total['rgb_forwards'])+'、矩 '+str(total['moment_forwards'])+'、影子轮次'+str(total['shadow_optimizer_rounds'])+'、Adam调用'+str(total['shadow_adam_calls'])+'、原生栅格反向'+str(total['native_rasterizer_backward_launches'])+'。校准阶段正式更新为'+str(total['formal_training_updates'])+'。救援部分记录'+fmt(cost['rescue_seconds'],2)+'秒与峰值'+fmt(cost['rescue_peak_gpu_bytes']/1e9,2)+'GB；校准完整墙钟未知。预处理账本只引用校准一次，不再累加其计数或时长。')
+    retry=data['retry_cost']
+    p('重启前r2_G的未完成额外评价至少已执行'+str(retry['minimum_logged_prior_RGB_and_moment_forwards_each'])+'次RGB与同数矩前向，日志区间至少'+fmt(retry['minimum_logged_partial_evaluation_elapsed_seconds'],3)+'秒。这些失败成本在retry_cost_supplement单列；实际总GPU时长、全部前向和峰值未知，未算作零。此前11个完整extra的字节审计通过；最终12核心端点及U6000由新完整链验收。')
     if ledger.get('warnings'):p('账本仍显式保留警告：'+'；'.join(ledger['warnings']))
     decision=data['phase13']
     if decision:
         value=next((decision[k] for k in ('decision_zh','decision','conclusion_zh','conclusion','status') if k in decision),'已记录判断，见phase13_decision.json')
-        p('第13节研究判断：'+(value if isinstance(value,str) else json.dumps(value,ensure_ascii=False))+'。该记录用于研究范围决定，不等于后续分支已完成。')
-        reasons=next((decision[k] for k in ('reasons_zh','reason_zh','reasons','reason') if k in decision),None)
-        if reasons:p('判断依据：'+('；'.join(map(str,reasons)) if isinstance(reasons,list) else str(reasons)))
+        p('第13节研究判断：'+(value if isinstance(value,str) else json.dumps(value,ensure_ascii=False))+'。完整决定见phase13_decision.json。')
+        reasons=next((decision[k] for k in ('rationale','reason_zh','reasons_zh','reason','reasons') if k in decision),None)
+        if reasons and decision.get('proceed_phase13') is not False:p('判断依据：'+('；'.join(map(str,reasons)) if isinstance(reasons,list) else str(reasons)))
         execution=decision.get('execution_status') or data.get('phase13_execution',{}).get('status')
-        if execution:p('条件性扩展的实际执行状态：'+str(execution)+'。本报告已完成状态仅指核心六臂，不将进行中扩展写作终态。')
+        if execution:
+            if decision.get('proceed_phase13') is False:
+                p('原因是当前RG缺少稳定整体、细节或动态收益，且相对G三指标均退步。G的局部质量与成本取舍不足以自动支持扩展RG。第13节未启动，新增正式训练与光流模型RAFT推理均为0。time/ST尚未测试，本决定不宣称它们已失败。')
+            else:p('条件性扩展的实际执行状态：'+str(execution)+'。本报告已完成状态仅指核心六臂，不将进行中扩展写作终态。')
     else:p('第13节进入或停止判断尚未登记。核心完成不会自动启动动态或组件分支。只有存在有研究价值的质量收益/取舍且主要错误不是数据bug，才登记view/time/ST与mass对照及Full/Q二因素消融；稳定反证时保留负结果、收缩路线，不按任意0.1dB阈值或漂亮置信图决定。')
     p('本轮尚不支持跨场景一般性、米制几何正确或新时间泛化。方法与超参冻结后，需要至少两个此前未参与选择的完整场景，主方法与最强相同骨干基线各两次从头初始化。不同随机种子不能共享同一父模型后称独立训练。区域掩码只用于评价，保留背景、运动内部、显隐及失败案例。')
-    p('完整固定图库保留cam00/01/02、40/80帧、两个后缀和所有登记ROI及六臂，见output/dynamic_sr_confidence_geometry_20261006/figures/index.json。下两页按预登记只展示frame40 suffix1的手部与墙角四格；没有按端点质量挑图。浮点指标与快速傅里叶变换（FFT）频带误差不受展示PNG量化影响。完整来源哈希、图库身份与两个成本账本保存在report_final_snapshot.json。')
+    p('完整图库保留cam00/01/02、40/80帧、两个后缀、全部登记区域（ROI）及六臂，见output/dynamic_sr_confidence_geometry_20261006/figures/index.json。下两页展示预登记frame40 suffix1手部与墙角，没有按质量挑图。浮点指标和快速傅里叶变换（FFT）误差不受PNG量化影响。来源与成本哈希见report_final_snapshot.json。')
     return blocks
 
 
@@ -271,8 +356,17 @@ def append_figures(docx, figures):
     from docx.oxml.ns import qn
     from docx.shared import Cm,Pt
     doc=Document(docx)
+    # A stand-alone break paragraph can itself overflow a full page and then
+    # produce an empty page. Attach the break to the next heading instead.
+    paragraphs=list(doc.paragraphs)
+    for i,paragraph in enumerate(paragraphs[:-1]):
+        page_breaks=paragraph._p.xpath('.//w:br[@w:type="page"]')
+        if page_breaks and not paragraph.text.strip() and not paragraph._p.xpath('.//w:drawing'):
+            paragraphs[i+1].paragraph_format.page_break_before=True
+            paragraph._p.getparent().remove(paragraph._p)
     for fig in figures:
-        doc.add_page_break();doc.add_paragraph(('手与厨具' if fig['camera']=='cam00' else '灯与墙角')+'固定同帧对照','Heading 1')
+        heading=doc.add_paragraph(('手与厨具' if fig['camera']=='cam00' else '灯与墙角')+'固定同帧对照','Heading 1')
+        heading.paragraph_format.page_break_before=True
         doc.add_paragraph(fig['camera']+'  frame40  suffix1  '+fig['region']+'  原裁剪'+str(fig['panels'][0]['pixels'][0])+'×'+str(fig['panels'][0]['pixels'][1]))
         doc.add_paragraph(fig['caption'])
         table=doc.add_table(rows=4,cols=2);table.autofit=False;table.alignment=WD_TABLE_ALIGNMENT.CENTER
@@ -294,6 +388,9 @@ def append_figures(docx, figures):
             # 168px hand crop is placed at native 96ppi. The wall retains all
             # 560x420 PNG pixels and is fitted to the cell without altering PNG.
             width=min(7.8,panel['pixels'][0]*2.54/96)
+            # Inline pictures must determine their own paragraph height. The
+            # text's exact 15.5pt leading would clip the picture to one line.
+            photo.paragraphs[0].paragraph_format.line_spacing=1.0
             photo.paragraphs[0].add_run().add_picture(panel['path'],width=Cm(width))
         for row in table.rows:
             no_split=OxmlElement('w:cantSplit');row._tr.get_or_add_trPr().append(no_split)
@@ -303,7 +400,8 @@ def append_figures(docx, figures):
 
 def main():
     parser=argparse.ArgumentParser();parser.add_argument('--check-ready',action='store_true')
-    parser.add_argument('--stem',type=Path,default=stage.DEFAULT_STEM);args=parser.parse_args()
+    parser.add_argument('--stem',type=Path,default=stage.DEFAULT_STEM);parser.add_argument('--confirm-qa',action='store_true');args=parser.parse_args()
+    if args.confirm_qa:confirm_page_QA(args.stem);return
     ready=readiness()
     if args.check_ready:print(json.dumps(ready,ensure_ascii=False));return
     if ready['status']!='ready_for_final_core_report':raise RuntimeError(ready)
@@ -315,6 +413,7 @@ def main():
     for key in ('plan','float_index','cached_report','matrix'):require_bound(p1[key])
     preprocessing_check=verify_preprocessing(data['preprocessing'])
     new_sources_check=verify_new_sources()
+    final_reviews_check=verify_research_and_recovery()
     assert data['recovery']['status']=='passed_recovery_consolidation'
     assert data['recovery_readiness']['status']=='passed_recovered_core_readiness'
     assert data['recovery_readiness']['formal_updates']==72000 and data['recovery_readiness']['endpoint_count']==12
@@ -329,7 +428,7 @@ def main():
             for panel in figure['panels']:stream.write(panel['label']+'\n\n!['+panel['label']+']('+panel['path']+')\n\n')
         stream.write('[完整固定图库]('+str(RUN/'figures/index.json')+')\n')
     receipt=dict(status='core_completed_report_pending_each_page_visual_review',created_at_utc=datetime.datetime.now(datetime.timezone.utc).isoformat(),
-        source_sha256=stage.sha(__file__),source_identity=data['source_identity'],readiness=ready,preprocessing_validation=preprocessing_check,new_source_validation=new_sources_check,
+        source_sha256=stage.sha(__file__),source_identity=data['source_identity'],readiness=ready,preprocessing_validation=preprocessing_check,new_source_validation=new_sources_check,final_research_visual_recovery_validation=final_reviews_check,
         docx_path=str(args.stem.with_suffix('.docx')),docx_sha256=stage.sha(args.stem.with_suffix('.docx')),
         md_path=str(args.stem.with_suffix('.md')),md_sha256=stage.sha(args.stem.with_suffix('.md')),
         figure_index=dict(path=str(RUN/'report_figures_final/index.json'),sha256=stage.sha(RUN/'report_figures_final/index.json')),
