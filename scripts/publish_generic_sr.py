@@ -55,6 +55,10 @@ DEPLOYMENTS = (
     "soft_motion_a100_20260924",
     "sr4d_20260922",
 )
+EXPERIMENT_INSTRUCTIONS = (
+    "experiments/dynamic_sr_multiview_footprint_20261007/full_registered_README.md",
+    "experiments/dynamic_sr_multiview_footprint_20261007/full_support_prepare_registered_README.md",
+)
 MAX_SOURCE_BYTES = 512_000
 MANIFEST = ".publication-manifest.json"
 GITIGNORE = """# Defense in depth; publication also uses a strict source allowlist.
@@ -144,6 +148,8 @@ def select_sources() -> dict[str, bytes]:
                 "requirements.txt", "upstream_commit.txt"
             }:
                 add_file(selected, path, path.relative_to(SOURCE).as_posix())
+    for relative in EXPERIMENT_INSTRUCTIONS:
+        add_file(selected, SOURCE / relative, relative)
 
     # The original SR4D local patch also edits its README with an HOI result
     # reference. Publish only the code hunks used by this non-HOI comparison.
