@@ -21,6 +21,9 @@ FIGURE_SELECTION=(('cam00','hand_utensil_pan_reference'),('cam01','lamp_wall_cor
 PANEL_LABELS=('HR参考','U6000父模型','C1 后缀1','RG 后缀1')
 PREPROCESSING_SHA256='61871fe88a05e3bcc6a4a84a481448e2ada9d787f9038f75ab1747eb5ee2d492'
 FUTURE_ASSETS_SHA256='7c657e7590f5917e9a337232d93ecafba128bb976f6d131959ae04fba139d515'
+EXTERNAL_BASELINE_SHA256='d94137430e2f67ca19648e440f26cee955eb2c663a8d3d73ca3c0cc83b831601'
+RECOVERY_INCIDENT=RUN/'recovery_incidents/a100_control_disconnect_20261007T0400/incident.json'
+RECOVERY_INCIDENT_SHA256='b26a411a7912c5be33580426886db81480e5e4cb97a641ce03744caaccaacd9f'
 
 
 def readiness():
@@ -42,6 +45,8 @@ def readiness():
     if (RUN/'preprocessing_cost_ledger.json').exists():
         try:verify_preprocessing(stage.read(RUN/'preprocessing_cost_ledger.json',{}))
         except (AssertionError,KeyError,OSError,ValueError) as error:reasons.append('Preprocessing cost identity invalid: '+str(error))
+    try:verify_new_sources()
+    except (AssertionError,KeyError,OSError,ValueError) as error:reasons.append('External/recovery source identity invalid: '+str(error))
     return dict(status='ready_for_final_core_report' if not reasons else 'waiting_core_completion',reasons=reasons,
                 completed_primary=summary.get('execution',{}).get('completed_primary_endpoints',0))
 
@@ -51,6 +56,7 @@ def snapshot():
     paths=dict(cause_interpretation=RUN/'cause_interpretation.json',cause=RUN/'P1_recovery_matrix_v1/cause_matrix.json',
         P1_recovery=RUN/'P1_recovery_matrix_v1/complete.json',calibration_total=RUN/'calibration_total_cost.json',
         preprocessing=RUN/'preprocessing_cost_ledger.json',future_assets=RUN/'future_benchmark_readiness.json',
+        external_baseline=RUN/'external_baseline_existing_status.json',recovery_incident=RECOVERY_INCIDENT,
         phase13=RUN/'phase13_decision.json',integrity=RUN/'final_integrity.json',finalization=RUN/'core_finalization_state.json',
         accounting=RUN/'accounting_final_core/execution_index.json',gallery=RUN/'figures/index.json',roi=ROI)
     for candidate in (RUN/'phase13/state.json',RUN/'phase13_dispatch_state.json'):
@@ -58,6 +64,14 @@ def snapshot():
     for key,path in paths.items():
         data[key]=stage.read(path,{})
         if path.exists():data['source_identity'][key]=dict(path=str(path.relative_to(ROOT)),sha256=stage.sha(path))
+    if data['finalization'].get('recovery'):
+        identity=data['finalization']['recovery'];path=require_bound(identity)
+        data['recovery']=stage.read(path);data['source_identity']['recovery']=dict(path=str(path.relative_to(ROOT)),sha256=stage.sha(path))
+        for key,identity in [('recovery_readiness',data['recovery']['readiness'])]:
+            path=require_bound(identity);data[key]=stage.read(path)
+            data['source_identity'][key]=dict(path=str(path.relative_to(ROOT)),sha256=stage.sha(path))
+        identity=data['recovery_readiness']['outer_recovery']['state'];path=require_bound(identity)
+        data['recovery_control']=stage.read(path);data['source_identity']['recovery_control']=dict(path=str(path.relative_to(ROOT)),sha256=stage.sha(path))
     data['source_identity']['stage_generator']=dict(path=str(Path(stage.__file__).relative_to(ROOT)),sha256=stage.sha(stage.__file__))
     for name in ('frequency_summary','frequency_budget','regional_quality'):
         path=RUN/(name+'.csv')
@@ -89,6 +103,30 @@ def verify_preprocessing(ledger):
     assert ledger['summary']['all_scene_formal_training_updates']==0
     return dict(bound_evidence_references=len(refs),stages=len(ledger['stages']),formal_preprocessing_updates=0,
                 calibration_counted_again=False,complete_wall_clock='unknown')
+
+
+def verify_new_sources():
+    """Read and bind historical status plus preserved control-failure evidence."""
+    external=RUN/'external_baseline_existing_status.json'
+    assert stage.sha(external)==EXTERNAL_BASELINE_SHA256,'External baseline status bytes changed'
+    status=stage.read(external)
+    assert status['status']=='existing_SR4D_two_scene_short_window_adapter_results_available'
+    refs=status['source_refs']+status['saved_metric_sources_verified_now']
+    assert len(status['source_refs'])==6 and len(status['saved_metric_sources_verified_now'])==10
+    for item in refs:require_bound(item)
+    assert status['new_training_updates']==status['new_SR4D_rendering']==0
+    assert status['not_current_core_causal_arm'] and status['not_full_original_paper_benchmark_reproduction']
+    assert stage.sha(RECOVERY_INCIDENT)==RECOVERY_INCIDENT_SHA256,'Archived recovery incident bytes changed'
+    incident=stage.read(RECOVERY_INCIDENT)
+    assert incident['status']=='archived_control_failure_not_training_failure'
+    for item in incident['files']:require_bound(dict(path=item['archive'],sha256=item['sha256']))
+    assert incident['B2perm_retraining_authorized'] is False
+    assert incident['planned_recovery_formal_updates']==18000 and incident['original_scope_budget_unchanged'] is True
+    assert incident['remaining_registered_methods']==['R','G','RG']
+    return dict(external_status_sha256=EXTERNAL_BASELINE_SHA256,external_source_refs_verified=6,
+                saved_metric_JSONs_verified=10,full_4314_model_asset_reverification=False,
+                recovery_incident_sha256=RECOVERY_INCIDENT_SHA256,archived_failure_files_verified=len(incident['files']),
+                extra_formal_training_budget=0,SR4D_rerenders=0)
 
 
 def fmt(x,n=6):return stage.fmt(x,n)
@@ -145,6 +183,8 @@ def content(data):
     p('校准保留'+str(len(data['calibration_failures']))+'次失败归档。后续完整Adam验收使用同路线重复计算的原生CUDA噪声基线和float32精度证据，联合/分开反向差异在记录范围内通过；通过记录不能删除先前失败及成本。图像监督和G梯度路由没有改变。这些检查属于校准阶段，该阶段的正式训练更新为0。核心正式训练另计72000步。')
     incident=data['source_incident']
     p('缓存启动后depth_prior.py曾追加来源/验收字段，实际加载初始源码与末尾文件哈希存在漂移。已重建实际源码并核对核心算法字节一致：初始SHA前12位'+incident['actual_loaded_source_sha256'][:12]+'，后续'+incident['later_file_sha256'][:12]+'。原收据保留，另以关联记录纠正身份，未静默改写历史。全部12端点的源码快照、父状态、两个Adam、随机状态、合法读取和检查点/浮点字节由final_integrity核验。')
+    recovery=data['recovery_control'];assert recovery['B2perm_retrained'] is False and recovery['new_training_budget']==18000
+    p('远端SSH控制连接中断后，B2perm已完成6000步，仅回传、不重训；当时R/G/RG尚未启动，恢复只补原登记18000步。相对原计划的额外正式更新为0，原失败状态与日志保留，恢复完成链见core_finalization_state.recovery。')
     page();h('原因干预与历史资产恢复')
     cause=data['cause_interpretation'];counts=Counter(r['status'] for r in cause['cause_matrix_statuses'])
     p('三条各500步LR-only探针及冻结、颜色、配准、贡献支持诊断已完成。九项原因中：已确认实现问题'+str(counts['已确认实现问题'])+'，有干预支持的贡献因素'+str(counts['有干预支持的贡献因素'])+'，相关现象'+str(counts['相关现象'])+'，证据不足'+str(counts['证据不足'])+'。没有确认单一主因，不能用某项oracle收益宣布相机或几何错误。')
@@ -157,6 +197,7 @@ def content(data):
     p('P_xyz冻结形变参数，但改变输入位置仍可改变固定网络输出的颜色、尺度与opacity；因此这是参数位置限制，不是有效外观全部固定。P_SH仅改变直接base/children球谐系数，不能排除更广义的视角外观。冻结组参数和完整Adam状态按1/100/500步核验不变，children整体饱和比例很低，不能归因为普遍位置饱和。')
     p('固定2042个候选稳定支持点后，cam01的80/118帧低频MSE反而上升约1.251%/3.816%；关闭方向颜色与gain/bias也未支持简单修复。二维平移能减小部分残差，却可能补偿错误几何，仍只是目标开发LR诊断。cam01墙角3724贡献点有大量训练像素支持，cam02约覆盖95.028%目标贡献质量；这些贡献、厚度和大足迹均由父模型推断，不能当作唯一表面或米制几何真值。')
     p('P1已恢复固定dev8：复用4张登记浮点缓存，只补0/118的4张渲染，训练更新为0。它从头执行20200步、117971点；核心六臂从共同父状态续训、132972点。P1是历史质量参照，不是初始化、容量和优化轨迹配平的因果对照。原缺失报告与旧矩阵仍保留。上述开发LR/HR、oracle参数和诊断输出不进入训练权重或合法主成绩。')
+    p('项目已于2026年9月22日核验SR4D作者仓库c64666637433，并完成Cook/MeetRoom各粗训练（coarse）20000步、细训练（fine）18000步的修复适配运行与回传。固定fine6000/18000评价JSON已复核，未重新渲染或复核全部4314模型资产。附件的公开实现检索限制不是当前项目阻塞。旧分支的骨干、容量和预算不同，不并入本轮六臂因果表，也不称完整原论文基准复现。来源见external_baseline_existing_status.json。')
     p('本地资产盘点显示Cook、Cut与MeetRoom的discussion/vrheadset准备缓存都只有0至118的60个偶数帧。Cook/Cut旧视频元数据为300帧，视频文件仍在，但本轮未重新完整解码。官方完整场景全集、完整基准与全时间先验尚未验收。Cut与MeetRoom旧先导已参与开发，不能直接作为此前未用于选择的独立确认场景。来源见future_benchmark_readiness.json。')
     page();h('实际成本与下一阶段边界')
     ledger=data['accounting'];core=ledger['actual']['core'];probes=ledger['actual']['cause_probe']
@@ -273,6 +314,10 @@ def main():
     p1=data['P1_recovery'];assert p1['parameter_updates']==0
     for key in ('plan','float_index','cached_report','matrix'):require_bound(p1[key])
     preprocessing_check=verify_preprocessing(data['preprocessing'])
+    new_sources_check=verify_new_sources()
+    assert data['recovery']['status']=='passed_recovery_consolidation'
+    assert data['recovery_readiness']['status']=='passed_recovered_core_readiness'
+    assert data['recovery_readiness']['formal_updates']==72000 and data['recovery_readiness']['endpoint_count']==12
     assert data['calibration_total']['status']=='passed_all_calibration_checks'
     assert data['calibration_total']['coefficients_recalculated_on_rescue'] is False
     blocks=content(data);figures=native_crops(data);args.stem.parent.mkdir(parents=True,exist_ok=True)
@@ -284,7 +329,7 @@ def main():
             for panel in figure['panels']:stream.write(panel['label']+'\n\n!['+panel['label']+']('+panel['path']+')\n\n')
         stream.write('[完整固定图库]('+str(RUN/'figures/index.json')+')\n')
     receipt=dict(status='core_completed_report_pending_each_page_visual_review',created_at_utc=datetime.datetime.now(datetime.timezone.utc).isoformat(),
-        source_sha256=stage.sha(__file__),source_identity=data['source_identity'],readiness=ready,preprocessing_validation=preprocessing_check,
+        source_sha256=stage.sha(__file__),source_identity=data['source_identity'],readiness=ready,preprocessing_validation=preprocessing_check,new_source_validation=new_sources_check,
         docx_path=str(args.stem.with_suffix('.docx')),docx_sha256=stage.sha(args.stem.with_suffix('.docx')),
         md_path=str(args.stem.with_suffix('.md')),md_sha256=stage.sha(args.stem.with_suffix('.md')),
         figure_index=dict(path=str(RUN/'report_figures_final/index.json'),sha256=stage.sha(RUN/'report_figures_final/index.json')),
