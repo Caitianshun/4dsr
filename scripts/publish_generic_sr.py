@@ -60,7 +60,34 @@ EXPERIMENT_INSTRUCTIONS = (
     "experiments/dynamic_sr_multiview_footprint_20261007/full_support_prepare_registered_README.md",
     "experiments/dynamic_sr_multiview_footprint_20261007/full_temporal_diagnostics_README.md",
     "experiments/dynamic_sr_multiview_footprint_20261007/full_overlap_schedule_README.md",
+    "experiments/dynamic_sr_multiview_footprint_20261007/full_held_confirmation_README_v2.md",
+    "experiments/dynamic_sr_multiview_footprint_20261007/full_held_confirmation_README_v3.md",
 )
+FULL_HELD_SOURCE_NAMES = {
+    "full_held_coarse_manager.py",
+    "full_held_coarse_manager_GPU1_v2.py",
+    "full_held_confirmation_assets_v2.py",
+    "full_held_confirmation_assets_v4.py",
+    "full_held_confirmation_bridge.py",
+    "full_held_confirmation_checks.py",
+    "full_held_confirmation_contract.py",
+    "full_held_confirmation_contract_v2.py",
+    "full_held_native_acceptance.py",
+    "full_held_native_schedule_materializer.py",
+    "full_held_native_supervisor.py",
+    "full_held_native_supervisor_GPU1.py",
+    "full_held_operator_registered.py",
+    "full_held_operator_registered_v2.py",
+    "full_held_pair_coordinator.py",
+    "full_held_pair_coordinator_v2.py",
+    "full_held_parent_overlap.py",
+    "full_held_temporal_diagnostics.py",
+}
+RETAINED_FULL_HELD_PROTOTYPES = {
+    "full_held_coarse_manager_GPU1.py",
+    "full_held_confirmation_assets.py",
+    "full_held_confirmation_assets_v3.py",
+}
 MAX_SOURCE_BYTES = 512_000
 MANIFEST = ".publication-manifest.json"
 GITIGNORE = """# Defense in depth; publication also uses a strict source allowlist.
@@ -138,7 +165,16 @@ def select_sources() -> dict[str, bytes]:
             raise FileNotFoundError(folder)
         for path in sorted(folder.iterdir()):
             if path.is_file() and not path.is_symlink() and path.suffix == ".py":
+                if name == "dynamic_sr_multiview_footprint_20261007" and path.name.startswith("full_held_"):
+                    if path.name in RETAINED_FULL_HELD_PROTOTYPES:
+                        continue
+                    if path.name not in FULL_HELD_SOURCE_NAMES:
+                        raise ValueError(f"Unreviewed held source is not allowlisted: {path.name}")
                 add_file(selected, path, path.relative_to(SOURCE).as_posix())
+    held_prefix = "experiments/dynamic_sr_multiview_footprint_20261007/"
+    missing_held = {held_prefix + name for name in FULL_HELD_SOURCE_NAMES} - selected.keys()
+    if missing_held:
+        raise ValueError(f"Missing reviewed held sources: {sorted(missing_held)}")
     for name in DEPLOYMENTS:
         folder = SOURCE / "deployment" / name
         if not folder.is_dir():

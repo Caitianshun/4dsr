@@ -358,6 +358,19 @@ or register training. An operational manager for the new producer source must
 be registered separately; historical accepted manager bytes are not a substitute.
 See [the dependency, provenance and command notes](experiments/dynamic_sr_multiview_footprint_20261007/full_overlap_schedule_README.md).
 
+The additive `full_held_*` entries bind the two separately registered confirmation
+scenes to a completed development record and a single frozen Bsync/B0 configuration.
+They preserve the registered native refinement computation and require actual
+training-LR teacher acceptance, same-parent CUDA diagnostics, frozen-parent
+overlap, schedule acceptance and per-role byte-SHA closure before dispatch.
+Their evaluation and temporal interfaces retain the existing measurement functions
+and require explicit post-freeze HR authorization. Persistent coordination uses
+owned process exits and the physical-GPU lock; it does not infer completion from
+progress logs. The operational adapters support the audited Coffee/A100 GPU1
+and Flame/A100 GPU0 bindings and a uniform RTX3090 evaluator. Dataset pixels, checkpoints, acceptance
+records and host-specific dependencies are not included in this source release.
+See [the exact confirmation prerequisites and commands](experiments/dynamic_sr_multiview_footprint_20261007/full_held_confirmation_README_v3.md).
+
 `dispatch_prepared_remote.py` can attach or dispatch the fixed remote paired
 worker after an exact preparation exit and remote SHA validation, while immutable
 assets are returned. It never publishes the local preparation gate early. The
