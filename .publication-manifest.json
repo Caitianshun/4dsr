@@ -3,7 +3,7 @@
   "sha256": {
     ".gitignore": "4d8f0d3abdeb43a5c0abfcd62bf5d0a9399e99bda4e8bc0caa1e6b6ba97a673b",
     "PROJECT_GUIDELINES.md": "5484840c4474733e04a6a2ebc54c071fba99250e6d41b7439366da59f5d5b17a",
-    "README.md": "7e3dffc56f5440b912ec86d974f6b9be2061a6bce73a6592583516246940fa2a",
+    "README.md": "23b57fc057bc78bd52a984284204215d3341fda2959ebb5edeb53c97a9fad59c",
     "deployment/a100_20260920/acquire_public_data.py": "978c24120a003144f57463f76bd6f625ed41c2599d5ef052b9fd24251521783b",
     "deployment/a100_20260920/activate_a100.sh": "06f6f786d6657353c1d6d40732bffd1869b5768acec7d4aa25ae4342faa94661",
     "deployment/a100_20260920/finalize_deployment.py": "5b82f2a66c0dbf61ba407f195f441a76e1cd421f8269203c81abd521aabfeca8",
@@ -338,8 +338,11 @@
     "experiments/dynamic_sr_multiview_footprint_20261007/full_evaluate.py": "ee8240247fdf5f7d8396e8038f9a9d389a8a059e5cc5c24caa175b9e2d55b4a5",
     "experiments/dynamic_sr_multiview_footprint_20261007/full_evaluate_checks.py": "1143221f8f452304ca2288f9ef2372f74ddbec16c3325772b98a4043372a1144",
     "experiments/dynamic_sr_multiview_footprint_20261007/full_evaluate_registered.py": "87fd5f4d29453be980704ce7030d8cf1d7d3d35205ea978d1a81e1b7d0d4ab05",
+    "experiments/dynamic_sr_multiview_footprint_20261007/full_frozen_parent_overlap.py": "382f06a61ce7b263ec5c7bb50f8676e255669538ce3c7a1e75af23f952ae2453",
     "experiments/dynamic_sr_multiview_footprint_20261007/full_initialization.py": "ca8188bb182c511bb3dfd3a3107799a3a63f0e5bd85788d3ca7a4c2176cb49ec",
     "experiments/dynamic_sr_multiview_footprint_20261007/full_native_protocol.py": "cb4773700bbf535ebb0d9cc94c51f06ca457e04bf305d65ef9afe911746d6713",
+    "experiments/dynamic_sr_multiview_footprint_20261007/full_native_schedule_materializer.py": "002ce7157d3d2d6206ade6dcae35e436a76ceaa5dadf408706d5ee8806012a19",
+    "experiments/dynamic_sr_multiview_footprint_20261007/full_overlap_schedule_README.md": "ddf2f00c3ea023ecb3d67a7a19ed147289978bbf487bd7673d5bde4462cb69cd",
     "experiments/dynamic_sr_multiview_footprint_20261007/full_prefix.py": "ab5fd0313d37bbfa31c240f3c38f8ba8bec37cf5022217f1d3166f18ed822a6f",
     "experiments/dynamic_sr_multiview_footprint_20261007/full_prefix_checks.py": "320fdc01b3423b3474d46a24dbc0417fac11c9ed54b25b91208b334df29113e3",
     "experiments/dynamic_sr_multiview_footprint_20261007/full_prefix_registered.py": "92a19ed94c2bf7dab881341375c4bdc486e6f4032536e977592c7911c3ce6605",
@@ -541,7 +544,7 @@
     "experiments/sr4d_20260922/summarize_minimal.py": "8e2e3e7c1c331e6651b72a1dc84db585d88bc85e0007a7aca44e700d0145d057",
     "experiments/sr4d_20260922/train_sr4d.py": "0f12fb92c513b135a31d3578dc11b36fcb15ae9101a848361ccc9f184f22ae8f",
     "experiments/sr4d_20260922/wu_entry.py": "57e74af4ea68ef3c485735179d0d15f7b2eec5245d670e9aa88e4fd7eabd05a9",
-    "scripts/publish_generic_sr.py": "d59fbbb3d0e32912d8608091af03de8ab4655afe02dfed64e8caa5370ca280e0",
+    "scripts/publish_generic_sr.py": "909c7a30386083eace5914051ea4aeac4771ce717c4ba7697418af99600e91c8",
     "scripts/summarize_quality_headroom_20260923.py": "bbc8e37ad918ec6055f4b79df37ec8d9b50db4828ab2f8587155d6d0a1d468b2"
   }
 }

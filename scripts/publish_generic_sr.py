@@ -59,6 +59,7 @@ EXPERIMENT_INSTRUCTIONS = (
     "experiments/dynamic_sr_multiview_footprint_20261007/full_registered_README.md",
     "experiments/dynamic_sr_multiview_footprint_20261007/full_support_prepare_registered_README.md",
     "experiments/dynamic_sr_multiview_footprint_20261007/full_temporal_diagnostics_README.md",
+    "experiments/dynamic_sr_multiview_footprint_20261007/full_overlap_schedule_README.md",
 )
 MAX_SOURCE_BYTES = 512_000
 MANIFEST = ".publication-manifest.json"

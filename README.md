@@ -342,6 +342,22 @@ and does not supervise inference. Code publication and CPU contract checks do
 not constitute native CUDA acceptance, full-scene quality results or confirmation
 on unseen scenes.
 
+`full_frozen_parent_overlap.py` exposes the frozen native parent's coarse
+visibility calculation. `full_native_schedule_materializer.py` uses training
+camera poses and those accepted overlap ratios to create balanced simultaneous
+three-camera schedules, or to retain the exact path/SHA of an existing schedule.
+These portable entries preserve the previously frozen calculation functions;
+their source identities are new and require new registrations. They depend on
+the registered native prefix/refinement/protocol helpers, the footprint and raw
+depth-moment helpers, the pinned Wu author runtime, and separately supplied legal
+LR manifests, initialized parents and exact-exit/SHA receipts. Planning uses
+Python 3.10 with NumPy 1.26.4 and hides CUDA; actual moment preparation additionally
+needs PyTorch, the native CUDA extensions and explicit resource ownership.
+The schedule entry emits preparation artifacts only. It does not select a method
+or register training. An operational manager for the new producer source must
+be registered separately; historical accepted manager bytes are not a substitute.
+See [the dependency, provenance and command notes](experiments/dynamic_sr_multiview_footprint_20261007/full_overlap_schedule_README.md).
+
 `dispatch_prepared_remote.py` can attach or dispatch the fixed remote paired
 worker after an exact preparation exit and remote SHA validation, while immutable
 assets are returned. It never publishes the local preparation gate early. The
