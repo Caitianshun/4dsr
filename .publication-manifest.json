@@ -350,6 +350,8 @@
     "experiments/dynamic_sr_multiview_footprint_20261007/full_refine.py": "dc1064cd5e096a64e7376f6a7bef1eed0230e9d8e463f5cdfab65b4480d315c2",
     "experiments/dynamic_sr_multiview_footprint_20261007/full_refine_checks.py": "5f9d9f82b2d60b4cd690f17071327886226f5d17245d39b31eadd73733c99e60",
     "experiments/dynamic_sr_multiview_footprint_20261007/full_refine_registered.py": "9662c17f32212d6fdbd8c0f1a0cf405274b5239eb1a1a3b48acd6d60a11b6d09",
+    "experiments/dynamic_sr_multiview_footprint_20261007/full_refine_registered_v2.py": "c278928f56b0515adedf15eef9a30850e8bd2a4c41e6f6e0f828068ca774b75d",
+    "experiments/dynamic_sr_multiview_footprint_20261007/full_refine_registered_v2_checks.py": "409761d3968faeaacddb20ff108fe81aaab766c6ab6c551d8fd444fcae9a9bb7",
     "experiments/dynamic_sr_multiview_footprint_20261007/full_registered_README.md": "0061701d26230e7846d3ad716503f443a75014d81be570bcdda41b35e6dc6a0c",
     "experiments/dynamic_sr_multiview_footprint_20261007/full_registered_checks.py": "d3aeef8fedad3ca8f3dc7c3c7627a412cd82c273b728b607f1eb151d67967351",
     "experiments/dynamic_sr_multiview_footprint_20261007/full_support_prepare.py": "fc5431cd35304db6723f64ef855413796eb468fdaf13fb0d53732bf1ee26f8d1",
