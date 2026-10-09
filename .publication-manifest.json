@@ -353,7 +353,7 @@
     "experiments/dynamic_sr_multiview_footprint_20261007/full_held_confirmation_checks.py": "8ae972932d139d4a990c20e475de9f267e9402ccb5612e968c0d0bf326ef7072",
     "experiments/dynamic_sr_multiview_footprint_20261007/full_held_confirmation_contract.py": "0dde34c7284497804bab4abe186b0dcc1d5f8267feb94a8cb0a1d48ac559131f",
     "experiments/dynamic_sr_multiview_footprint_20261007/full_held_confirmation_contract_v2.py": "ae380147650971e91aa952d311411a3b6434bee5f4dde309cade84a24201e260",
-    "experiments/dynamic_sr_multiview_footprint_20261007/full_held_confirmation_local_RTX3090_README_v1.md": "3460afac6e67df9b6a48d6c9763a2648a03001cbb692b842a85d7d4ad334dbe4",
+    "experiments/dynamic_sr_multiview_footprint_20261007/full_held_confirmation_local_RTX3090_README_v1.md": "a9475eda26d231b2afdfbfe8cfd0b06c1fde14a56f18e9be87d7a1a64e730cd7",
     "experiments/dynamic_sr_multiview_footprint_20261007/full_held_local_RTX3090_scope_v1.py": "eec6aad2ac1cd7ac0a0b62b949c9a6898e383db2cd21e557a0cb8f9fcc0125c7",
     "experiments/dynamic_sr_multiview_footprint_20261007/full_held_native_acceptance.py": "99f7d5b94d82942912a4afb7373a11dbf5fd6cf8dda62c753d0609c547e1224e",
     "experiments/dynamic_sr_multiview_footprint_20261007/full_held_native_schedule_materializer.py": "92790ce30ffa3942ca121ad934fc4b3f37de6931061abd8721b333b1a825fa2e",
