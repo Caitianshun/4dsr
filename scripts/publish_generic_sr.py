@@ -62,8 +62,15 @@ EXPERIMENT_INSTRUCTIONS = (
     "experiments/dynamic_sr_multiview_footprint_20261007/full_overlap_schedule_README.md",
     "experiments/dynamic_sr_multiview_footprint_20261007/full_held_confirmation_README_v2.md",
     "experiments/dynamic_sr_multiview_footprint_20261007/full_held_confirmation_README_v3.md",
+    "experiments/dynamic_sr_multiview_footprint_20261007/full_held_confirmation_local_RTX3090_README_v1.md",
 )
 FULL_HELD_SOURCE_NAMES = {
+    "full_held_local_RTX3090_scope_v1.py",
+    "full_held_native_supervisor_local_RTX3090_v1.py",
+    "full_held_coarse_manager_local_RTX3090_v1.py",
+    "full_held_confirmation_assets_local_RTX3090_v1.py",
+    "full_held_operator_registered_local_RTX3090_v1.py",
+    "full_held_pair_coordinator_local_RTX3090_v1.py",
     "full_held_coarse_manager.py",
     "full_held_coarse_manager_GPU1_v2.py",
     "full_held_confirmation_assets_v2.py",
