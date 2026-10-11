@@ -63,6 +63,8 @@ DEPLOYMENTS = (
     "resume_long_storage_20261011",
     "adopt_existing_dag_20261011",
     "resume_existing_completed_dag_20261011",
+    "return_completed_dag_20261011",
+    "return_terminal_inventory_20261011",
 )
 EXPERIMENT_INSTRUCTIONS = (
     "deployment/readonly_hr_a100_20261011/README.md",
@@ -72,6 +74,8 @@ EXPERIMENT_INSTRUCTIONS = (
     "deployment/resume_long_storage_20261011/README.md",
     "deployment/adopt_existing_dag_20261011/README.md",
     "deployment/resume_existing_completed_dag_20261011/README.md",
+    "deployment/return_completed_dag_20261011/README.md",
+    "deployment/return_terminal_inventory_20261011/README.md",
     "experiments/dynamic_sr_cull_retrain_20261009/README.md",
     "experiments/dynamic_sr_highres_20261011/README.md",
     "experiments/dynamic_sr_highres_20261011/README_screening_runner.md",
