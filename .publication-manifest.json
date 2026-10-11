@@ -18,6 +18,8 @@
     "deployment/a100_20260920/smoke_environment.py": "2bda65f4bbed82782aa99021a6f2ae3cbcac68ea01986d5c149e5453f273a536",
     "deployment/a100_20260920/smoke_training.sh": "cb2a5d6fac32b0f2ae0e8e9fd764aa538ce710669d31d656b7c35dab09628480",
     "deployment/a100_20260920/smoke_video.py": "c34e7860fc29280ef93582dd7779746ae710bed14125ea9ef7434eb2cb23416d",
+    "deployment/complete_startup_eval_20261011/README.md": "16b2ba183b7df7d554742faf3e3ae852845270811591e725c5ab68e7f8e312a4",
+    "deployment/complete_startup_eval_20261011/complete_startup_eval.py": "8931cc207999b477ca1381266415a2c5dd9e604175814b4f845f43192098c2ca",
     "deployment/cts_20260921/activate_cts.sh": "63bf813ae311a5300ed310af841aced351039c1895ad3f513ba01d04c7ad8604",
     "deployment/cts_20260921/finalize_after_transfers.py": "57d1270af8e68a6b70068e3e8c88a37b8c6d1b7e3fa01071a97ce012ae714eb9",
     "deployment/cts_20260921/finalize_restored_deployment.py": "ba31af88aef680b993e38ddcd700bcbc6408e45d42b5426e8c83f27679e6243c",
@@ -631,7 +633,7 @@
     "experiments/sr4d_20260922/summarize_minimal.py": "8e2e3e7c1c331e6651b72a1dc84db585d88bc85e0007a7aca44e700d0145d057",
     "experiments/sr4d_20260922/train_sr4d.py": "0f12fb92c513b135a31d3578dc11b36fcb15ae9101a848361ccc9f184f22ae8f",
     "experiments/sr4d_20260922/wu_entry.py": "57e74af4ea68ef3c485735179d0d15f7b2eec5245d670e9aa88e4fd7eabd05a9",
-    "scripts/publish_generic_sr.py": "ab3fd09c8def28f8940ee4ea7dad6e97ee3519be0eda684a887e95a8678dc456",
+    "scripts/publish_generic_sr.py": "417c8dc9209aab8291728a0f57a943ffffe1a205abeda55b4af5fc6795d859b1",
     "scripts/summarize_quality_headroom_20260923.py": "bbc8e37ad918ec6055f4b79df37ec8d9b50db4828ab2f8587155d6d0a1d468b2"
   }
 }
