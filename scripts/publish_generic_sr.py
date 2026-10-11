@@ -60,12 +60,14 @@ DEPLOYMENTS = (
     "resume_verified_sync_20261011",
     "runtime_env_resume_20261011",
     "complete_startup_eval_20261011",
+    "resume_long_storage_20261011",
 )
 EXPERIMENT_INSTRUCTIONS = (
     "deployment/readonly_hr_a100_20261011/README.md",
     "deployment/resume_verified_sync_20261011/README.md",
     "deployment/runtime_env_resume_20261011/README.md",
     "deployment/complete_startup_eval_20261011/README.md",
+    "deployment/resume_long_storage_20261011/README.md",
     "experiments/dynamic_sr_cull_retrain_20261009/README.md",
     "experiments/dynamic_sr_highres_20261011/README.md",
     "experiments/dynamic_sr_highres_20261011/README_screening_runner.md",
