@@ -1,0 +1,13 @@
+{
+  "id": "deskgames_cube", "scene": "cube", "dataset": "DeskGames",
+  "raw_directory": "data/dynamic_sr/highres_expansion_20261010/raw/deskgames/cube",
+  "video_directory": "videos", "video_rule": "cam{number:02d}.mp4",
+  "distorted_model": "colmap/distorted/sparse/0", "pinhole_model": "colmap/sparse/0",
+  "image_name_rule": "NN.png", "raw_size": [2560,1440], "fps": 30, "frames": 6000,
+  "full_crop": [2520,1416], "crop_rule": "upper_left", "test_original": [13],
+  "main_test_original": 13, "window_candidates": [0,300,600,900,1200,1500,1800,2100,2400,2700,3000,3300,3600,3900,4200,4500,4800,5100,5400,5700],
+  "rungs": {"full":"dgF_cube","half":"dgH_cube"},
+  "source": "https://turandai.github.io/projects/4d_gaussian_video/",
+  "split_source": "No official split found; preregistered central-camera rule, verify camera 13 from supplied calibration",
+  "license": "Independent dataset license not declared; research use only, no public redistribution"
+}

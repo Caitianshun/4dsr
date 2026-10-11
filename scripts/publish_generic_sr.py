@@ -41,6 +41,8 @@ EXPERIMENTS = (
     "dynamic_sr_same_observation_20260930",
     "dynamic_sr_confidence_geometry_20261006",
     "dynamic_sr_multiview_footprint_20261007",
+    "dynamic_sr_cull_retrain_20261009",
+    "dynamic_sr_highres_20261011",
     "dynamic_sr_geometry_residual_20260924",
     "dynamic_sr_motion_bound_20260923",
     "dynamic_sr_multi4d_20260924",
@@ -56,6 +58,10 @@ DEPLOYMENTS = (
     "sr4d_20260922",
 )
 EXPERIMENT_INSTRUCTIONS = (
+    "experiments/dynamic_sr_cull_retrain_20261009/README.md",
+    "experiments/dynamic_sr_highres_20261011/README.md",
+    "experiments/dynamic_sr_highres_20261011/README_screening_runner.md",
+    "experiments/dynamic_sr_highres_20261011/README_local_orchestrator.md",
     "experiments/dynamic_sr_multiview_footprint_20261007/full_registered_README.md",
     "experiments/dynamic_sr_multiview_footprint_20261007/full_support_prepare_registered_README.md",
     "experiments/dynamic_sr_multiview_footprint_20261007/full_temporal_diagnostics_README.md",
@@ -63,6 +69,14 @@ EXPERIMENT_INSTRUCTIONS = (
     "experiments/dynamic_sr_multiview_footprint_20261007/full_held_confirmation_README_v2.md",
     "experiments/dynamic_sr_multiview_footprint_20261007/full_held_confirmation_README_v3.md",
     "experiments/dynamic_sr_multiview_footprint_20261007/full_held_confirmation_local_RTX3090_README_v1.md",
+)
+HIGHRES_REQUIRED_TEXT = (
+    "experiments/dynamic_sr_highres_20261011/datasets/deskgames_cube.json",
+    "experiments/dynamic_sr_highres_20261011/datasets/long360.json",
+    "experiments/dynamic_sr_modules_20261010/modsr.py",
+    "experiments/dynamic_sr_modules_20261010/refs.py",
+    "experiments/dynamic_sr_native_20261010/register_native.py",
+    "experiments/dynamic_sr_native_20261010/teacher_native.py",
 )
 FULL_HELD_SOURCE_NAMES = {
     "full_held_local_RTX3090_scope_v1.py",
@@ -194,6 +208,8 @@ def select_sources() -> dict[str, bytes]:
             }:
                 add_file(selected, path, path.relative_to(SOURCE).as_posix())
     for relative in EXPERIMENT_INSTRUCTIONS:
+        add_file(selected, SOURCE / relative, relative)
+    for relative in HIGHRES_REQUIRED_TEXT:
         add_file(selected, SOURCE / relative, relative)
 
     # The original SR4D local patch also edits its README with an HOI result

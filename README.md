@@ -15,6 +15,7 @@ This repository publishes the **code and necessary text configuration** for the 
 | `experiments/dynamic_sr_controlled_headroom_20260926` | Fixed-topology Z/U/O teacher-removal and privileged training-HR supervision controls |
 | `experiments/dynamic_sr_confidence_geometry_20261006` | Registered observation permutations, image-nullspace SR supervision, LR-only depth ordering, and finite cause probes |
 | `experiments/dynamic_sr_multiview_footprint_20261007` | Same-time LR multiview controls, differentiable HR footprint reconstruction, paired continuation and event-driven evaluation |
+| `experiments/dynamic_sr_highres_20261011` | Calibrated DeskGames/Long360 dataset screening, six reconstruction references, training-view prior fitting, and persistent remote validation |
 | `experiments/sr4d_20260922` | SR4D comparison adapters and evaluation |
 | `experiments/dynamic_sr_surface_20260923` | Archived non-HOI ZJU single-person exploration; **not** evidence for the current full-scene route |
 | `deployment/` | Host-specific setup and run scripts; paths and device identifiers describe the original machines |
@@ -30,6 +31,20 @@ Frozen single-image SR priors require the separately obtained SwinIR network and
 The SR4D comparison uses an external author implementation at commit `c6466663743382d48c5f23701568113eef9e961b`; `deployment/sr4d_20260922/general_sr_source.patch` records the non-HOI code changes. The original local patch also changed the author's README to point to an old HOI experiment; that documentation hunk is deliberately omitted here. The full author-source snapshot and binary deployment archive are omitted, so the archived deployment script that expects those files needs the original local archive to run unchanged.
 
 This is research code, including historical pilots and negative controls. The current full-scene work uses N3DV and MeetRoom. A script name or inclusion here does not imply that its method was accepted as the final approach or that a fresh clone will reproduce a paper result without the corresponding external assets and protocol.
+
+The high-resolution dataset validation entrypoints additionally require separately
+obtained DeskGames or Long360 videos and calibration. Their initial matrix uses
+half-resolution prepared HR and exact antialiased bicubic ×4 LR. Calibration and
+all-training-camera image screening precede complete reconstruction runs. The
+six endpoints distinguish a17k-step LR parent, three matched6k-step continuations,
+and17k-step SR-image/HR-image reconstructions. Privileged HR references and
+single-image SR diagnostics are conditional comparisons, not mathematical upper
+bounds. An independent50-step gradient/render check cannot supply a formal parent.
+The original frozen prior generator remains a private source snapshot at its
+registered path; prepare that snapshot and verify its pinned SHA separately.
+Dataset configs and execution source are published, while generated task tables,
+acceptance records, results and weights are excluded. See the high-resolution
+directory's README files for the dependencies and original machine bindings.
 
 ## Updates
 

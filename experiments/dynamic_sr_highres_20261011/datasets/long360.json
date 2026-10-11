@@ -1,0 +1,13 @@
+{
+  "id":"long360", "scene":"long360", "dataset":"Long360",
+  "raw_directory":"data/dynamic_sr/highres_expansion_20261010/long360/raw/long360",
+  "video_directory":".", "video_rule":"view_{number:03d}.mp4",
+  "distorted_model":"frame000000/distorted/sparse/0", "pinhole_model":"frame000000/sparse/0",
+  "image_name_rule":"camNN.jpg", "raw_size":[3840,2160], "fps":25, "frames":700,
+  "full_crop":[3736,2096], "crop_rule":"principal_point_center_floor", "test_original":[0,10,20,30],
+  "main_test_original":0, "window_candidates":[0,100,200,300,400],
+  "rungs":{"half":"l3H_long360"},
+  "source":"https://huggingface.co/datasets/BestWJH/VRU_Basketball",
+  "split_source":"Published data card test views 0,10,20,30; other 32 train",
+  "license":"CC BY 4.0"
+}
