@@ -39,6 +39,9 @@
     "deployment/readonly_hr_a100_20261011/remote_storage.py": "a01f617ef7bd6d4b15a255d3622524ef792239f97ef8192681ab6c7add8e8004",
     "deployment/readonly_hr_a100_20261011/selfcheck_storage.py": "0c21c2a47b56ccbfd7e3b72800a31bc74886cac63c26cafc3f2586bc1d0023e0",
     "deployment/readonly_hr_a100_20261011/storage_supervisor.py": "638e24fd4fe305f440186df4576f9fea956b542cd66c31eb10b85230ff056456",
+    "deployment/resume_verified_sync_20261011/README.md": "8b78cd8db052392579655716199e9af80decda2e72d4bc25f65257126cb885d6",
+    "deployment/resume_verified_sync_20261011/resume_sync.py": "cf78adac712e1d5c4e7ce545ace1b5f09095cad237b63c36a32bea028eea92c1",
+    "deployment/resume_verified_sync_20261011/selfcheck_resume.py": "ff24a38beb555eda18187de7234309e44c367f1ec7084551730b843c878bf256",
     "deployment/soft_motion_a100_20260924/cook_s_remote.sh": "821d232f0fd84af31f0e24860d2de175b068aa26154f8998e028d5ae975b5cfc",
     "deployment/soft_motion_a100_20260924/discussion_s_remote.sh": "71dd28f2236eb941bca6a87a4548a2e4841db3d9d356b1ed6e620d3a9169bbad",
     "deployment/sr4d_20260922/collect_on_exit.py": "8a69b60c2d6f15eb7a7cd495267372db8cf42509c6df874e98dcf9abe315c6b4",
@@ -626,7 +629,7 @@
     "experiments/sr4d_20260922/summarize_minimal.py": "8e2e3e7c1c331e6651b72a1dc84db585d88bc85e0007a7aca44e700d0145d057",
     "experiments/sr4d_20260922/train_sr4d.py": "0f12fb92c513b135a31d3578dc11b36fcb15ae9101a848361ccc9f184f22ae8f",
     "experiments/sr4d_20260922/wu_entry.py": "57e74af4ea68ef3c485735179d0d15f7b2eec5245d670e9aa88e4fd7eabd05a9",
-    "scripts/publish_generic_sr.py": "5ab466f2571901664014735078b4bc45b1a60408e59318b1d24313cdcf195fae",
+    "scripts/publish_generic_sr.py": "3f9e3a5876e9e51fd654643cfe747f00d2f8100b9d309f17c4a34cfd670f7c0c",
     "scripts/summarize_quality_headroom_20260923.py": "bbc8e37ad918ec6055f4b79df37ec8d9b50db4828ab2f8587155d6d0a1d468b2"
   }
 }
