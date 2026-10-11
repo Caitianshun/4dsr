@@ -36,15 +36,22 @@ The high-resolution dataset validation entrypoints additionally require separate
 obtained DeskGames or Long360 videos and calibration. Their initial matrix uses
 half-resolution prepared HR and exact antialiased bicubic ×4 LR. Calibration and
 all-training-camera image screening precede complete reconstruction runs. The
-six endpoints distinguish a17k-step LR parent, three matched6k-step continuations,
-and17k-step SR-image/HR-image reconstructions. Privileged HR references and
+six endpoints distinguish a 17k-step LR parent, three matched 6k-step continuations,
+and 17k-step SR-image/HR-image reconstructions. Privileged HR references and
 single-image SR diagnostics are conditional comparisons, not mathematical upper
-bounds. An independent50-step gradient/render check cannot supply a formal parent.
+bounds. An independent 50-step gradient/render check cannot supply a formal parent.
 The original frozen prior generator remains a private source snapshot at its
 registered path; prepare that snapshot and verify its pinned SHA separately.
 Dataset configs and execution source are published, while generated task tables,
 acceptance records, results and weights are excluded. See the high-resolution
 directory's README files for the dependencies and original machine bindings.
+
+The optional A100 Long360 storage wrapper in
+`deployment/readonly_hr_a100_20261011/` maps a verified external HR input tree
+through a persistent read-only bindfs user service. It preserves the experiment
+source and disk budgets. Its binary, storage receipts and prepared inputs are
+supplied separately; the deployment README records the pinned package and
+machine paths.
 
 ## Updates
 
