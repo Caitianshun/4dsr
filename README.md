@@ -427,3 +427,31 @@ frames of separate, non-evaluation sources listed by `area_teacher_data.py`;
 sRGB-domain average is an approximation of linear-light binning, and the HR
 frames themselves come from compressed video. Task tables, prepared data,
 weights, results and the pre-registration record are not published.
+
+### Geometry and calibration probes
+
+`experiments/dynamic_sr_geoprobe_20261017/appearance_refit.py` and
+`experiments/dynamic_sr_modules_20261010/geoprobe_20261017/appearance_refit_v2.py`
+freeze the geometry of a trained model (Gaussian centres, scales, rotations,
+opacities, deformation trunk and geometry heads) and refit only its appearance
+(SH, SH-deformation head, per-camera colour affine) under one supervision: LR
+closure under the box or bicubic operator, the frozen teacher, or training HR
+(a diagnostic, not a method). `v2` can warm-start the appearance from the source
+model. `register_probe.py` measures render-versus-HR sub-pixel displacements on
+training views with a Lucas–Kanade patch estimator. `calibsr.py` and
+`calibsr_v2.py` wrap the fixed-final-step SR stage with a selectable LR operator
+and an optional per-training-camera image-space warp (shift, or shift, scale,
+rotation and a radial term) learned with the model; `v2` adds routing of the
+teacher gradient to geometry only and an SH-degree cap. `perturbsr.py` injects a
+fixed per-camera sub-pixel shift into the LR fine stage and the SR stage, with
+all supervision kept in the true frame, to emulate a misregistered (weaker) base,
+optionally together with the learned warp. `geosr.py` exposes SR-stage
+geometry-shaping switches on the same recipe: scales for the scheduled position,
+deformation-network and HexPlane learning rates (the registered SR stage continues
+the LR-stage schedule near its final values), a scale for the densification
+gradient threshold, and an optional Gaussian low-pass applied to render and
+teacher in the teacher terms only. `group_eval_bands.py` is
+`dynamic_sr_cull_retrain_20261009/selfens_20261016/group_eval.py` with radial FFT
+band PSNR added. The `run_*_remote*.py` drivers run arms one after another on a
+remote host and score them on one test view. Results, task tables and
+checkpoints are not published.
