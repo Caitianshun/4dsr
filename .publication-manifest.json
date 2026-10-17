@@ -514,6 +514,7 @@
     "experiments/dynamic_sr_physlr_20261016/physsr.py": "6e01e3371a1f4eeb69f4053448a58944cafa2acd88f3fb452f827c0e57333bcc",
     "experiments/dynamic_sr_physlr_20261016/physsr2.py": "63b461fc26b6c511db58642c221954ef6242a0a0b2e78ff87c027d41e45bf2d7",
     "experiments/dynamic_sr_physlr_20261016/render_dump.py": "8a929a7b4b33932c009e6c9fd32fdaef427dca9d3d6558a2e02f14e277e5440d",
+    "experiments/dynamic_sr_physlr_20261016/teacher_dose.py": "26eb56748772107ba162679b1d1ec35322f4349cf3f5c9b83625e22df96b9545",
     "experiments/dynamic_sr_physlr_20261016/teacher_physlr.py": "8b8ee3688548185a20d7002c3260dc0a6daffe0180d89ec4f3f0c2ed0f627d55",
     "experiments/dynamic_sr_physlr_20261016/teacher_physlr2.py": "e88482dd57012b248d05b07e1a1366399ae658a584414b4ff4c58915889ad9ea",
     "experiments/dynamic_sr_physlr_20261016/teacher_physlr3.py": "dde031195a6db7f4b64eaa5c921788a9f8f181e7d047363a37052243836acde6",
