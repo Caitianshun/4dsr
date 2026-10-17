@@ -1,0 +1,132 @@
+"""Frozen SwinIR-M classical x4 teacher on the training LR of a physical-LR scene (Claude, 4dsr-7c, 2026-10-16).
+
+Interpreter mml_bw, GPU through the training service. Same network, weights (SHA-checked), official mirror padding to a
+multiple of 8 and FP32 whole-image inference as teacher_stream.py swinir_clean, but the input is the scene's own training
+LR (lr/, e.g. the 4x4 area-sampled LR of physlr.py), i.e. the off-the-shelf bicubic-trained teacher a pipeline would use
+on these cameras. Writes <scene>/sr_swinir_x4/<camera>/<frame>.png and teacher_index_sr_swinir_x4_seed<seed>.json in the
+teacher_stream.py schema. Training cameras only; no HR or test-camera pixels are read. Restartable (finished frames kept).
+"""
+from __future__ import annotations
+
+import argparse
+import hashlib
+import json
+import os
+import sys
+import time
+from pathlib import Path
+
+sys.dont_write_bytecode = True
+HERE = Path(__file__).resolve().parent
+ROOT = HERE.parents[1]
+SWINIR_DIR = ROOT / "third_party/swinir_frozen_20261010"
+WEIGHTS = (ROOT / "third_party/swinir_frozen_20261010/001_classicalSR_DF2K_s64w8_SwinIR-M_x4.pth",
+           "4e78e33f22c1aa8a773db0cf4a7381bae97c2362c717f155439ebc690cbd9215")
+TAG = "sr_swinir_x4"
+
+
+def sha(path):
+    h = hashlib.sha256()
+    with open(path, "rb") as f:
+        for chunk in iter(lambda: f.read(1 << 20), b""):
+            h.update(chunk)
+    return h.hexdigest()
+
+
+def rel(path):
+    return str(Path(path).resolve().relative_to(ROOT))
+
+
+def save_png(img, path):
+    from PIL import Image
+    path.parent.mkdir(parents=True, exist_ok=True)
+    tmp = path.with_name(path.stem + ".tmp.png")
+    Image.fromarray(img).save(tmp)
+    new = sha(tmp)
+    if path.exists():
+        same = sha(path) == new
+        tmp.unlink()
+        if not same:
+            raise ValueError(f"refusing to replace a different teacher image: {path}")
+    else:
+        tmp.replace(path)
+    return new
+
+
+def main():
+    p = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
+    p.add_argument("--manifest", required=True, help="manifest_train_ready_seed<seed>.json of the scene (project-relative)")
+    p.add_argument("--batch", type=int, default=4, help="frames per forward pass (same-size images; per-image results equal up to GPU arithmetic)")
+    a = p.parse_args()
+    import numpy as np
+    import torch
+    from PIL import Image
+    torch.backends.cuda.matmul.allow_tf32 = False
+    torch.backends.cudnn.allow_tf32 = False
+    sys.path.insert(0, str(SWINIR_DIR))
+    from network_swinir import SwinIR
+    if sha(WEIGHTS[0]) != WEIGHTS[1]:
+        raise SystemExit("SwinIR weights differ")
+    net = SwinIR(upscale=4, in_chans=3, img_size=64, window_size=8, img_range=1.0, depths=[6] * 6, embed_dim=180,
+                 num_heads=[6] * 6, mlp_ratio=2, upsampler="pixelshuffle", resi_connection="1conv")
+    state = torch.load(WEIGHTS[0], map_location="cpu", weights_only=True)
+    net.load_state_dict(state["params"] if "params" in state else state, strict=True)
+    net = net.eval().cuda()
+    mpath = ROOT / a.manifest
+    m = json.loads(mpath.read_text())
+    root = mpath.parent
+    if int(m["scale"]) != 4:
+        raise SystemExit("x4 scenes only")
+    seed = int(m["initialization"]["seed"])
+    train = sorted(m["splits"]["train"])
+    obs = {(o["camera_id"], int(o["frame_index"])): o for o in m["observations"] if o["camera_id"] in train}
+    t0 = time.time()
+    entries = {}
+    for cam in train:
+        todo = []
+        for f in range(300):
+            o = obs[(cam, f)]
+            lr_path = root / o["lr_path"]
+            out = root / TAG / cam / f"{f:04d}.png"
+            if out.exists():
+                entries[(cam, f)] = dict(camera=cam, frame=f, relative_path=str(out.relative_to(root)), sha256=sha(out),
+                                         lr_sha256=o["lr_sha256"], lr_relative_path=str(lr_path.relative_to(root)))
+                continue
+            if sha(lr_path) != o["lr_sha256"]:
+                raise ValueError(f"teacher input changed: {lr_path}")
+            todo.append((f, o, lr_path, out))
+        for i in range(0, len(todo), a.batch):
+            chunk = todo[i:i + a.batch]
+            x = torch.from_numpy(np.stack([np.asarray(Image.open(c[2]).convert("RGB")) for c in chunk]).astype(np.float32) / 255.0)
+            x = x.permute(0, 3, 1, 2).cuda()
+            h, w = x.shape[2:]
+            hp, wp = (h // 8 + 1) * 8 - h, (w // 8 + 1) * 8 - w
+            x = torch.cat([x, torch.flip(x, [2])], 2)[:, :, :h + hp, :]
+            x = torch.cat([x, torch.flip(x, [3])], 3)[:, :, :, :w + wp]
+            with torch.no_grad():
+                y = net(x)[..., :h * 4, :w * 4].clamp(0, 1)
+            for j, (f, o, lr_path, out) in enumerate(chunk):
+                img = (y[j].permute(1, 2, 0).cpu().numpy() * 255.0).round().astype(np.uint8)
+                entries[(cam, f)] = dict(camera=cam, frame=f, relative_path=str(out.relative_to(root)), sha256=save_png(img, out),
+                                         lr_sha256=o["lr_sha256"], lr_relative_path=str(lr_path.relative_to(root)))
+            del x, y
+        print(f"{time.time() - t0:8.0f}s {TAG} {cam} done; peak {torch.cuda.max_memory_allocated() / 2**30:.1f} GiB", flush=True)
+    index = dict(schema=1, status="completed_teacher_inventory", scene=m["scene"], seed_consumer=seed, manifest=rel(mpath),
+                 manifest_sha256=sha(mpath), oracle=False,
+                 teacher_config=dict(kind="physlr_teacher", tag=TAG, teacher="swinir_classical_x4", batch=a.batch,
+                                     weights=dict(path=rel(WEIGHTS[0]), sha256=WEIGHTS[1]), scale=4,
+                                     code=dict(path=rel(__file__), sha256=sha(__file__)), gpu=torch.cuda.get_device_name(),
+                                     torch=torch.__version__, seconds=time.time() - t0),
+                 entries=[entries[k] for k in sorted(entries)], train_cameras=train, frame_indices=list(range(300)),
+                 input_policy="training LR of this manifest (physically sampled LR)", seed_independent_frozen_prior=True,
+                 HR_quality_evaluation=False)
+    out = root / f"teacher_index_{TAG}_seed{seed}.json"
+    text = json.dumps(index, indent=1) + "\n"
+    if out.exists() and out.read_text() != text:
+        raise ValueError(f"refusing to replace a different index {out}")
+    out.write_text(text)
+    print("wrote", rel(out))
+
+
+if __name__ == "__main__":
+    main()

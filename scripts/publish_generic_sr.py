@@ -43,6 +43,7 @@ EXPERIMENTS = (
     "dynamic_sr_multiview_footprint_20261007",
     "dynamic_sr_cull_retrain_20261009",
     "dynamic_sr_highres_20261011",
+    "dynamic_sr_physlr_20261016",
     "dynamic_sr_geometry_residual_20260924",
     "dynamic_sr_motion_bound_20260923",
     "dynamic_sr_multi4d_20260924",
@@ -95,6 +96,10 @@ HIGHRES_REQUIRED_TEXT = (
     "experiments/dynamic_sr_modules_20261010/refs.py",
     "experiments/dynamic_sr_native_20261010/register_native.py",
     "experiments/dynamic_sr_native_20261010/teacher_native.py",
+    # dependencies of experiments/dynamic_sr_physlr_20261016 (2026-10-17)
+    "experiments/dynamic_sr_modules_20261010/srfix.py",
+    "experiments/dynamic_sr_compress_20261013/compress.py",
+    "experiments/dynamic_sr_compress_20261013/trainview_eval.py",
 )
 FULL_HELD_SOURCE_NAMES = {
     "full_held_local_RTX3090_scope_v1.py",

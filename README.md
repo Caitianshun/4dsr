@@ -407,3 +407,23 @@ only complete immutable payloads with matching path, size and SHA into a new
 transfer stage. It leaves final all-file verification and completion publication
 to the original return callback. Cache permissions alone are not an immutability
 claim; content hashes are checked again before each reuse.
+
+### Physical pixel-area LR protocol
+
+`experiments/dynamic_sr_physlr_20261016/` derives LR inputs by exact 4×4
+pixel-area averaging of the prepared HR frames in 8-bit sRGB (a binning-like
+formation that keeps above-Nyquist detail as view-dependent aliasing) instead
+of antialiased bicubic downsampling. Cameras, splits and HR files are unchanged.
+`physlr.py` derives the scenes, initializes points from the new LR and registers
+LR-stage plans and SR-stage configurations. `physsr.py` and `physsr2.py` wrap the
+fixed-final-step SR stage (`dynamic_sr_modules_20261010/srfix.py`) and replace
+only the LR forward operator by the same box average; `physsr2.py` can also
+restrict the teacher term to a high-frequency band or cycle the registered
+schedule for a longer stage. `physpaired.py` is the paired single-view form and
+`physlr_lrstage.py` renders the LR stage at HR before box reduction.
+`finetune_swinir_area.py` fine-tunes SwinIR-M ×4 for the same box degradation on
+frames of separate, non-evaluation sources listed by `area_teacher_data.py`;
+`teacher_physlr*.py` run frozen teachers on training-camera LR only. The
+sRGB-domain average is an approximation of linear-light binning, and the HR
+frames themselves come from compressed video. Task tables, prepared data,
+weights, results and the pre-registration record are not published.
