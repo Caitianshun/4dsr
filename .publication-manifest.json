@@ -3,7 +3,7 @@
   "sha256": {
     ".gitignore": "4d8f0d3abdeb43a5c0abfcd62bf5d0a9399e99bda4e8bc0caa1e6b6ba97a673b",
     "PROJECT_GUIDELINES.md": "5484840c4474733e04a6a2ebc54c071fba99250e6d41b7439366da59f5d5b17a",
-    "README.md": "5f53bfd00a5ca4412060bc0a35ddf180a9273cf38356d2110e8e3e60de47b758",
+    "README.md": "e6b5d4305c8a97d1978972ae382b3a367469095cb5e98460370f61649c6d765d",
     "deployment/a100_20260920/acquire_public_data.py": "978c24120a003144f57463f76bd6f625ed41c2599d5ef052b9fd24251521783b",
     "deployment/a100_20260920/activate_a100.sh": "06f6f786d6657353c1d6d40732bffd1869b5768acec7d4aa25ae4342faa94661",
     "deployment/a100_20260920/finalize_deployment.py": "5b82f2a66c0dbf61ba407f195f441a76e1cd421f8269203c81abd521aabfeca8",
@@ -400,6 +400,15 @@
     "experiments/dynamic_sr_multi4d_20260924/storage_cost.py": "13e3be7381bb9c9e9df50debc58a6026414355a4020b70ec8baadc159fd66d0f",
     "experiments/dynamic_sr_multi4d_20260924/summarize.py": "0fa0c49e4b19e79e25b301d2dbf2da4064026b6048961ec46dff7aa0559dacf5",
     "experiments/dynamic_sr_multi4d_20260924/wu_train.py": "8b663a9474966210d0aed5481440fd1fc464c643354f0a213077fc1001cc818b",
+    "experiments/dynamic_sr_multi4d_area_20261017/README.md": "8c57bb352f88311be100d7653a33fdac95f5b24ab9b66510880faeb4010e8fcc",
+    "experiments/dynamic_sr_multi4d_area_20261017/assess.py": "2b1d6b32873d7093f74da277c7873d0ee2cabb11a5655452162df2b771bd5a1a",
+    "experiments/dynamic_sr_multi4d_area_20261017/build_adapter.py": "0c1d0e336e9af384d9ee17666cf0cb05f8aed08730ae2dbf3625da49a5084890",
+    "experiments/dynamic_sr_multi4d_area_20261017/data.py": "b98cb70e2945efdf3af35adb67fbd0d2cb8027eb3166b3afa85c9c719cfc080c",
+    "experiments/dynamic_sr_multi4d_area_20261017/evaluate.py": "4660bae6397c49aecd5fa00bd04677a192a0be15d9fd7608c5639a1afcfef6ed",
+    "experiments/dynamic_sr_multi4d_area_20261017/idle_gate.py": "a8f864363834f9803d722dad56bff80714a04aaea9331b3ef52b0829cb4099eb",
+    "experiments/dynamic_sr_multi4d_area_20261017/prepare_inputs.py": "de17aa1da75fbbf465a111984788bf278a5633b5b87e782ee723608e5090305f",
+    "experiments/dynamic_sr_multi4d_area_20261017/run_suite.py": "b89739565c60c4b8bc8ab860046fd94d6b37e38f48d9059868ec922060697e33",
+    "experiments/dynamic_sr_multi4d_area_20261017/train.py": "e84ef2b140f570c47380b08ea2996db05ae1a34ad93b1e01ba2076c34bf8bc2d",
     "experiments/dynamic_sr_multiview_footprint_20261007/accelerated_prepare.py": "de0a4e03b71b450884842f807347652c373877722a60765bbfb614aaeb53d6f4",
     "experiments/dynamic_sr_multiview_footprint_20261007/accelerated_prepare_checks.py": "37b662655e6e84a855f263b2ebbec6c6d3d76ddc4023b69f69ecbdf8a2e98dfb",
     "experiments/dynamic_sr_multiview_footprint_20261007/advance_after_preparation.py": "30c748217f8dfbf47b0fbd3bf3e1f498fdb5c7b4e928993c7144ea92e995795d",
@@ -677,7 +686,7 @@
     "experiments/sr4d_20260922/summarize_minimal.py": "8e2e3e7c1c331e6651b72a1dc84db585d88bc85e0007a7aca44e700d0145d057",
     "experiments/sr4d_20260922/train_sr4d.py": "0f12fb92c513b135a31d3578dc11b36fcb15ae9101a848361ccc9f184f22ae8f",
     "experiments/sr4d_20260922/wu_entry.py": "57e74af4ea68ef3c485735179d0d15f7b2eec5245d670e9aa88e4fd7eabd05a9",
-    "scripts/publish_generic_sr.py": "2321a81d535087109c2b88ecd4f49d3f4e0d223f01ebfa1776bbae035527375d",
+    "scripts/publish_generic_sr.py": "2b4ed2e033b91f6c741793be475eb706f9d12014937dd39243b924af6016f9a6",
     "scripts/summarize_quality_headroom_20260923.py": "bbc8e37ad918ec6055f4b79df37ec8d9b50db4828ab2f8587155d6d0a1d468b2"
   }
 }

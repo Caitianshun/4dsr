@@ -12,6 +12,7 @@ This repository publishes the **code and necessary text configuration** for the 
 | `experiments/dynamic_sr_scene_residual_20260923` | Scene residual experiment |
 | `experiments/dynamic_sr_soft_motion_20260924` | Soft motion constraint experiment |
 | `experiments/dynamic_sr_multi4d_20260924` | Pinned Multi4D LR/SR adapters, full-state validation, and extended Wu controls |
+| `experiments/dynamic_sr_multi4d_area_20261017` | Full-time area4 Multi4D controls and a Claude-priority admission queue |
 | `experiments/dynamic_sr_controlled_headroom_20260926` | Fixed-topology Z/U/O teacher-removal and privileged training-HR supervision controls |
 | `experiments/dynamic_sr_confidence_geometry_20261006` | Registered observation permutations, image-nullspace SR supervision, LR-only depth ordering, and finite cause probes |
 | `experiments/dynamic_sr_multiview_footprint_20261007` | Same-time LR multiview controls, differentiable HR footprint reconstruction, paired continuation and event-driven evaluation |
@@ -455,3 +456,23 @@ teacher in the teacher terms only. `group_eval_bands.py` is
 band PSNR added. The `run_*_remote*.py` drivers run arms one after another on a
 remote host and score them on one test view. Results, task tables and
 checkpoints are not published.
+
+
+### Multi4D under pixel-area LR sampling
+
+`experiments/dynamic_sr_multi4d_area_20261017/` prepares training-LR-only
+initialization and full-time inputs for the pinned author Multi4D revision
+`c483e82cd8daa1b4fdc460ed45882fc2fe7a22b0`. The generated adapter preserves
+native branches, losses, schedules and batch sampling, projects rendered RGB
+through the area4 observation operator, and optionally applies an identified
+frozen teacher. Training-view HR targets form a separate diagnostic arm.
+Full-state pause/resume preserves optimizer, sampler and RNG state.
+
+`run_suite.py` is a persistent CPU queue. `idle_gate.py` reads conversation,
+process, reservation and remote GPU state; unknown state blocks admission.
+No GPU stage starts until all live Claude conversations are explicitly idle
+and local/remote managed or unknown compute and reservations are absent.
+If Claude becomes active, this queue yields its own GPU work. It sends no
+Claude messages and changes no shared reservation or admission policy.
+Prepared manifests, plans, checkpoints and results remain local assets.
+CPU checks do not establish CUDA runtime acceptance or a quality result.
