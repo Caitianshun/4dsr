@@ -9,6 +9,8 @@ loss, Adam (lr --lr, cosine to lr/100 over --iters), batch --batch, FP32 with TF
 Validation every --val-every steps: centre 256x256 HR crop of every validation frame, PSNR (RGB, 8-bit rounded output) of the
 current model; the initial (bicubic-trained) model is scored once on the same crops. Bicubic-up of the LR is reported too.
 Outputs in --out: swinir_area_ft.pth (params), log.jsonl, summary.json (sha256 of weights, data index, code).
+--degradation arealin (2026-10-18): the same 4x4 block mean taken in linear light (sRGB decode, mean, encode, rounded), i.e.
+physlr.py area4lin, for the wave-12 colour-space control; the default `area` is unchanged.
 """
 from __future__ import annotations
 
@@ -50,6 +52,7 @@ def main():
     p.add_argument("--seed", type=int, default=20261017)
     p.add_argument("--device", default="cuda")
     p.add_argument("--max-frames", type=int, default=0, help="debug: limit training frames")
+    p.add_argument("--degradation", choices=("area", "arealin"), default="area")
     a = p.parse_args()
     import numpy as np
     import torch
@@ -88,7 +91,13 @@ def main():
     print(f"train frames {len(train)}, val frames {len(val)}", flush=True)
 
     def box_lr(hr_u8):  # (B,3,H,W) uint8-valued float -> rounded 4x4 mean, same as physlr.py (round half to even)
-        return torch.round(F.avg_pool2d(hr_u8, 4))
+        if a.degradation == "area":
+            return torch.round(F.avg_pool2d(hr_u8, 4))
+        x = hr_u8.double() / 255.0  # area4lin: decode, mean, encode in float64 as physlr.py
+        lin = torch.where(x <= 0.04045, x / 12.92, ((x + 0.055) / 1.055) ** 2.4)
+        m = F.avg_pool2d(lin, 4)
+        enc = torch.where(m <= 0.0031308, 12.92 * m, 1.055 * m.clamp(min=0) ** (1 / 2.4) - 0.055)
+        return torch.round(255.0 * enc.clamp(0, 1)).float()
 
     def sample_batch():
         hrs = []
@@ -166,7 +175,7 @@ def main():
     summary = dict(status="completed", weights=dict(path=relpath(wpath), sha256=sha(wpath)),
                    base_weights=dict(path=relpath(WEIGHTS[0]), sha256=WEIGHTS[1]),
                    data_index=dict(path=relpath(DATA / "index.json"), sha256=sha(DATA / "index.json")),
-                   train_frames=len(train), val_frames=len(val), args=vars(a), degradation="round(4x4 box mean), 8-bit sRGB",
+                   train_frames=len(train), val_frames=len(val), args=vars(a), degradation="round(4x4 box mean), 8-bit sRGB" if a.degradation == "area" else "round(4x4 box mean in linear light), 8-bit sRGB encoded",
                    val=dict(bicubic_up=bic_psnr, initial=init_psnr, final=final_psnr,
                             per_frame=[dict(frame=r, initial=i, final=f) for (r, _), i, f in zip(vcrops, init_list, final_list)]),
                    curve=curve, seconds=time.time() - t0, code=dict(path=relpath(Path(__file__)),

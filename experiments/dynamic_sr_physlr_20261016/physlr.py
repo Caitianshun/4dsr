@@ -11,6 +11,8 @@ for the registered pipeline.
   derive   prepared/<scene>_<formation>/: lr/ written from the registered HR of every observation (HR hard-linked),
            manifest = original with lr_sha256 replaced + physical_lr_derivation block.
            formations: area4 = 4x4 box average in 8-bit sRGB, rounded (pixel binning; no extra optics or noise).
+                       area4lin (2026-10-18) = the same 4x4 box average taken in linear light (sRGB decode, mean,
+                       encode, rounded): colour-space sensitivity control of area4.
   init     unmodified full_initialization.generate on the derived manifest (pure-LR triangulation, CPU), run with
            /home/cai_tianshun/Project/4dgs/.venv/bin/python and CUDA hidden (same as compress.py init).
   register LR-parent plan = original prefix plan with only `data` rebuilt (same configuration), degradation text set.
@@ -48,6 +50,9 @@ OUT_NS = ROOT / "output/dynamic_sr_physlr_20261016"
 FORMATIONS = {
     "area4": dict(scale=4, kind="area", text="LR = 4x4 box (pixel-area) average of the registered HR in 8-bit sRGB, "
                                              "rounded to 8 bit; no optical prefilter, no noise (pixel binning)"),
+    "area4lin": dict(scale=4, kind="arealin", text="LR = 4x4 box average of the registered HR taken in linear light (IEC 61966-2-1 "
+                                                   "sRGB decode, mean, encode), rounded to 8 bit; no optical prefilter, no noise "
+                                                   "(colour-space sensitivity control of area4)"),
 }
 SHORT = cp.SHORT
 
@@ -72,9 +77,15 @@ def _form(args):
     h, w = hr.shape[:2]
     if h % scale or w % scale:
         raise ValueError(f"HR size {w}x{h} not divisible by {scale}")
-    if kind != "area":
+    if kind == "area":
+        lr = hr.reshape(h // scale, scale, w // scale, scale, 3).mean((1, 3))
+    elif kind == "arealin":
+        x = hr / 255.0
+        lin = np.where(x <= 0.04045, x / 12.92, ((x + 0.055) / 1.055) ** 2.4)
+        m = lin.reshape(h // scale, scale, w // scale, scale, 3).mean((1, 3))
+        lr = 255.0 * np.clip(np.where(m <= 0.0031308, 12.92 * m, 1.055 * np.power(np.clip(m, 0, None), 1 / 2.4) - 0.055), 0, 1)
+    else:
         raise ValueError(kind)
-    lr = hr.reshape(h // scale, scale, w // scale, scale, 3).mean((1, 3))
     lr = np.clip(np.round(lr), 0, 255).astype(np.uint8)
     dst.parent.mkdir(parents=True, exist_ok=True)
     tmp = dst.with_name(dst.stem + ".tmp.png")
