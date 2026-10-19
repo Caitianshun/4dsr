@@ -46,6 +46,9 @@ def lock(path):
 
 
 class Runner:
+    waiting_status = 'waiting_all_claude_idle_and_no_claude_gpu'
+    prepared_status = 'prepared_waiting_all_claude_idle_and_no_claude_gpu_use'
+
     def __init__(self, plan_path):
         self.plan_path = plan_path.resolve()
         self.plan = read(plan_path)
@@ -80,6 +83,10 @@ class Runner:
         self.stopping = True
         gate.write(self.pause, dict(reason='controller_stop', signal=number, time=gate.stamp()))
 
+    def admission(self, *, remote=False, ignore_pids=()):
+        """Subclass hook; the default retains the original global-idle policy."""
+        return gate.check(remote=remote, ignore_pids=ignore_pids)
+
     def wait_idle(self, stage):
         last_signature = None
         while not self.stopping:
@@ -87,19 +94,19 @@ class Runner:
                 self.update('waiting_user_hold', waiting_for=stage)
                 time.sleep(30)
                 continue
-            sample = gate.check(remote=False)
+            sample = self.admission(remote=False)
             signature = (sample['safe'], tuple(sorted((b['reason'], str(b.get('pid', b.get('job_id', ''))))
                                                       for b in sample['blockers'])))
             if signature != last_signature:
                 gate.write(self.out / 'admission_latest.json', sample)
-                self.update('waiting_all_claude_idle_and_no_claude_gpu', waiting_for=stage,
+                self.update(self.waiting_status, waiting_for=stage,
                             admission_summary=dict(live_claude_sessions=len(sample['conversations']['live_sessions']),
                                                    blockers=len(sample['blockers']), safe=sample['safe']))
                 last_signature = signature
             if sample['safe']:
                 self.quiet_since = self.quiet_since or time.monotonic()
                 if time.monotonic() - self.quiet_since >= self.plan.get('quiet_seconds', 300):
-                    full = gate.check(remote=True)
+                    full = self.admission(remote=True)
                     gate.write(self.out / 'admission_latest.json', full)
                     if full['safe']:
                         gate.write(self.out / 'admission_first_remote_sample.json', full)
@@ -107,10 +114,10 @@ class Runner:
                         time.sleep(self.plan.get('remote_quiet_seconds', 20))
                         if self.stopping:
                             raise InterruptedError('Stopped during remote resource confirmation')
-                        full = gate.check(remote=True)
+                        full = self.admission(remote=True)
                         gate.write(self.out / 'admission_latest.json', full)
                         # Recheck locally after the potentially slower remote reads.
-                        final = gate.check(remote=False)
+                        final = self.admission(remote=False)
                         if full['safe'] and final['safe']:
                             self.verify_sources()
                             self.pause.unlink(missing_ok=True)  # only this queue's own request
@@ -153,7 +160,7 @@ class Runner:
                     except subprocess.TimeoutExpired:
                         # No model calls: only process/registry/ownership metadata.
                         remote = time.monotonic() >= remote_check_due
-                        sample = gate.check(remote=remote, ignore_pids=(self.child.pid,))
+                        sample = self.admission(remote=remote, ignore_pids=(self.child.pid,))
                         if remote:
                             remote_check_due = time.monotonic() + 300
                         if not sample['safe'] or self.stopping:
@@ -226,7 +233,7 @@ class Runner:
             # This advisory native-runner lock is acquired only after admission.
             # Root-managed Claude reservations are checked separately, never edited.
             try:
-                final = gate.check(remote=False)
+                final = self.admission(remote=False)
                 if not final['safe']:
                     self.quiet_since = None
                     continue
@@ -323,7 +330,7 @@ class Runner:
         signal.signal(signal.SIGTERM, self.stop)
         signal.signal(signal.SIGINT, self.stop)
         with lock(self.out / 'controller.lock'):
-            self.update('prepared_waiting_all_claude_idle_and_no_claude_gpu_use')
+            self.update(self.prepared_status)
             first = self.scene(self.plan['scenes'][0])
             contrast = first['cross_model']['areaTm']
             within = first['within_model']['Multi4D']['SR_gain_matched_minus_LR']

@@ -11,6 +11,9 @@ current model; the initial (bicubic-trained) model is scored once on the same cr
 Outputs in --out: swinir_area_ft.pth (params), log.jsonl, summary.json (sha256 of weights, data index, code).
 --degradation arealin (2026-10-18): the same 4x4 block mean taken in linear light (sRGB decode, mean, encode, rounded), i.e.
 physlr.py area4lin, for the wave-12 colour-space control; the default `area` is unchanged.
+--arch hat_l (2026-10-18): the same fine-tuning applied to the official HAT-L x4 ImageNet-pretrain weights (hat_arch_local.py,
+strict load of params_ema) for the wave-14 bounded teacher screening; --grad-checkpoint recomputes each residual group in the
+backward pass (memory only, same arithmetic). The default `swinir_m` is unchanged.
 """
 from __future__ import annotations
 
@@ -27,6 +30,8 @@ SWINIR_DIR = ROOT / "third_party/swinir_frozen_20261010"
 WEIGHTS = (ROOT / "third_party/swinir_frozen_20261010/001_classicalSR_DF2K_s64w8_SwinIR-M_x4.pth",
            "4e78e33f22c1aa8a773db0cf4a7381bae97c2362c717f155439ebc690cbd9215")
 DATA = ROOT / "data/dynamic_sr/area_teacher_20261017"
+HAT_WEIGHTS = (ROOT / "weight/HAT/official_20261018/HAT-L_SRx4_ImageNet-pretrain.pth",
+               "5992bd38522f2b8faf11ea4bd8ee08de92465bb66892166576999afc36d60043")
 
 
 def relpath(path):
@@ -53,6 +58,8 @@ def main():
     p.add_argument("--device", default="cuda")
     p.add_argument("--max-frames", type=int, default=0, help="debug: limit training frames")
     p.add_argument("--degradation", choices=("area", "arealin"), default="area")
+    p.add_argument("--arch", choices=("swinir_m", "hat_l"), default="swinir_m")
+    p.add_argument("--grad-checkpoint", action="store_true", help="hat_l only: gradient checkpointing per residual group")
     a = p.parse_args()
     import numpy as np
     import torch
@@ -66,10 +73,17 @@ def main():
         raise FileExistsError(f"completed fine-tune preserved: {out}")
     sys.path.insert(0, str(SWINIR_DIR))
     from network_swinir import SwinIR
-    if sha(WEIGHTS[0]) != WEIGHTS[1]:
-        raise SystemExit("SwinIR weights differ")
+    base = HAT_WEIGHTS if a.arch == "hat_l" else WEIGHTS
+    if sha(base[0]) != base[1]:
+        raise SystemExit("base weights differ")
 
     def build():
+        if a.arch == "hat_l":
+            sys.path.insert(0, str(Path(__file__).resolve().parent))
+            import hat_arch_local
+            net = hat_arch_local.build_hat_l(use_checkpoint=a.grad_checkpoint)
+            hat_arch_local.load_state(net, base[0], "params_ema")
+            return net.to(a.device)
         net = SwinIR(upscale=4, in_chans=3, img_size=64, window_size=8, img_range=1.0, depths=[6] * 6, embed_dim=180,
                      num_heads=[6] * 6, mlp_ratio=2, upsampler="pixelshuffle", resi_connection="1conv")
         state = torch.load(WEIGHTS[0], map_location="cpu", weights_only=True)
@@ -170,10 +184,10 @@ def main():
             print(f"step {step} loss {run:.4f} val {v:.3f} ({time.time() - t0:.0f}s, peak "
                   f"{torch.cuda.max_memory_allocated() / 2**30 if a.device == 'cuda' else 0:.1f} GiB)", flush=True)
     final_psnr, final_list = score(net)
-    wpath = out / "swinir_area_ft.pth"
+    wpath = out / ("hat_area_ft.pth" if a.arch == "hat_l" else "swinir_area_ft.pth")
     torch.save(dict(params=net.state_dict()), wpath)
     summary = dict(status="completed", weights=dict(path=relpath(wpath), sha256=sha(wpath)),
-                   base_weights=dict(path=relpath(WEIGHTS[0]), sha256=WEIGHTS[1]),
+                   base_weights=dict(path=relpath(base[0]), sha256=base[1]), arch=a.arch,
                    data_index=dict(path=relpath(DATA / "index.json"), sha256=sha(DATA / "index.json")),
                    train_frames=len(train), val_frames=len(val), args=vars(a), degradation="round(4x4 box mean), 8-bit sRGB" if a.degradation == "area" else "round(4x4 box mean in linear light), 8-bit sRGB encoded",
                    val=dict(bicubic_up=bic_psnr, initial=init_psnr, final=final_psnr,

@@ -156,6 +156,9 @@ HIGHRES_REQUIRED_TEXT = (
     "experiments/dynamic_sr_modules_20261010/geoprobe_20261017/tofflr2.py",
     "experiments/dynamic_sr_cull_retrain_20261009/selfens_20261016/group_eval.py",
     "experiments/dynamic_sr_cull_retrain_20261009/variance_20261014/ens_eval_view.py",
+    # third-party notice for experiments/dynamic_sr_physlr_20261016/hat_arch_local.py (derived from XPixelGroup/HAT,
+    # Apache-2.0; notice plus the verbatim license text, 2026-10-18)
+    "experiments/dynamic_sr_physlr_20261016/THIRD_PARTY_HAT_LICENSE.txt",
 )
 FULL_HELD_SOURCE_NAMES = {
     "full_held_local_RTX3090_scope_v1.py",

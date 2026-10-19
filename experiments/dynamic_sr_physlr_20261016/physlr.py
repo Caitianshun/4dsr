@@ -54,7 +54,9 @@ FORMATIONS = {
                                                    "sRGB decode, mean, encode), rounded to 8 bit; no optical prefilter, no noise "
                                                    "(colour-space sensitivity control of area4)"),
 }
-SHORT = cp.SHORT
+# holdout confirmation scenes added 2026-10-18 (derive / init / register / lr-tasks; their cam00 is never evaluated before the
+# method freeze); a copy, so compress.py's own table is unchanged
+SHORT = dict(cp.SHORT, coffee_martini="Coffee", flame_steak="Flame")
 
 
 def scene_dir(scene, formation):
@@ -215,9 +217,24 @@ def lr_tasks(scene, formation, seed):
                        "--arm", "gateaff", "--prune-gate", "none", "--affine", "--out", str(fine.relative_to(ROOT))])]
 
 
+# holdout confirmation scenes (2026-10-18): their clean Bsync plan is the registered seed07 held-confirmation materialization of the
+# 10-07 protocol (same schema and schedule rule as the development configs in register_sr.py; scene-specific author batch size)
+HELD_BSYNC = {s: ROOT / "output/dynamic_sr_multiview_footprint_20261007/held_confirmation_materialized" / s / "seed20261007" / "Bsync"
+              / "local_RTX3090_original_v1_20261009/scientific_materialization/scientific_plan.json"
+              for s in ("coffee_martini", "flame_steak")}
+
+
+def clean_bsync(scene, seed):
+    if scene in HELD_BSYNC:
+        if int(seed) != 20261007:
+            raise ValueError("held Bsync plans exist for seed 20261007 only")
+        return HELD_BSYNC[scene]
+    return RS.CLEAN_BSYNC_SCENE[scene] / f"seed_{seed}" / "Bsync" / "config.json"
+
+
 def sr_register(scene, formation, seed, teacher_tag, parent_ckpt, out_tag):
     """Same rule as register_sr_stream.py: clean Bsync config, only protocol-dependent fields replaced."""
-    clean_cfg_path = RS.CLEAN_BSYNC_SCENE[scene] / f"seed_{seed}" / "Bsync" / "config.json"
+    clean_cfg_path = clean_bsync(scene, seed)
     base = RS.read(clean_cfg_path)
     root = scene_dir(scene, formation)
     manifest_path = root / f"manifest_train_ready_seed{seed}.json"
