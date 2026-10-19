@@ -63,6 +63,13 @@ with a verified GPU UUID and input receipt. It launches one CUDA child at a
 time. Successful training exits directly trigger evaluation; failure stops the
 pipeline. It never clears another task's lock or replays failed training.
 
+`run_validation.py` can run the registered smoke and formal plans sequentially
+inside one broker job after the full input receipt passes. It checks the three
+native checkpoint reloads and paired sampling before formal training. The GPU
+lock remains held across that transition. Waiting for data or another task to
+release a GPU belongs outside this job. A resource admission rejection before
+the argv starts is recorded separately from a failed CUDA training run.
+
 The initial engineering run uses 40 forward/backward batches per arm and checks
 native PLY/decoder save-load render parity. Formal evaluation uses the original
 25,000 pre-update checkpoint, representing 24,999 optimizer updates. The native

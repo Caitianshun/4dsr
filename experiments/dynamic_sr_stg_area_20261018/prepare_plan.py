@@ -20,7 +20,8 @@ def sha(p):
     return h.hexdigest()
 
 
-def prepare(mode, destination, output, spec_root, input_verification):
+def prepare(mode, destination, output, spec_root, input_verification,
+            gpu_uuid='GPU-5c08f287-3ffd-edf9-91ed-cd6db2690f3b'):
     if destination.exists():
         raise FileExistsError('Preserve registered plans; select a new plan path')
     paths = list(HERE.glob('*.py')) + [
@@ -41,7 +42,7 @@ def prepare(mode, destination, output, spec_root, input_verification):
                                relative_output=f'{method}/f{start:03d}_{start+49:03d}',
                                iterations=40 if mode == 'smoke' else 25000))
     plan = dict(schema='stg_pipeline_plan_v1', mode=mode, host='oran-A100-Ubuntu',
-                gpu_uuid='GPU-5c08f287-3ffd-edf9-91ed-cd6db2690f3b', output=output,
+                gpu_uuid=gpu_uuid, output=output,
                 input_verification=input_verification,
                 python_paths=['third_party/stg_20261018/pydeps', 'third_party/stg_20261018/runtime',
                               'third_party/stg_20261018/runtime/thirdparty/gaussian_splatting'],
@@ -65,5 +66,6 @@ if __name__ == '__main__':
     p.add_argument('--output', required=True)
     p.add_argument('--spec-root', type=Path, default=ROOT/'output/dynamic_sr_stg_area_20261018/specs_v1')
     p.add_argument('--input-verification', required=True)
+    p.add_argument('--gpu-uuid', default='GPU-5c08f287-3ffd-edf9-91ed-cd6db2690f3b')
     a = p.parse_args()
-    prepare(a.mode, a.plan.resolve(), a.output, a.spec_root.resolve(), a.input_verification)
+    prepare(a.mode, a.plan.resolve(), a.output, a.spec_root.resolve(), a.input_verification, a.gpu_uuid)
