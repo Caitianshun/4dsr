@@ -35,9 +35,10 @@ triangulation. All segment seeds use those points. This differs from official
 STG's per-frame SfM initialization and is an explicit adaptation. A weak result
 cannot alone rule out the STG representation or reproduce its published scores.
 
-STG uses six independent models for the 300 frames, whereas the current Wu and
-Multi4D comparisons use one 300-frame model. Report total parameters, point
-counts, model bytes, training time, hardware, and all five segment boundaries.
+The original full 300-frame plan uses six independent STG models per arm, whereas Wu
+and Multi4D use one 300-frame model. The amended screening below retains two
+50-frame windows. Report total parameters, point counts, model bytes, training
+time, hardware and every segment boundary present in the selected range.
 This is a comparison of complete adapted pipelines, not equal-capacity models.
 
 ## Deployment and execution
@@ -72,8 +73,8 @@ the argv starts is recorded separately from a failed CUDA training run.
 
 The initial engineering run uses 40 forward/backward batches per arm and checks
 native PLY/decoder save-load render parity. Formal evaluation uses the original
-25,000 pre-update checkpoint, representing 24,999 optimizer updates. The native
-learning-rate schedule remains 30,000 steps; subsequent updates cannot affect
+25, 000 pre-update checkpoint, representing 24,999 optimizer updates. The native
+learning-rate schedule remains 30, 000 steps; subsequent updates cannot affect
 that already-saved checkpoint and are omitted. PLY plus decoder is a rendering
 checkpoint. It cannot resume optimizer, RNG and EMS state along the same path.
 
@@ -96,10 +97,34 @@ Face/text crops inherit preregistered coordinates. They are not semantic masks,
 and a moving face can leave a fixed crop. Human blinded acceptance remains a
 separate step. No metric or automatically generated crop certifies acceptance.
 
-Cut is the first scene. A second Cook scene is conditional on the registered
-PSNR/LPIPS/teacher-gain difference gate from the Multi4D protocol. There is no
-parameter search. Forty-step checks and one 50-frame segment are engineering
-evidence, never a full-sequence quality conclusion.
+The user amended the scope on 2026-10-19 after inspecting development results.
+Retain Cut frames 0–49 for all three arms, and 50–99 for areaL0/areaTm only. The
+remaining 13 Cut stages and Cook training are deferred. The old absolute-difference
+Cook gate is historical and must not launch extra training. A separate dated
+decision is required for one fixed Cook teacher confirmation, supported by a
+favorable quality or regional/temporal tradeoff. This is development screening,
+not a full 300-frame benchmark or an independent generalization test.
+
+`evaluate_wu.py` renders two already-trained Wu checkpoints for cam00 frames 0–99
+without model updates. Its frozen registration binds the native checkpoint,
+original training-camera visibility cull, complete manifest, fixed mask/ROIs,
+metric sources and offline LPIPS weights. CPU-only `--preflight-only` checks do
+not import torch. Actual rendering requires the registered remote broker and
+exact GPU UUID. It checks old/new frame0 floating renders and per-frame global
+metrics before accepting new regional and temporal results. It never applies
+test-camera color or spatial corrections, silently retries, or overwrites an
+existing evaluation. Registrations, data, checkpoints and caches remain local
+assets and are not distributed here.
+
+`screening.py` is CPU-only. Explicit Wu input mappings and remote path mappings
+join existing results for 0–49, 50–99 and0–99, including fixed face/dynamic/static
+metrics and all 99 temporal pairs. The 49→50 model-switch boundary is separate.
+All model, sampling, source, mask, ROI and frame-coverage identities must pass;
+missing inputs retain `incomplete` with null comparisons. A complete selected
+range is named `completed_screening`, never full 300-frame. It supports the CLI options
+`--manifest`, `--stg-root`, `--multi4d-root`, `--wu-evaluations`,
+`--path-map OLD=NEW` and a new `--out` path. Frozen registrations and the original
+technical exit status remain in local deployment receipts.
 
 `watch_events.py` and `collect_events.py` transfer stage artifacts on inotify
 completion events. The registered hourly monitor is an exception fallback;
