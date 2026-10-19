@@ -34,7 +34,8 @@ HERE = Path(__file__).resolve().parent
 ROOT = HERE.parents[1]
 PREP = ROOT / "data/dynamic_sr/full_time_20261007/prepared"
 FT = ROOT / "output/dynamic_sr_physlr_20261016/teacher_ft/swinir_area_ft_v1"
-SHORT = dict(cook_spinach="Cook07", cut_roasted_beef="Cut07", meetroom_vrheadset="VRHeadset07", meetroom_discussion="Discussion07")
+SHORT = dict(cook_spinach="Cook07", cut_roasted_beef="Cut07", meetroom_vrheadset="VRHeadset07", meetroom_discussion="Discussion07",
+             coffee_martini="Coffee07", flame_steak="Flame07")
 FONT = "/usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc"
 Z = 3
 
@@ -136,7 +137,7 @@ def cmd_build(a):
             sp = sdir / f"{scene}_cam00_{f:04d}.png"
             cands.append(("sisr_matched_on_cam00_LR", rgb(sp), str(sp.resolve().relative_to(ROOT))))
             for arm in ("naive", "areaTm", "w4"):
-                rp = rdir / f"{SHORT[scene]}_area4_{arm}"
+                rp = rdir / a.render_pattern.format(short=SHORT[scene], arm=arm)
                 cands.append((f"render_{arm}", render_frame(rp, f), str((rp / f"f{f:04d}.npz").resolve().relative_to(ROOT))))
         else:
             for tag, label in (("sr_swinir_x4", "teacher_offtheshelf"), ("sr_swinir_x4_areaft", "teacher_matched")):
@@ -184,6 +185,8 @@ def main():
     p.add_argument("--review-dir")
     p.add_argument("--key")
     p.add_argument("--seed-base", type=int, default=20261018)
+    p.add_argument("--render-pattern", default="{short}_area4_{arm}",
+                   help="render_dump directory name under --renders (holdout wave 15: {short}_area4_ho_{arm})")
     a = p.parse_args()
     dict(sisr=cmd_sisr, build=cmd_build)[a.mode](a)
 

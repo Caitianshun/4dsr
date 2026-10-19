@@ -544,7 +544,7 @@
     "experiments/dynamic_sr_native_20261010/teacher_native.py": "5dbc06a9e6b08ca136e330a68bb505d7298018f5b37035a60e3ba959f5871518",
     "experiments/dynamic_sr_physlr_20261016/THIRD_PARTY_HAT_LICENSE.txt": "90ccbb0e109d42d692adb38626eeb9d977af84d9f99cfd83dfdd832f9c4071bb",
     "experiments/dynamic_sr_physlr_20261016/area_teacher_data.py": "c437c6a244848fa57c2bd04e28377673342f6290550fe7769d35a4ede1c65e88",
-    "experiments/dynamic_sr_physlr_20261016/br_build.py": "c5a1e314e5d8f3ca38b2f27c7203257f5a6d7c90ab7bd127a888db1d7b6a6c6e",
+    "experiments/dynamic_sr_physlr_20261016/br_build.py": "9da96e082e9b1178b5f449fe2568c6cb4e8fc4423dd629660241e8bb34a6596d",
     "experiments/dynamic_sr_physlr_20261016/br_decode.py": "428dd1d8552dfd3599fbd5b3a55dada6cebe4e29a033af59eb5c8526e4433151",
     "experiments/dynamic_sr_physlr_20261016/finetune_swinir_area.py": "d144f5228fe5d79956211173c7c2f79ea4acdc7c170c81167a8b393db861c33a",
     "experiments/dynamic_sr_physlr_20261016/hat_arch_local.py": "d817696d4c969306395021a574285db1eef466d70ac70751cf920cafb75f2641",
