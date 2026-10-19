@@ -49,6 +49,7 @@ EXPERIMENTS = (
     "dynamic_sr_motion_bound_20260923",
     "dynamic_sr_multi4d_20260924",
     "dynamic_sr_multi4d_area_20261017",
+    "dynamic_sr_stg_area_20261018",
     "dynamic_sr_scene_residual_20260923",
     "dynamic_sr_soft_motion_20260924",
     "dynamic_sr_surface_20260923",
@@ -84,6 +85,7 @@ EXPERIMENT_INSTRUCTIONS = (
     "experiments/dynamic_sr_highres_20261011/README_screening_runner.md",
     "experiments/dynamic_sr_highres_20261011/README_local_orchestrator.md",
     "experiments/dynamic_sr_multi4d_area_20261017/README.md",
+    "experiments/dynamic_sr_stg_area_20261018/README.md",
     "experiments/dynamic_sr_multiview_footprint_20261007/full_registered_README.md",
     "experiments/dynamic_sr_multiview_footprint_20261007/full_support_prepare_registered_README.md",
     "experiments/dynamic_sr_multiview_footprint_20261007/full_temporal_diagnostics_README.md",
@@ -325,7 +327,7 @@ def safe_destination(target: Path, relative: str) -> Path:
     return candidate
 
 
-def publish(target: Path, selected: dict[str, bytes], message: str) -> None:
+def publish(target: Path, selected: dict[str, bytes], message: str, prefixes: list[str] | None = None) -> None:
     if not (target / ".git").is_dir():
         raise ValueError(f"Not a Git clone: {target}")
     if git(target, "remote", "get-url", "origin") not in REMOTE_URLS:
@@ -341,6 +343,16 @@ def publish(target: Path, selected: dict[str, bytes], message: str) -> None:
     old_paths: set[str] = set()
     if old_manifest_file.exists():
         old_paths = set(json.loads(old_manifest_file.read_text())["sha256"])
+    # A scoped publication preserves the already-published bytes outside this
+    # task. Other research sessions may be actively editing those local files.
+    def in_scope(name: str) -> bool:
+        return not prefixes or any(name == p or name.startswith(p.rstrip('/') + '/') for p in prefixes)
+    source_selected = {name: content for name, content in selected.items() if in_scope(name)}
+    if prefixes:
+        if not source_selected:
+            raise ValueError("No allowlisted source matches the requested publication scope")
+        selected = {name: safe_destination(target, name).read_bytes() for name in old_paths if not in_scope(name)}
+        selected.update(source_selected)
     for relative in sorted(old_paths - selected.keys()):
         old_file = safe_destination(target, relative)
         if old_file.is_file():
@@ -359,7 +371,7 @@ def publish(target: Path, selected: dict[str, bytes], message: str) -> None:
     old_manifest_file.write_text(manifest_content)
 
     # Detect files changed in the source workspace while the copy was made.
-    if select_sources() != selected:
+    if {name: content for name, content in select_sources().items() if in_scope(name)} != source_selected:
         raise RuntimeError("Source changed during publication; rerun after it settles")
     git(target, "add", "-A")
     staged = set(git(target, "diff", "--cached", "--name-only").splitlines())
@@ -385,6 +397,7 @@ def main() -> None:
     parser.add_argument("--publish", action="store_true", help="copy, commit, push, verify")
     parser.add_argument("--target", type=Path, default=DEFAULT_TARGET)
     parser.add_argument("--message", default="Publish current non-HOI dynamic SR code")
+    parser.add_argument("--include-prefix", action="append", help="Publish only these allowlisted paths; retain remote bytes elsewhere")
     args = parser.parse_args()
     selected = select_sources()
     total = sum(len(item) for item in selected.values())
@@ -393,7 +406,7 @@ def main() -> None:
         for name in sorted(selected):
             print(name)
         return
-    publish(args.target, selected, args.message)
+    publish(args.target, selected, args.message, args.include_prefix)
 
 
 if __name__ == "__main__":

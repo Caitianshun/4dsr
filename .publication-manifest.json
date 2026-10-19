@@ -652,6 +652,19 @@
     "experiments/dynamic_sr_soft_motion_20260924/soft_model.py": "5a8a8aa23dba4cd4a1682ae314cf05919848f69a25a05b77ab0dcb0f8bc48059",
     "experiments/dynamic_sr_soft_motion_20260924/summarize.py": "ff7a836136d230b55e80bf93a3a9a015e9008511f39e56766b3117a8572d8901",
     "experiments/dynamic_sr_soft_motion_20260924/train.py": "0bb0a87c938a36ac3554a5a7653719d2d880be4dedf2ea9b87c59b92875793ab",
+    "experiments/dynamic_sr_stg_area_20261018/README.md": "3c4ecdac9e5e0f7583d95c5f6fc79011ae6ca4f4bd6b6e123ffe4401ff0e7fa1",
+    "experiments/dynamic_sr_stg_area_20261018/build_adapter.py": "0a3bddb1c83c7b7b335e9ce00684747aa576b8a7eeeb6df9434d9965063ee287",
+    "experiments/dynamic_sr_stg_area_20261018/collect_events.py": "909ce9205fde38c6d4f3f3e3f27a218f30daab851f68abf9cf1cf7b3346ab126",
+    "experiments/dynamic_sr_stg_area_20261018/compare.py": "a932927531082c52fd1293703076581bc956f98043593a605740ed2c383f9207",
+    "experiments/dynamic_sr_stg_area_20261018/data.py": "1d567ff0257e1e94eb1b27b45189915ef7d4c9d05f7b58ec6d48cc657b8d5c4e",
+    "experiments/dynamic_sr_stg_area_20261018/deploy_runtime.py": "7318bcfba794807233f82f7953d0ab2277628a7f72340200ad4ae9128b24baf1",
+    "experiments/dynamic_sr_stg_area_20261018/evaluate.py": "b22a49010e2a99cc1b8324d79dfe9db4da63426239af2ac13a6a87bc60536315",
+    "experiments/dynamic_sr_stg_area_20261018/prepare_plan.py": "b7bfab9aa011d2879e2e26213a35696adc2b320905401124eb25fabe95ee6d9b",
+    "experiments/dynamic_sr_stg_area_20261018/protocol_prepare.py": "c93c10e79c0a452cbbc5310e9a77acf4a07a0ba8e1d286ad987a221301a6bf6c",
+    "experiments/dynamic_sr_stg_area_20261018/run_pipeline.py": "961bb07297828bb9c503b0d093ba4cd70f9b362b36dbc2e10988b54742fa1a14",
+    "experiments/dynamic_sr_stg_area_20261018/stage_inputs.py": "d4c3885058878b1cf3331ba970f1f5619a427c9501afecf5abb9d95624be5128",
+    "experiments/dynamic_sr_stg_area_20261018/train.py": "25bf006a64a7b73040314edfd0718dbae3e79036aa41c6aa71d592a0b1802129",
+    "experiments/dynamic_sr_stg_area_20261018/watch_events.py": "559748f794380c370d666961caa65ee5b83fb4ae673b60021f8e237e9fcc6cf3",
     "experiments/dynamic_sr_surface_20260923/evaluate.py": "dc6c2d1439122f1b3d17fb9a8893863d0419f4e4021dc8b28318106e7ae3ef30",
     "experiments/dynamic_sr_surface_20260923/generate_prior.py": "193da80da90d628b558080b1cf9b6a4a17509431120d69834230b07877867210",
     "experiments/dynamic_sr_surface_20260923/initialize_lr_hull.py": "9c1a1cc53d67844c951de0831187653fb6771aad394b99ee6080905226628da9",
@@ -733,7 +746,7 @@
     "experiments/sr4d_20260922/summarize_minimal.py": "8e2e3e7c1c331e6651b72a1dc84db585d88bc85e0007a7aca44e700d0145d057",
     "experiments/sr4d_20260922/train_sr4d.py": "0f12fb92c513b135a31d3578dc11b36fcb15ae9101a848361ccc9f184f22ae8f",
     "experiments/sr4d_20260922/wu_entry.py": "57e74af4ea68ef3c485735179d0d15f7b2eec5245d670e9aa88e4fd7eabd05a9",
-    "scripts/publish_generic_sr.py": "6c18ec2f9e44a1f1ba0dbf0afca70109dcc2ca584201f469a5c5ff41f015313f",
+    "scripts/publish_generic_sr.py": "a7dee15ec5152a47151a1c9bfa117c370250ad701f41f6c5f9941fe6212518f8",
     "scripts/summarize_quality_headroom_20260923.py": "bbc8e37ad918ec6055f4b79df37ec8d9b50db4828ab2f8587155d6d0a1d468b2"
   }
 }
