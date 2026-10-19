@@ -221,10 +221,19 @@ def broker_job_proof(job, gpu_uuid, domain):
             or values.get('ControlGroup') != expected_cgroup or values.get('ActiveState') != 'active'
             or values.get('PrivateNetwork') != 'yes'):
         raise ValueError('Systemd does not confirm this root service runner/cgroup/isolation')
+    network_visibility = 'readable'
     try:
         network = os.readlink('/proc/' + str(pid) + '/ns/net')
     except PermissionError:
         network = None  # Equivalent root systemd + guard proof remains required.
+        network_visibility = 'unavailable_permission_denied'
+    if network == '':
+        # This host also returns zero bytes for a cross-UID namespace link.
+        # Keep the same mandatory root/systemd proof as for PermissionError.
+        network = None
+        network_visibility = 'unavailable_empty_readlink'
+    if network is not None and not re.fullmatch(r'net:\[[0-9]+\]', network):
+        raise ValueError('Malformed current service network namespace identity')
     if (guard.get('netns') != runner.get('netns')
             or guard.get('netns') == guard.get('host_netns')
             or (network is not None and network != guard.get('netns'))):
@@ -232,6 +241,10 @@ def broker_job_proof(job, gpu_uuid, domain):
     return dict(job_id=jid, gpu_uuids=[gpu_uuid], cgroup=expected_cgroup,
                 manifest_sha256=frozen['manifest_sha256'], manifest=frozen['manifest_path'], status=status,
                 systemd=values, runner=runner,
+                netns_verification=dict(visibility=network_visibility, live_netns=network,
+                                        guard_netns=guard.get('netns'), runner_netns=runner.get('netns'),
+                                        host_netns=guard.get('host_netns'),
+                                        root_systemd_fallback=network is None),
                 owned_identity=dict(pid=pid, start_ticks=live['start_ticks'],
                                     boot_id=domain['boot_id'], pid_domain=domain['pid_domain']))
 
