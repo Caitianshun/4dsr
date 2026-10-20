@@ -4,6 +4,10 @@ import hashlib
 import json
 from pathlib import Path
 
+METHOD_ORDER = ('wu', 'yang', '4c4d', 'multi4d', 'localdygs', 'cem')
+METHOD_LABELS = {'wu': 'Wu 4DGS', 'yang': 'Yang 4DGS', '4c4d': '4C4D',
+                 'multi4d': 'Multi4D', 'localdygs': 'LocalDyGS', 'cem': 'CEM-4DGS'}
+
 
 def sha(path):
     return hashlib.sha256(Path(path).read_bytes()).hexdigest()
@@ -21,11 +25,10 @@ def main():
     regions = json.loads(Path(args.rois).read_text())
     out = Path(args.out)
     out.mkdir(parents=True, exist_ok=False)
-    font = ImageFont.truetype('/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf', 20)
     records = []
     for region in regions['records']:
         scene, frame = region['scene'], region['frame']
-        selected = sorted((r for r in runs if r['scene'] == scene), key=lambda r: r['method'])
+        selected = sorted((r for r in runs if r['scene'] == scene), key=lambda r: METHOD_ORDER.index(r['method']))
         assert len(selected) == 6 and len({r['method'] for r in selected}) == 6
         reference = root / region['reference']
         assert sha(reference) == region['reference_sha256']
@@ -35,8 +38,10 @@ def main():
         row = dict(scene=scene, frame=frame, camera='cam00', face_xyxy=region['xyxy'], sources=[])
         for mode, columns, size in [('whole', 2, (672, 504)), ('face', 4, (256, 256))]:
             width, height = size
+            header, font_size = (40, 30) if mode == 'whole' else (32, 20)
+            font = ImageFont.truetype('/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf', font_size)
             rows = (len(sources) + columns - 1) // columns
-            canvas = Image.new('RGB', (columns * width, rows * (height + 32)), 'white')
+            canvas = Image.new('RGB', (columns * width, rows * (height + header)), 'white')
             draw = ImageDraw.Draw(canvas)
             for i, (method, path) in enumerate(sources):
                 with Image.open(path) as stream:
@@ -46,9 +51,9 @@ def main():
                     image = image.crop(tuple(region['xyxy'])).resize(size, Image.Resampling.NEAREST)
                 else:
                     image = image.resize(size, Image.Resampling.LANCZOS)
-                x, y = (i % columns) * width, (i // columns) * (height + 32)
-                draw.text((x + 6, y + 3), method, font=font, fill='black')
-                canvas.paste(image, (x, y + 32))
+                x, y = (i % columns) * width, (i // columns) * (height + header)
+                draw.text((x + 6, y + 3), METHOD_LABELS.get(method, method), font=font, fill='black')
+                canvas.paste(image, (x, y + header))
                 if mode == 'whole':
                     row['sources'].append(dict(method=method, path=str(path), sha256=sha(path)))
             destination = out / f'{scene}_cam00_{frame:04d}_{mode}.png'

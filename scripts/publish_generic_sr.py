@@ -170,6 +170,7 @@ DYNAMIC_LR_SOURCE_MANIFESTS = (
     "deployment/dynamic_lr_baselines_20261020/methods/localdygs_cem/public_source_files.json",
     "deployment/dynamic_lr_baselines_20261020/methods/cem_a100_build/public_source_files.json",
     "deployment/dynamic_lr_baselines_20261020/methods/cts_cem_followon/public_source_files.json",
+    "deployment/dynamic_lr_baselines_20261020/methods/cts_local_cut_followon/public_source_files.json",
 )
 FULL_HELD_SOURCE_NAMES = {
     "full_held_local_RTX3090_scope_v1.py",

@@ -15,7 +15,8 @@ colour, displacement, or visibility modules.
   calibrated focal lengths, principal points, poses, and crop conventions.
 - The selected inventory contains training LR images, held-out HR references,
   manifests, and explicitly identified LR initialization files. The references
-  are used only after reconstruction, for scoring and visual inspection.
+  do not enter model training or initialization. They support input-identity
+  checks, preselected visual regions, and post-reconstruction scoring and review.
 - Native initialization may differ between methods. The author-supported
   COLMAP, learned geometric prior, or LR triangulation procedure is disclosed
   in each method's record; it is not silently labelled a common initialization.

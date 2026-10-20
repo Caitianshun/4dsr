@@ -130,6 +130,7 @@ def main():
         if path.is_file() and not any(part in {".git", "__pycache__", "build", ".venv"} for part in path.relative_to(RUNTIME_SOURCE).parts) and path.suffix not in {".so", ".pyc"}:
             require(path, RUNTIME_REMOTE / path.relative_to(RUNTIME_SOURCE))
     evaluator = ROOT / "deployment/dynamic_lr_baselines_20261020/evaluate_images.py"
+    require(ROOT / "deployment/dynamic_lr_baselines_20261020/run_job.py")
     require(evaluator)
     require(ROOT / "experiments/dynamic_sr_20260918/evaluate.py")
     # The input inventory omits model/cache files by design. Gate the only

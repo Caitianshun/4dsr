@@ -131,7 +131,7 @@ def main():
     document.add_paragraph(title, "Title")
     md.extend(["# " + title, ""])
     paragraph("已完成六种动态高斯重建方法在 Cook 和 Cut 两景的十二项固定端点评价。所有方法使用原始 LR 训练，未加入本项目超分、颜色校正、位移场或可见性增益模块。下表是本轮统一协议的复现结果，不是原论文表格数值。")
-    paragraph("每景使用 300 帧。Cook 有 20 台训练相机，Cut 因缺少 cam04 使用 19 台；cam00 全程留出。训练为 336×252 的原始 bicubic antialias LR，最终渲染为 1344×1008。真实 HR 仅用于训练结束后的评价与图像检查。4C4D 使用作者的 MASt3R 几何先验，单独披露如下。")
+    paragraph("每景使用 300 帧。Cook 有 20 台训练相机，Cut 因缺少 cam04 使用 19 台；cam00 全程留出。训练为 336×252 的原始 bicubic antialias LR，最终渲染为 1344×1008。真实 HR 不参与模型训练或初始化，仅用于身份校验、预先固定可视化区域，以及训练后的评价和图像检查。4C4D 使用作者的 MASt3R 几何先验，单独披露如下。")
     for scene in SCENES:
         heading(LABELS[scene] + " 留出相机指标")
         rows = []
@@ -147,7 +147,9 @@ def main():
     rows = [[metadata[m]["label"], metadata[m]["native_schedule"], metadata[m]["initialization"]] for m in METHODS]
     table(["方法", "固定日程", "合法训练 LR 初始化"], rows, [1.15, 2.35, 3.15])
     paragraph("Wu 和 Multi4D 使用已标定训练 LR 的三角化点，初始化方式与作者原 COLMAP 输入存在差异。Yang 使用训练第 0 帧 COLMAP 稠密点；LocalDyGS 使用多个时刻的 COLMAP 稠密点；CEM 使用第 0 帧 COLMAP 稀疏点。初始化差异和作者日程差异均保留，不能据此声称严格隔离了骨干结构的因果作用。")
+    paragraph("LocalDyGS/CEM 的 Cook 初始化使用 CTS 的 COLMAP 3.12dev，Cut 使用 A100 的 COLMAP 3.9.1，实际软件身份随初始化保存。历史 Yang 初始化未冻结当时的 COLMAP 二进制哈希，当前机器上的二进制身份不能追认为其历史身份。这些初始化软件差异属于本轮复现的限制。")
     paragraph("4C4D 使用作者 MAtCha posed MASt3R 预训练几何先验，只输入训练 LR。模型内部按作者设置调整工作分辨率；这不构成 SR 图像监督。原生过程允许内部平移与尺度优化，之后对齐至给定相机。最终动态重建与渲染使用 manifest 相机。")
+    paragraph("4C4D 原论文面向四相机稀疏采集。本轮为统一输入，使用 Cook 的全部 20 台和 Cut 的全部 19 台合法训练相机。因此，表中 4C4D 应标为统一多视角 LR 协议适配结果；引用原论文四相机指标时须另行区分。")
     paragraph("为适配当前环境，保留相机主点与半像素约定、原生时间尺度，并修复已证实的图像类型、CUDA 头文件和进程资源兼容问题。各修复、固定上游提交和训练完整性验收均随端点保存。失败的早期部署尝试单独保留，不作为正式结果。")
     paragraph("LocalDyGS 的作者入口保存点云、动态哈希场和 MLP 权重，不保存完整优化器状态。本轮已回传这些原生最终资产，可重新加载渲染；后续若继续微调，需要重新建立优化器，不能称为恢复完整训练状态。")
     heading("结论的适用范围")
@@ -180,13 +182,21 @@ def main():
         para._p.append(link)
         md.extend([f"[{label}]({item['paper_url']})", ""])
 
+    for scene in SCENES:
+        document.add_page_break()
+        heading(LABELS[scene] + " 固定帧全图检查")
+        image = a.visuals / f"{scene}_cam00_0150_whole.png"
+        document.add_picture(str(image), width=Inches(5.2))
+        paragraph("cam00 帧索引 150（从 0 开始）；每幅图以半尺寸显示，完整分辨率渲染保留。", "Caption")
+        md.extend([f"![{LABELS[scene]} 第150帧全图]({image.resolve()})", ""])
+
     document.add_page_break()
     heading("固定帧人脸细节检查")
-    paragraph("图示为 cam00 的第 150 帧。人脸区域在查看新方法结果之前由 HR 固定；128×128 区域以最近邻放大 2 倍，未锐化。另保存两景第 0、150、299 帧的全部十二张全图与人脸对照面板。")
+    paragraph("图示为 cam00 的帧索引 150，索引从 0 开始。人脸区域在查看新方法结果之前由 HR 固定；128×128 区域以最近邻放大 2 倍，未锐化。另保存两景帧索引 0、150、299 的全部十二张全图与人脸对照面板。")
     for scene in SCENES:
         image = a.visuals / f"{scene}_cam00_0150_face.png"
         document.add_picture(str(image), width=Inches(6.6))
-        paragraph(LABELS[scene] + " 第 150 帧固定区域", "Caption")
+        paragraph(LABELS[scene] + " 帧索引 150 固定区域", "Caption")
         notes = review.get("scene_notes", {}).get(scene)
         if notes:
             paragraph(notes)
