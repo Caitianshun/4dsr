@@ -1,0 +1,113 @@
+--- a/scene/neural_3D_dataset_NDC.py
++++ b/scene/neural_3D_dataset_NDC.py
+@@ -7,6 +7,7 @@
+ import numpy as np
+ import torch
+ from PIL import Image
++from pathlib import Path
+ from torch.utils.data import Dataset
+ from torchvision import transforms as T
+ from tqdm import tqdm
+@@ -225,10 +226,22 @@
+         eval_index = 0,
+         sphere_scale = 1.0,
+     ):
+-        self.img_wh = (
+-            int(1352 / downsample),
+-            int(1014 / downsample),
+-        )  # According to the neural 3D paper, the default resolution is 1024x768
++        # Data interface: preserve prepared LR pixels, without SR/interpolation.
++        image_roots = sorted(Path(datadir).glob('cam[0-9][0-9]/images'))
++        if os.environ.get('DYNAMIC_LR_PROTOCOL_MANIFEST'):
++            from protocol_interface import observations
++            source, _, records, _ = observations('train')
++            image_roots = [(source.parent / records[0]['lr_path']).parent]
++        image_roots = [x for x in image_roots if x.parent.name != 'cam00']
++        if not image_roots:
++            raise RuntimeError('No training LR image directories')
++        first = sorted(image_roots[0].glob('*.png'))[0]
++        with Image.open(first) as image:
++            self.img_wh = image.size
++        # Evaluation-only override changes camera pixel grid, never training.
++        evaluation_wh = os.environ.get('LOCALDYGS_EVAL_WH')
++        if split == 'test' and evaluation_wh:
++            self.img_wh = tuple(map(int, evaluation_wh.split('x')))
+         self.root_dir = datadir
+         self.split = split
+         self.downsample = 2704 / self.img_wh[0]
+@@ -259,6 +272,10 @@
+         """
+         Load meta data from the dataset.
+         """
++        if os.environ.get("DYNAMIC_LR_PROTOCOL_MANIFEST"):
++            from protocol_interface import init_localdygs_dataset
++            init_localdygs_dataset(self)
++            return
+         # Read poses and video file paths.
+         poses_arr = np.load(os.path.join(self.root_dir, "poses_bounds.npy"))
+         poses = poses_arr[:, :-2].reshape([-1, 3, 5])  # (N_cams, 3, 5)
+@@ -269,6 +286,7 @@
+         assert len(videos) == poses_arr.shape[0]
+ 
+         H, W, focal = poses[0, :, -1]
++        self.downsample = W / self.img_wh[0]
+         focal = focal / self.downsample
+         self.focal = [focal, focal]
+         poses = np.concatenate([poses[..., 1:2], -poses[..., :1], poses[..., 2:4]], -1)
+@@ -373,6 +391,8 @@
+ 
+     def __getitem__(self,index):
+ 
++        if os.environ.get("DYNAMIC_LR_PROTOCOL_MANIFEST") and self.split == "test":
++            return torch.zeros(3, self.img_wh[1], self.img_wh[0]), self.image_poses[index], self.image_times[index]
+         img = Image.open(self.image_paths[index])
+         img = img.resize(self.img_wh, Image.LANCZOS)
+         img = self.transform(img)
+--- a/scene/spacetime_dataset.py
++++ b/scene/spacetime_dataset.py
+@@ -45,9 +45,13 @@
+                 FovY = caminfo.FovY
+                 time = caminfo.time
+                 mask = caminfo.mask
+-            return Camera(colmap_id=index,R=R,T=T,FoVx=FovX,FoVy=FovY,image=image,gt_alpha_mask=None, 
++            camera = Camera(colmap_id=index,R=R,T=T,FoVx=FovX,FoVy=FovY,image=image,gt_alpha_mask=None, 
+                               image_name=f"{index}",uid=index, data_device=torch.device("cuda"),time=time,
+                               mask=mask)
++            if hasattr(self.dataset, "protocol_intrinsics"):
++                from protocol_interface import apply_localdygs_projection
++                camera = apply_localdygs_projection(camera, self.dataset.protocol_intrinsics[index])
++            return camera
+         else:
+             return self.dataset[index]
+     def __len__(self):
+--- a/render.py
++++ b/render.py
+@@ -9,7 +9,7 @@
+ # For inquiries contact  george.drettakis@inria.fr
+ #
+ import os
+-os.environ['CUDA_VISIBLE_DEVICES'] = '2'
++# GPU selection is supplied by the scheduler through CUDA_VISIBLE_DEVICES.
+ import imageio
+ import numpy as np
+ import torch
+--- a/train.py
++++ b/train.py
+@@ -43,7 +43,7 @@
+ 
+ 
+ # torch.set_num_threads(32)
+-lpips_fn = lpips.LPIPS(net='vgg').to('cuda')
++lpips_fn = None if os.environ.get('DYNAMIC_LR_PROTOCOL_MANIFEST') else lpips.LPIPS(net='vgg').to('cuda')
+ 
+ try:
+     from torch.utils.tensorboard import SummaryWriter
+@@ -331,7 +331,7 @@
+ def training_report(args , gaussians, tb_writer, iteration, Ll1, loss, l1_loss, elapsed, testing_iterations, \
+                     scene : Scene, renderFunc, renderArgs, stage, dataset_type, logger):
+ 
+-    if iteration in testing_iterations:
++    if iteration in testing_iterations and not os.environ.get("DYNAMIC_LR_PROTOCOL_MANIFEST"):
+         torch.cuda.empty_cache()
+         # 
+         validation_configs = (

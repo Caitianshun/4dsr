@@ -1,0 +1,98 @@
+diff --git a/diff_gaussian_rasterization_hybrid/cuda_rasterizer/backward.cu b/diff_gaussian_rasterization_hybrid/cuda_rasterizer/backward.cu
+index 95157e4..d8752b0 100644
+--- a/diff_gaussian_rasterization_hybrid/cuda_rasterizer/backward.cu
++++ b/diff_gaussian_rasterization_hybrid/cuda_rasterizer/backward.cu
+@@ -1499,6 +1499,7 @@ void BACKWARD::preprocess(
+     float *dL_dcolor, float *dL_dcov3D, float *dL_dsh, float *dL_dts,
+     glm::vec3 *dL_dscale, float *dL_dscale_t, glm::vec4 *dL_drot,
+     glm::vec4 *dL_drot_r, float *dL_dopacity) {
++  if (P == 0) return; // Avoid a zero-block CUDA launch for empty TR.
+   // Propagate gradients for the path of 2D conic matrix computation.
+   // Somewhat long, thus it is its own kernel rather than being part of
+   // "preprocess". When done, loss gradient w.r.t. 3D means has been
+diff --git a/diff_gaussian_rasterization_hybrid/cuda_rasterizer/forward.cu b/diff_gaussian_rasterization_hybrid/cuda_rasterizer/forward.cu
+index 7cfd2c2..0e531ad 100644
+--- a/diff_gaussian_rasterization_hybrid/cuda_rasterizer/forward.cu
++++ b/diff_gaussian_rasterization_hybrid/cuda_rasterizer/forward.cu
+@@ -715,6 +715,21 @@ __global__ void __launch_bounds__(BLOCK_X *BLOCK_Y) renderCUDA(
+     }
+   }
+ 
++  // BACKWARD::PerGaussianRenderCUDA reads this per-tile cutoff. The
++  // released forward never wrote it, so allocation contents could zero or
++  // truncate every hybrid gradient. Reduce the actual last contributor.
++  __shared__ uint32_t tile_last_contributor[BLOCK_SIZE];
++  tile_last_contributor[block.thread_rank()] = inside ? last_contributor : 0;
++  block.sync();
++  for (int offset = BLOCK_SIZE / 2; offset > 0; offset /= 2) {
++    if (block.thread_rank() < offset)
++      tile_last_contributor[block.thread_rank()] = max(
++          tile_last_contributor[block.thread_rank()],
++          tile_last_contributor[block.thread_rank() + offset]);
++    block.sync();
++  }
++  if (block.thread_rank() == 0) max_contrib[tile_id] = tile_last_contributor[0];
++
+   // All threads that treat valid pixel write out their final
+   // rendering data to the frame and auxiliary buffers.
+   if (inside) {
+@@ -768,6 +783,7 @@ void FORWARD::preprocess(
+     int *radii, float opa_threshold, float2 *means2D, float *depths,
+     float *cov3Ds, float *rgb, float4 *conic_opacity, const dim3 grid,
+     uint32_t *tiles_touched, bool prefiltered) {
++  if (P == 0) return; // Empty TR leaves persistent branches active.
+   preprocessCUDA<NUM_CHANNELS><<<(P + 255) / 256, 256>>>(
+       P, D, D_t, M, means3D, out_means3D, ts, scales, scales_t, scale_modifier,
+       rotations, rotations_r, opacities, shs, clamped, cov3D_precomp,
+diff --git a/diff_gaussian_rasterization_hybrid/cuda_rasterizer/rasterizer_impl.h b/diff_gaussian_rasterization_hybrid/cuda_rasterizer/rasterizer_impl.h
+index 4cf0a53..ef642a1 100644
+--- a/diff_gaussian_rasterization_hybrid/cuda_rasterizer/rasterizer_impl.h
++++ b/diff_gaussian_rasterization_hybrid/cuda_rasterizer/rasterizer_impl.h
+@@ -1,3 +1,4 @@
++#include <cstdint> // CUDA 12.8: explicit fixed-width integer declarations
+ /*
+  * Copyright (C) 2023, Inria
+  * GRAPHDECO research group, https://team.inria.fr/graphdeco
+diff --git a/diff_gaussian_rasterization_hybrid/rasterize_points.cu b/diff_gaussian_rasterization_hybrid/rasterize_points.cu
+index 6b8bb1a..203aa52 100644
+--- a/diff_gaussian_rasterization_hybrid/rasterize_points.cu
++++ b/diff_gaussian_rasterization_hybrid/rasterize_points.cu
+@@ -211,10 +211,7 @@ RasterizeGaussiansBackwardCUDA(
+   const int H = dL_dout_color.size(1);
+   const int W = dL_dout_color.size(2);
+ 
+-  int M = 0;
+-  if (sh.size(0) != 0) {
+-    M = sh.size(1);
+-  }
++  int M = sh.dim() >= 2 ? sh.size(1) : 0; // Keep empty TR SH gradient shape.
+ 
+   // Compute M_static separately from sh_static to handle different SH
+   // coefficient counts
+@@ -264,7 +261,7 @@ RasterizeGaussiansBackwardCUDA(
+     dL_dmeans2D_static = torch::zeros({P_static, 3}, means3D.options());
+   }
+ 
+-  if (P != 0) {
++  if (P + P_static != 0) {
+     CudaRasterizer::Rasterizer::backward(
+         P, P_static, degree, degree_t, M, M_static, R, B,
+         background.contiguous().data_ptr<float>(), W, H,
+diff --git a/submodules/diff-gaussian-rasterization/cuda_rasterizer/rasterizer_impl.h b/submodules/diff-gaussian-rasterization/cuda_rasterizer/rasterizer_impl.h
+index bc3f0ec..3a3eb4b 100644
+--- a/submodules/diff-gaussian-rasterization/cuda_rasterizer/rasterizer_impl.h
++++ b/submodules/diff-gaussian-rasterization/cuda_rasterizer/rasterizer_impl.h
+@@ -1,3 +1,4 @@
++#include <cstdint> // CUDA 12.8: explicit fixed-width integer declarations
+ /*
+  * Copyright (C) 2023, Inria
+  * GRAPHDECO research group, https://team.inria.fr/graphdeco
+diff --git a/submodules/simple-knn/simple_knn.cu b/submodules/simple-knn/simple_knn.cu
+index e72e4c9..bfb679b 100644
+--- a/submodules/simple-knn/simple_knn.cu
++++ b/submodules/simple-knn/simple_knn.cu
+@@ -1,3 +1,4 @@
++#include <cfloat> // CUDA 12.8: explicit FLT_MAX declaration
+ /*
+  * Copyright (C) 2023, Inria
+  * GRAPHDECO research group, https://team.inria.fr/graphdeco

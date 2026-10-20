@@ -1,0 +1,54 @@
+--- a/simple-knn/simple_knn.cu
++++ b/simple-knn/simple_knn.cu
+@@ -1,3 +1,4 @@
++#include <cfloat>
+ /*
+  * Copyright (C) 2023, Inria
+  * GRAPHDECO research group, https://team.inria.fr/graphdeco
+--- a/utils/camera_utils.py
++++ b/utils/camera_utils.py
+@@ -60,7 +60,7 @@
+         depth = None
+ 
+     return Camera(colmap_id=cam_info.uid, R=cam_info.R, T=cam_info.T, 
+-                  FoVx=cam_info.FovX, FoVy=cam_info.FovY, 
++                  FoVx=(2 * np.arctan(orig_w / (2 * cam_info.fl_x)) if cam_info.fl_x > 0 else cam_info.FovX), FoVy=(2 * np.arctan(orig_h / (2 * cam_info.fl_y)) if cam_info.fl_y > 0 else cam_info.FovY), 
+                   image=gt_image, gt_alpha_mask=loaded_mask,
+                   image_name=cam_info.image_name, uid=id, data_device=args.data_device, 
+                   timestamp=cam_info.timestamp,
+--- a/utils/data_utils.py
++++ b/utils/data_utils.py
+@@ -20,7 +20,7 @@
+                 im_data = np.array(image_load.convert("RGBA"))
+             norm_data = im_data / 255.0
+             arr = norm_data[:,:,:3] * norm_data[:, :, 3:4] + self.bg * (1 - norm_data[:, :, 3:4])
+-            image_load = Image.fromarray(np.array(arr*255.0, dtype=np.byte), "RGB")
++            image_load = Image.fromarray(np.array(arr*255.0, dtype=np.uint8), "RGB")
+             resized_image_rgb = PILtoTorch(image_load, viewpoint_cam.resolution)
+             viewpoint_image = resized_image_rgb[:3, ...].clamp(0.0, 1.0)
+             if resized_image_rgb.shape[1] == 4:
+--- a/scene/dataset_readers.py
++++ b/scene/dataset_readers.py
+@@ -254,9 +254,9 @@
+             arr = norm_data[:,:,:3] * norm_data[:, :, 3:4] + bg * (1 - norm_data[:, :, 3:4])
+             if norm_data[:, :, 3:4].min() < 1:
+                 arr = np.concatenate([arr, norm_data[:, :, 3:4]], axis=2)
+-                image = Image.fromarray(np.array(arr*255.0, dtype=np.byte), "RGBA")
++                image = Image.fromarray(np.array(arr*255.0, dtype=np.uint8), "RGBA")
+             else:
+-                image = Image.fromarray(np.array(arr*255.0, dtype=np.byte), "RGB")
++                image = Image.fromarray(np.array(arr*255.0, dtype=np.uint8), "RGB")
+ 
+             width, height = image.size[0], image.size[1]
+         else:
+--- a/train.py
++++ b/train.py
+@@ -47,7 +47,7 @@
+     gaussians.training_setup(opt)
+     
+     if checkpoint:
+-        (model_params, first_iter) = torch.load(checkpoint)
++        (model_params, first_iter) = torch.load(checkpoint, weights_only=False)
+         gaussians.restore(model_params, opt)
+ 
+     bg_color = [1, 1, 1] if dataset.white_background else [0, 0, 0]

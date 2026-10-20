@@ -1,0 +1,87 @@
+{
+  "schema": "Multi4D_original_nativeLR_20261020",
+  "manifest": "data/dynamic_sr/full_time_20261007/prepared/cook_spinach/manifest_train_ready_seed20261007.json",
+  "init": "deployment/dynamic_lr_baselines_20261020/methods/wu_multi/prepared_original/Cook07/initialization/points_lr.npz",
+  "schedule": "deployment/dynamic_lr_baselines_20261020/methods/wu_multi/prepared_original/Cook07/multi_schedule.json",
+  "adapter": "deployment/dynamic_lr_baselines_20261020/methods/wu_multi/multi4d_native/adapter",
+  "upstream": "output/dynamic_lr_baselines_20261020/runtime/Multi4D-c483e82",
+  "native_repairs_receipt": "output/dynamic_sr_multi4d_20260924/upstream_fixes_v3.json",
+  "seed": 0,
+  "teacher_weight": 0,
+  "teacher_dssim": 0,
+  "cpu_threads": 4,
+  "train_observation": "native LR camera grid and original LR RGB targets; no HR render-pool training",
+  "no_SR_teacher": true,
+  "no_our_modules": true,
+  "author_final_fine_Adam_skip_preserved": true,
+  "expected_fine_Adam_per_branch": 19999,
+  "fine_loop_iterations": 20000,
+  "coarse_loop_iterations": 2000,
+  "evaluation_only_HR": true,
+  "required_files": [
+    {
+      "path": "data/dynamic_sr/full_time_20261007/prepared/cook_spinach/manifest_train_ready_seed20261007.json",
+      "sha256": "d98147a5c97541316c1c89602edd09e46a76f29bbc2768542316bd6d42836021"
+    },
+    {
+      "path": "deployment/dynamic_lr_baselines_20261020/methods/wu_multi/prepared_original/Cook07/initialization/points_lr.npz",
+      "sha256": "510ef26e34880d60c10de5cbcf1954f4d464a29b71e1345c79389d155aff1bc3"
+    },
+    {
+      "path": "deployment/dynamic_lr_baselines_20261020/methods/wu_multi/prepared_original/Cook07/multi_schedule.json",
+      "sha256": "ac82a500a86f30fdebab7f76555c24d21d3234727a2e9a1c4667a0857daf469a"
+    },
+    {
+      "path": "output/dynamic_sr_multi4d_20260924/upstream_fixes_v3.json",
+      "sha256": "b1db3434b2aaacb73ab9fc9f0a43b35c0c1d3579d75522091ed09e2e9e4b5874"
+    },
+    {
+      "path": "deployment/dynamic_lr_baselines_20261020/methods/wu_multi/multi4d_native/evaluate.py",
+      "sha256": "3bd23e6b11c8fa007b117b1da3a5913629c3d8cc8183772511bf855d175efe33"
+    },
+    {
+      "path": "deployment/dynamic_lr_baselines_20261020/methods/wu_multi/multi4d_native/eval_hr_data.py",
+      "sha256": "b98cb70e2945efdf3af35adb67fbd0d2cb8027eb3166b3afa85c9c719cfc080c"
+    },
+    {
+      "path": "deployment/dynamic_lr_baselines_20261020/methods/wu_multi/multi4d_native/train.py",
+      "sha256": "91cb4e1e1ea79d02d2f7cca68508e373aa929e2808076fab1fa105ed86a835c5"
+    },
+    {
+      "path": "deployment/dynamic_lr_baselines_20261020/methods/wu_multi/multi4d_native/data.py",
+      "sha256": "238dc5c8d38b4e51dd3d368a11a25dafd8acc1fcd450894803dc276ed42dc2a3"
+    },
+    {
+      "path": "deployment/dynamic_lr_baselines_20261020/methods/wu_multi/multi4d_native/adapter/adapted_train.py",
+      "sha256": "dd8a609550eb02472c69125c97f2d3b8ba675292abb06b7d55650e9043f95134"
+    },
+    {
+      "path": "deployment/dynamic_lr_baselines_20261020/methods/wu_multi/multi4d_native/adapter/identity.json",
+      "sha256": "ed0d3e18c7b962b7ca82c96088d42792200c1bef95359bfb2fa699131f84edef"
+    },
+    {
+      "path": "deployment/dynamic_lr_baselines_20261020/methods/wu_multi/prepare_multi_native.py",
+      "sha256": "6449a8d5d1adca1b6c6d0a19460eb7b08f556eee5984d6c575e159fd916b43d6"
+    },
+    {
+      "path": "experiments/dynamic_sr_multi4d_20260924/full_state.py",
+      "sha256": "0c5e297f28ffb62a7ac255c7dd53eabff3cc3b62cc29e1f88b5ba9071165e7e6"
+    },
+    {
+      "path": "experiments/dynamic_sr_multi4d_20260924/multi_model.py",
+      "sha256": "adae0571992c90147a652ab444a6f5901ea977374a58fe4c28b310ede04f535e"
+    },
+    {
+      "path": "experiments/dynamic_sr_20260918/evaluate.py",
+      "sha256": "df142c1ab3f3cdf5c1d65828549cdf3ae35c8db188461c5dea1a76d0946ae51b"
+    },
+    {
+      "path": "deployment/dynamic_lr_baselines_20261020/methods/wu_multi/evaluate_native_lr.py",
+      "sha256": "fb5bd98e820eadf528a5abf65bc0152d001a9ca9012014954aade2d4347a70ce"
+    },
+    {
+      "path": "deployment/dynamic_lr_baselines_20261020/methods/wu_multi/prepared_original/Cook07/initialization/report.json",
+      "sha256": "e053f86ff438b40c1b98772f7cc7546beca5c78cd39e0e0d522889e7d8624f7a"
+    }
+  ]
+}

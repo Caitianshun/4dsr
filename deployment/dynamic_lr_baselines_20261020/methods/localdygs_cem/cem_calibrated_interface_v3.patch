@@ -1,0 +1,39 @@
+--- a/scene/dataset_readers.py
++++ b/scene/dataset_readers.py
+@@ -533,8 +533,12 @@
+     near = 0.01
+     far = 300
+ 
+-    cam_infos_unsorted = readN3VCameras(cam_extrinsics=cam_extrinsics, cam_intrinsics=cam_intrinsics, images_folder=path, near=near, far=far, 
+-                                        startime=args.start_timestamp, endtime=args.end_timestamp)
++    if os.environ.get("DYNAMIC_LR_PROTOCOL_MANIFEST"):
++        from protocol_interface import cem_camera_infos
++        cam_infos_unsorted = cem_camera_infos(CameraInfo2)
++    else:
++        cam_infos_unsorted = readN3VCameras(cam_extrinsics=cam_extrinsics, cam_intrinsics=cam_intrinsics, images_folder=path, near=near, far=far,
++                                          startime=args.start_timestamp, endtime=args.end_timestamp)
+     cam_infos = sorted(cam_infos_unsorted.copy(), key = lambda x : x.image_name)
+      
+     # if eval:
+--- a/scene/__init__.py
++++ b/scene/__init__.py
+@@ -36,6 +36,8 @@
+     return distoritonflow
+             
+ def im_reader(path, resolution, im_scale):
++    if str(path).startswith("protocol-zero://"):
++        return torch.zeros(3, resolution[1], resolution[0])
+     ImageFile.LOAD_TRUNCATED_IMAGES = True
+     return (PILtoTorch(Image.open(path), resolution)[:3, ...] / im_scale).clamp(0, 1)
+ 
+--- a/train.py
++++ b/train.py
+@@ -368,7 +368,7 @@
+         tb_writer.add_scalar('PSNR', psnr_log, iteration)
+         
+     # Report test and samples of training set
+-    if iteration in testing_iterations:
++    if iteration in testing_iterations and not os.environ.get("DYNAMIC_LR_PROTOCOL_MANIFEST"):
+         torch.cuda.empty_cache()
+ 
+         test_viewpoint_stack, test_images = scene.getTestCameras(shuffle=False, return_as='generator',  n_job=1)

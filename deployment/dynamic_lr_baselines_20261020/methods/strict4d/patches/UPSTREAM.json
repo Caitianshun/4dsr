@@ -1,0 +1,32 @@
+{
+  "schema": "strict4d_external_adapter_provenance_v1",
+  "patches": [
+    {
+      "method": "yang",
+      "upstream_repository": "https://github.com/fudan-zvg/4d-gaussian-splatting",
+      "upstream_commit": "3fe460f1f2342526bccf6c01b63da125faf0fa94",
+      "patch": "deployment/dynamic_lr_baselines_20261020/methods/strict4d/patches/yang.patch",
+      "sha256": "b8e0f10ff19903d2e83a2584ebbac246a5018f751c01e7d036e024a41cec1baa",
+      "upstream_patch_dry_run_passed": true,
+      "application": "build_runtime.py or prepare_mast3r_source.py generates this same diff; source snapshots remain external dependencies"
+    },
+    {
+      "method": "4c4d",
+      "upstream_repository": "https://github.com/yangzf-1023/4C4D",
+      "upstream_commit": "ed6a3cb69782c4147151b3898944bc38132bae00",
+      "patch": "deployment/dynamic_lr_baselines_20261020/methods/strict4d/patches/4c4d.patch",
+      "sha256": "1b3cc23511b35628698a48b6cabcd2da093f7a3abbb6b03cdf1e9523f64a06f7",
+      "upstream_patch_dry_run_passed": true,
+      "application": "build_runtime.py or prepare_mast3r_source.py generates this same diff; source snapshots remain external dependencies"
+    },
+    {
+      "method": "mast3r",
+      "upstream_repository": "https://github.com/anttwo/MAtCha",
+      "upstream_commit": "b119fd96e484fc81eb40623c1ea92ad3dbd3c21e",
+      "patch": "deployment/dynamic_lr_baselines_20261020/methods/strict4d/patches/mast3r.patch",
+      "sha256": "fa837c5d1a06f550303b84e4ce730953bb8c98caa4f54135e64e5829084042e8",
+      "upstream_patch_dry_run_passed": true,
+      "application": "build_runtime.py or prepare_mast3r_source.py generates this same diff; source snapshots remain external dependencies"
+    }
+  ]
+}

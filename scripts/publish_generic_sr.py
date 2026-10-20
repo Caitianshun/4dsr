@@ -56,6 +56,7 @@ EXPERIMENTS = (
     "sr4d_20260922",
 )
 DEPLOYMENTS = (
+    "dynamic_lr_baselines_20261020",
     "a100_20260920",
     "cts_20260921",
     "soft_motion_a100_20260924",
@@ -71,6 +72,7 @@ DEPLOYMENTS = (
     "return_terminal_inventory_20261011",
 )
 EXPERIMENT_INSTRUCTIONS = (
+    "deployment/dynamic_lr_baselines_20261020/README.md",
     "deployment/readonly_hr_a100_20261011/README.md",
     "deployment/resume_verified_sync_20261011/README.md",
     "deployment/runtime_env_resume_20261011/README.md",
@@ -161,6 +163,13 @@ HIGHRES_REQUIRED_TEXT = (
     # third-party notice for experiments/dynamic_sr_physlr_20261016/hat_arch_local.py (derived from XPixelGroup/HAT,
     # Apache-2.0; notice plus the verbatim license text, 2026-10-18)
     "experiments/dynamic_sr_physlr_20261016/THIRD_PARTY_HAT_LICENSE.txt",
+)
+DYNAMIC_LR_SOURCE_MANIFESTS = (
+    "deployment/dynamic_lr_baselines_20261020/methods/wu_multi/public_source_files.json",
+    "deployment/dynamic_lr_baselines_20261020/methods/strict4d/public_source_files.json",
+    "deployment/dynamic_lr_baselines_20261020/methods/localdygs_cem/public_source_files.json",
+    "deployment/dynamic_lr_baselines_20261020/methods/cem_a100_build/public_source_files.json",
+    "deployment/dynamic_lr_baselines_20261020/methods/cts_cem_followon/public_source_files.json",
 )
 FULL_HELD_SOURCE_NAMES = {
     "full_held_local_RTX3090_scope_v1.py",
@@ -295,6 +304,24 @@ def select_sources() -> dict[str, bytes]:
         add_file(selected, SOURCE / relative, relative)
     for relative in HIGHRES_REQUIRED_TEXT:
         add_file(selected, SOURCE / relative, relative)
+    # Method owners review only small source/configuration files. Generated
+    # scientific results and complete third-party/runtime copies stay private.
+    baseline_prefix = "deployment/dynamic_lr_baselines_20261020/methods/"
+    forbidden_parts = {"logs", "jobs", "prepared_original", "__pycache__",
+                       "frozen_execution_helpers", "frozen_execution_helpers_v2"}
+    for manifest_name in DYNAMIC_LR_SOURCE_MANIFESTS:
+        manifest = json.loads((SOURCE / manifest_name).read_text())
+        for record in manifest["files"]:
+            relative = record["path"]
+            path = Path(relative)
+            if (not relative.startswith(baseline_prefix) or path.is_absolute()
+                    or ".." in path.parts or forbidden_parts.intersection(path.parts)
+                    or path.suffix not in {".py", ".sh", ".md", ".patch", ".json", ".txt"}
+                    or path.name == "adapted_train.py"):
+                raise ValueError(f"Not an approved baseline source path: {relative}")
+            if digest((SOURCE / path).read_bytes()) != record["sha256"]:
+                raise ValueError(f"Baseline source changed since its owner review: {relative}")
+            add_file(selected, SOURCE / path, relative)
 
     # The original SR4D local patch also edits its README with an HOI result
     # reference. Publish only the code hunks used by this non-HOI comparison.

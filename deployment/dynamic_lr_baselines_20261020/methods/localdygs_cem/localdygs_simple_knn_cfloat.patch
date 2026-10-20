@@ -1,0 +1,11 @@
+--- a/simple_knn.cu
++++ b/simple_knn.cu
+@@ -8,6 +8,8 @@
+  *
+  * For inquiries contact  george.drettakis@inria.fr
+  */
++
++#include <cfloat>
+ 
+ #define BOX_SIZE 1024
+ 

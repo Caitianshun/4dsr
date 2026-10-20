@@ -1,0 +1,287 @@
+--- upstream/train.py
++++ native_lr/train.py
+@@ -282,16 +282,8 @@
+     background_gaussians.training_setup(optimization_params)
+     transient_gaussian.training_setup(optimization_params)
+ 
+-    # ---- Checkpoint Resume Logic ----
+-    if checkpoint:
+-        if stage == "coarse" and stage not in checkpoint:
+-            print("start from fine stage, skip coarse stage.")
+-            return
+-        if stage in checkpoint:
+-            (model_params, first_iter) = torch.load(checkpoint)
+-            foreground_gaussians.restore(model_params, optimization_params)
+-
+-        # ---- Background Colors (near-black to avoid numerical issues) ----
++    first_iter = adapter_context.stage_start(stage, foreground_gaussians,
++        background_gaussians, transient_gaussian, optimization_params)
+     bg_color = [1e-7, 1e-7, 1e-7]
+     # No PSNR floor, so sub-28 dB datasets still save a best checkpoint.
+     best_psnr = -1.0
+@@ -404,21 +396,7 @@
+             transient_gaussian.oneupSHdegree()
+ 
+         # ---- Camera Batch Sampling (uniform random, without replacement) ----
+-        idx = 0
+-        viewpoint_cams = []
+-
+-        while idx < batch_size:
+-            viewpoint_cam_idx = viewpoint_stack_index.pop(randint(0, len(viewpoint_stack_index) - 1))
+-            viewpoint_cam = viewpoint_stack[viewpoint_cam_idx]
+-            if not viewpoint_stack_index:
+-                # Reset for next epoch
+-                viewpoint_stack_index = viewpoint_stack_index_save.copy()
+-            viewpoint_cams.append(viewpoint_cam)
+-            idx += 1
+-
+-        if len(viewpoint_cams) == 0:
+-            continue
+-
++        viewpoint_cams = [train_cams[i] for i in adapter_context.batch(stage, iteration)]
+         # ---- Batch Rendering Setup ----
+         images = []
+         gt_images = []
+@@ -455,7 +433,7 @@
+                 image = render_pkg_hybrid["render"]
+                 images.append(image.unsqueeze(0))
+ 
+-                gt_image = viewpoint_cam.original_image.float().cuda() / 255
++                gt_image = viewpoint_cam.original_image.cuda()
+                 gt_images.append(gt_image.unsqueeze(0))
+ 
+                 # Populate Stats lists (Needed for densification/pruning)
+@@ -536,7 +514,7 @@
+                 foreground_gaussians.count_dx  += 1
+ 
+             # Ground truth image
+-            gt_image = viewpoint_cam.original_image.float().cuda() / 255
++            gt_image = viewpoint_cam.original_image.cuda()
+ 
+             # Render background (static) Gaussians
+             render_pkg_second = render_background(viewpoint_cam, background_gaussians, pipeline_config, background,
+@@ -681,7 +659,7 @@
+                     1.0 - ssim(image_tensor, gt_image_tensor[:, :3, :, :]))
+             psnr_ = psnr(image_tensor, gt_image_tensor).mean().double()
+ 
+-            loss = optimization_params.lambda_main_loss * Ll1 + ssim_notdense  # paper: L_color
++            loss = adapter_context.native_term(stage, iteration, 'native_01', (optimization_params.lambda_main_loss * Ll1 + ssim_notdense))  # paper: L_color
+         elif stage == "coarse":
+             # Coarse stage: background + mixed component loss
+             psnr_ = psnr(image_tensor, gt_image_tensor).mean().double()
+@@ -695,9 +673,9 @@
+                 image_tensor_first * (0.5) + image_tensor_second.clone().detach() * (
+                     0.5)
+                 , gt_image_tensor[:, :3, :, :])
+-            loss = (optimization_params.lambda_main_loss * Ll1
++            loss = (adapter_context.native_term(stage, iteration, 'native_11', (optimization_params.lambda_main_loss * Ll1
+                     + optimization_params.lambda_main_loss * ll2
+-                    + ssim_color)  # paper: L_color
++                    + ssim_color)))  # paper: L_color
+ 
+ 
+         else:
+@@ -706,7 +684,7 @@
+             psnr_ = psnr(image_tensor, gt_image_tensor).mean().double()
+             ssim_color = _lam_ssim * (
+                     1.0 - ssim(image_tensor, gt_image_tensor[:, :3, :, :]))
+-            loss = optimization_params.lambda_main_loss * Ll1 + ssim_color  # paper: L_color
++            loss = adapter_context.native_term(stage, iteration, 'native_12', (optimization_params.lambda_main_loss * Ll1 + ssim_color))  # paper: L_color
+ 
+ 
+         # ---- Soft routing losses (continuous, gradient-driven; Direction 1) ----
+@@ -727,7 +705,7 @@
+                 # An implementation-level regularizer, not a paper-named term --
+                 # the paper's alpha term is L_reg_alpha, further down.
+                 L_soft_dxv = (static_score * _fg_opa).mean()
+-                loss += optimization_params.lambda_soft_dxv * L_soft_dxv
++                loss += adapter_context.native_term(stage, iteration, 'native_13', (optimization_params.lambda_soft_dxv * L_soft_dxv))
+ 
+         # Depth-order loss: penalize 4D-Gaussian depth > 3D-Gaussian depth (transient behind static).
+         # The shipped configs set lambda_depth_order=0.01 — an ACTIVE term (Phase-3 only in
+@@ -738,30 +716,30 @@
+             depth_3d_tensor = torch.cat(depth_3d_list, 0)
+             # paper L_reg (Sec 3.7) — depth-order regularizer
+             L_reg_depth_order = torch.relu(depth_4d_tensor - depth_3d_tensor.clone().detach()).mean()
+-            loss += _l_depth_order * L_reg_depth_order
++            loss += adapter_context.native_term(stage, iteration, 'native_02', (_l_depth_order * L_reg_depth_order))
+ 
+         # Hybrid (TR-composite) photometric loss: L1 always (pre-Phase-3),
+         # SSIM joins once TR merging is active.
+         if pre_phase3:
+-            loss += l1_loss(image_tensor_hybrid_full, gt_image_tensor)
++            loss += adapter_context.native_term(stage, iteration, 'native_03', (l1_loss(image_tensor_hybrid_full, gt_image_tensor)))
+             if after_merge:
+                 ssim_notdense2 = _lam_ssim * (
+                         1.0 - ssim(image_tensor_hybrid_full, gt_image_tensor[:, :3, :, :]))
+-                loss += ssim_notdense2
++                loss += adapter_context.native_term(stage, iteration, 'native_14', (ssim_notdense2))
+ 
+         # ---- Stage-Specific SSIM Loss ----
+         if stage == 'coarse':
+             ssim_loss_temp = ssim(image_tensor_second, gt_image_tensor)
+             ssim_loss_temp1 = ssim(image_tensor_first, gt_image_tensor)
+-            loss += 0.2 * (1.0 - ssim_loss_temp)
+-            loss += 0.2 * (1.0 - ssim_loss_temp1)
++            loss += adapter_context.native_term(stage, iteration, 'native_04', (0.2 * (1.0 - ssim_loss_temp)))
++            loss += adapter_context.native_term(stage, iteration, 'native_05', (0.2 * (1.0 - ssim_loss_temp1)))
+ 
+         # ---- L_reg (paper Eq.8, Sec 3.7): temporal-smoothness / plane-TV on HexPlane ----
+         if stage == "fine" and hypernetwork_config.time_smoothness_weight != 0:
+             L_reg_tv = foreground_gaussians.compute_regulation(hypernetwork_config.time_smoothness_weight,
+                                                               hypernetwork_config.l1_time_planes,
+                                                               hypernetwork_config.plane_tv_weight)
+-            loss += L_reg_tv
++            loss += adapter_context.native_term(stage, iteration, 'native_06', (L_reg_tv))
+ 
+         # ---- L_sep (paper Eq.8, Sec 3.4): dynamic-static separation ----
+         # SSIM(C_d, C_s) inside the FG region, so G_d and G_s do not model the
+@@ -774,15 +752,15 @@
+                     fg_region_weight > 1 - vis_thresh)
+ 
+             L_sep_fgbg = d_ssim_str.mean()
+-            loss += 0.01 * L_sep_fgbg
++            loss += adapter_context.native_term(stage, iteration, 'native_07', (0.01 * L_sep_fgbg))
+ 
+         # ---- L_diversity (paper Eq.8, Sec 3.3): SSIM(C_t, C_p) ----
+         # Transient Contribution vs Persistent Render, accumulated per-view above.
+ 
+         if len(L_diversity_terms) > 0:
+-            loss += 0.1 * torch.stack(L_diversity_terms).mean()
+-
+-        loss += 0.1 * l1_loss(render_3d_tensor, gt_image_tensor)
++            loss += adapter_context.native_term(stage, iteration, 'native_08', (0.1 * torch.stack(L_diversity_terms).mean()))
++
++        loss += adapter_context.native_term(stage, iteration, 'native_00', (0.1 * l1_loss(render_3d_tensor, gt_image_tensor)))
+ 
+         _fga_start = int(optimization_params.fg_alpha_mask_start_iter)
+         if iteration > _fga_start and pre_phase3 and fg_alpha_render is not None:
+@@ -792,7 +770,7 @@
+             _lam_fg_alpha = float(getattr(optimization_params, 'lambda_fg_alpha_mask', 0.01))
+             if _lam_fg_alpha > 0:
+                 L_reg_alpha = l1_loss(fg_alpha_render, mask_render.clone().detach())
+-                loss += _lam_fg_alpha * L_reg_alpha
++                loss += adapter_context.native_term(stage, iteration, 'native_15', (_lam_fg_alpha * L_reg_alpha))
+ 
+         # ---- Foreground/Background Component Losses ----
+         if pre_phase3:
+@@ -804,8 +782,8 @@
+                                      (image_tensor_second, bg_region_weight)):
+                 _mask = _region > 1 - vis_thresh
+                 _l1 = l1_loss(_render * _mask, gt_image_tensor * _mask)
+-                loss += _lam_ssim * ((1.0 - ssim_raw(_render, gt_image_tensor)) * _mask).mean()
+-                loss += _l1
++                loss += adapter_context.native_term(stage, iteration, 'native_16', (_lam_ssim * ((1.0 - ssim_raw(_render, gt_image_tensor)) * _mask).mean()))
++                loss += adapter_context.native_term(stage, iteration, 'native_17', (_l1))
+ 
+         # ---- L_reg (paper Eq.8, Sec 3.7): Gaussian scale regularization ----
+         # exp(_scaling) is shared by the scale-cap and aspect-ratio terms below.
+@@ -814,8 +792,8 @@
+         scale_exps = (torch.exp(foreground_gaussians._scaling),
+                       torch.exp(background_gaussians._scaling))
+         for scale_exp in scale_exps:
+-            loss += 0.01 * (torch.maximum(scale_exp.amax(dim=-1),
+-                                          _max_scale_t) - max_scale).mean()
++            loss += adapter_context.native_term(stage, iteration, 'native_09', (0.01 * (torch.maximum(scale_exp.amax(dim=-1),
++                                          _max_scale_t) - max_scale).mean()))
+ 
+         # ---- L_reg (paper Eq.8, Sec 3.7): Gaussian aspect-ratio regularization ----
+         # NOTE: the %10 duty cycle is part of the calibration — in expectation it
+@@ -823,9 +801,9 @@
+         # without treating it as a loss-weight change (see LOSS MAP).
+         if iteration % 10 == 0:
+             for scale_exp in scale_exps:
+-                loss += 0.1 * (torch.maximum(
++                loss += adapter_context.native_term(stage, iteration, 'native_18', (0.1 * (torch.maximum(
+                     scale_exp.amax(dim=-1) / scale_exp.amin(dim=-1),
+-                    torch.tensor(5)) - 5).mean()
++                    torch.tensor(5)) - 5).mean()))
+ 
+         # Phase-3 depth TV smoothness on persistent (FG+BG) depth.
+         # Set lambda_phase3_depth_tv=0 to disable (skips the compute).
+@@ -833,16 +811,21 @@
+         if iteration > phase3_start_iter and _lam_depth_tv > 0:  # strict >: skips the phase3 boundary iter
+             depth_scaled = depth_images_dy_tensor / scene.cameras_extent
+             loss_smooth_sta = depth_reg(depth_scaled.permute(0, 2, 3, 1), gt_image_tensor.permute(0, 2, 3, 1))
+-            loss += _lam_depth_tv * loss_smooth_sta
++            loss += adapter_context.native_term(stage, iteration, 'native_10', (_lam_depth_tv * loss_smooth_sta))
+ 
+         # ---- Backpropagation ----
+ 
++        native_loss = loss
++        teacher_term = adapter_context.teacher(stage, viewpoint_cams,
++            image_tensor_first if in_phase3 else image_tensor_hybrid_full_batch)
++        loss = native_loss + teacher_term
++        adapter_context.before_backward(stage, iteration, locals())
++        if not bool(torch.isfinite(loss)):
++            raise FloatingPointError(f'Nonfinite loss: {stage} {iteration}')
+         loss.backward()
+-
+-        # Emergency restart on NaN loss
+-        if torch.isnan(loss).any():
+-            print("loss is nan,end training, reexecv program now.")
+-            os.execv(sys.executable, [sys.executable] + sys.argv)
++        adapter_context.after_backward(stage, iteration, foreground_gaussians,
++            background_gaussians, transient_gaussian, teacher_term)
++
+ 
+         # ---- Gradient Collection from Multi-Model Rendering ----
+         viewspace_point_tensor_grad = torch.zeros_like(viewspace_point_tensor_list[0])
+@@ -886,28 +869,6 @@
+                 progress_bar.update(10)
+             if iteration == optimization_params.iterations:
+                 progress_bar.close()
+-
+-            # ---- Logging and Saving ----
+-            if (iteration in saving_iterations):
+-                print("\n[ITER {}] Saving Gaussians".format(iteration))
+-                scene.save(iteration, stage)
+-
+-            # ---- Debug Visualization (every 100 iterations) ----
+-            if iteration % 100 == 0:
+-                # These copies feed ONLY the viz below — computed here to avoid a
+-                # per-iteration D2H transfer / GPU cat at 1% duty cycle.
+-                image_second_to_show = image_tensor_second.clone().detach().cpu()
+-                save_train_debug_viz(
+-                    iteration=iteration, stage=stage, expname=expname,
+-                    saving_folder=optimization_params.saving_folder,
+-                    phase3_start_iter=phase3_start_iter,
+-                    gt_image_tensor=gt_image_tensor, image_tensor=image_tensor,
+-                    image_tensor_first=image_tensor_first, image_dy=image_dy,
+-                    image_second_to_show=image_second_to_show, image_sta=image_sta,
+-                    motion_masks=motion_masks,
+-                    images_4d_debug=images_4d_debug,
+-                    image_tensor_hybrid_full=image_tensor_hybrid_full)
+-
+ 
+             # FG->TR organic transfer is gated identically at both donor extraction
+             # and add_points_from_dict, so compute once.
+@@ -976,25 +937,9 @@
+                 # Update learning rate for transient model
+                 transient_gaussian.update_learning_rate(iteration)
+ 
+-            # ---- Checkpoint Saving ----
+-            if (iteration in checkpoint_iterations):
+-                print("\n[ITER {}] Saving Checkpoint".format(iteration))
+-                torch.save((foreground_gaussians.capture(), iteration),
+-                           scene.model_path + "/chkpnt" + f"_{stage}_" + str(iteration) + ".pth")
+-                torch.save((background_gaussians.capture(), iteration),
+-                           scene.model_path + "/chkpnt" + f"_{stage}_gs2_" + str(iteration) + ".pth")
+-
+-            # ---- Periodic Evaluation (Every 500 iterations, fine stage only:
+-            # coarse evals could never save images and only appended JSON) ----
+-            if stage == "fine" and iteration % 500 == 0:
+-                best_psnr = run_evaluation(iteration, scene, foreground_gaussians, background_gaussians,
+-                                           transient_gaussian,
+-                                           pipeline_config, optimization_params, expname, stage, best_psnr)
+-
+-    # ---- Post-Training Evaluation (Fine Stage Only) ----
+-    if stage == "fine":
+-        final_test_dump(test_cams, foreground_gaussians, background_gaussians, transient_gaussian,
+-                        pipeline_config, background, optimization_params, expname, stage)
++            adapter_context.after_update(stage, iteration, loss, Ll1, teacher_term,
++                foreground_gaussians, background_gaussians, transient_gaussian,
++                optimization_params, in_phase3)
+ 
+ 
+ def training(dataset, hypernetwork_config, optimization_params, pipeline_config, saving_iterations,
