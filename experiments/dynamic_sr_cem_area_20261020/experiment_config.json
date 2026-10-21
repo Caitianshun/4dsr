@@ -1,0 +1,55 @@
+{
+  "schema": "CEM_area4_backbone_control_v1",
+  "upstream_commit": "7b5dfe3c05456f95c56b3318e406ed6d0f3c05bd",
+  "scenes": ["cook_spinach", "cut_roasted_beef"],
+  "frames": 300,
+  "heldout_camera": "cam00",
+  "training_formation": "area4",
+  "initialization": "native COLMAP sparse from training LR frame0 only; shared LR initializer for parent and independent HR reference",
+  "native_parent": {
+    "stage1_end": 40000,
+    "stage2_total_end": 50000,
+    "stage2_restore_full_native_RAdam_state": true,
+    "colour_affine": false,
+    "w4": false
+  },
+  "SR": {
+    "updates": 6000,
+    "absolute_start": 50001,
+    "absolute_end": 56000,
+    "optimizer": "native RAdam with all11 parameter groups and inherited state",
+    "author_scheduler_repair": false,
+    "topology_events": 0,
+    "CEC_events": 0,
+    "same_time_views": 3,
+    "LR_weights": [1.0, 0.0, 0.0],
+    "teacher_weights": [0.0, 0.2, 0.2],
+    "image_L1_weight": 0.8,
+    "image_DSSIM_weight": 0.2,
+    "common_affine_initialization": "zero, no affine inherited from native parent",
+    "common_affine_lr": 0.001,
+    "w4_grid": [2, 4, 4],
+    "w4_lr_init": 0.002,
+    "w4_lr_final": 0.0002,
+    "seed": 20261007,
+    "native_checkpoint_has_RNG": false,
+    "arms": ["areaL0", "naive", "areaT", "areaTm", "areaTm_w4", "areaOracle"]
+  },
+  "native_HR_reference": {
+    "independent_full_native_schedule": [40000, 50000],
+    "same_LR_only_initialization": true,
+    "train_HR_used": true,
+    "teacher_used": false,
+    "legal_LR_only_result": false
+  },
+  "evaluation": {
+    "camera": "cam00",
+    "frames": 300,
+    "size_wh": [1344, 1008],
+    "quantization": "np.rint(np.clip(CHW_to_HWC_float32,0,1)*255).astype(np.uint8); PIL RGB PNG",
+    "finite_assertion_before_clip": true,
+    "training_diagnostic_camera": "cam01",
+    "training_diagnostic_frames": [0, 150, 299]
+  },
+  "interpretation": "controlled full migration / fixed-capacity continuation, not pure-backbone causal ranking or author's published SR method"
+}

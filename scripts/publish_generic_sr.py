@@ -21,6 +21,7 @@ REMOTE_URLS = {
     "https://github.com/Caitianshun/4dsr.git",
 }
 EXPERIMENTS = (
+    "dynamic_sr_cem_area_20261020",
     "dynamic_sr_20260918",
     "dynamic_sr_20260919",
     "dynamic_sr_20260920",
@@ -56,6 +57,7 @@ EXPERIMENTS = (
     "sr4d_20260922",
 )
 DEPLOYMENTS = (
+    "dynamic_sr_cem_backbone_20261020",
     "dynamic_lr_baselines_20261020",
     "a100_20260920",
     "cts_20260921",
@@ -72,6 +74,8 @@ DEPLOYMENTS = (
     "return_terminal_inventory_20261011",
 )
 EXPERIMENT_INSTRUCTIONS = (
+    "deployment/dynamic_sr_cem_backbone_20261020/README.md",
+    "experiments/dynamic_sr_cem_area_20261020/README.md",
     "deployment/dynamic_lr_baselines_20261020/README.md",
     "deployment/readonly_hr_a100_20261011/README.md",
     "deployment/resume_verified_sync_20261011/README.md",
@@ -97,6 +101,8 @@ EXPERIMENT_INSTRUCTIONS = (
     "experiments/dynamic_sr_multiview_footprint_20261007/full_held_confirmation_local_RTX3090_README_v1.md",
 )
 HIGHRES_REQUIRED_TEXT = (
+    "experiments/dynamic_sr_cem_area_20261020/experiment_config.json",
+    "experiments/dynamic_sr_cem_area_20261020/area4_interface_v1.patch",
     "experiments/dynamic_sr_highres_20261011/datasets/deskgames_cube.json",
     "experiments/dynamic_sr_highres_20261011/datasets/long360.json",
     "experiments/dynamic_sr_modules_20261010/modsr.py",
