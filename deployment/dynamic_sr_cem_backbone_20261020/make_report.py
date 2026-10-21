@@ -100,6 +100,7 @@ def output_gate(stem):
     require(stem.suffix not in {".docx", ".md", ".json"}, "--out takes a stem without a document extension")
     for suffix in (".docx", ".md", ".source.json"):
         require(not Path(str(stem) + suffix).exists(), "Preserve previous report: " + str(stem) + suffix)
+    require(not Path(str(stem) + ".report_assets").exists(), "Preserve previous report display assets")
     return stem
 
 
@@ -168,6 +169,100 @@ def serial_io_amendment(args, rows):
         sources=dict(protocol_amendment=identity(amendment_path), actual_CTS_serial_IO_CPU_QA=identity(qa_path),
             serial_IO_wrapper=identity(wrapper), original_native_entry=identity(native_entry)),
         evidence_sources=list(evidence.values()), final_HR_IO_receipts=io_sources)
+
+
+
+def report_tile_pages(item):
+    """Read-only display contract, preserving scientific tile order and sources."""
+    panel, camera, role = item["panel"], item["camera"], item["role"]
+    require(item["region"] in {"whole", "face"} and camera in {"cam00", "cam01"}, "Wrong report image scope")
+    tiles = panel["tiles"]
+    keys = [tile["key"] for tile in tiles]
+    if role == "main_raw":
+        expected = ["GT", "LR_bicubic"] + (["teacher_original", "teacher_matched"] if camera == "cam01" else []) + list(CEM_ARMS)
+    else:
+        require(role == "Wu_CEM_paired_raw" and camera == "cam00" and item["region"] == "face", "Unknown report layout role")
+        expected = ["GT", *("Wu_" + arm for arm in ARMS), "GT", *ARMS]
+    require(keys == expected, "Report tile order/key differs from the fixed diagnostic protocol")
+    roi = panel["fixed_face_xyxy"]
+    require(len(roi) == 4 and all(type(x) is int for x in roi) and 0 <= roi[0] < roi[2] <= 1344 and 0 <= roi[1] < roi[3] <= 1008, "Invalid fixed report ROI")
+    for tile in tiles:
+        require(not tile.get("missing"), "Missing source cannot enter a report grid")
+        key = tile["key"]
+        if key == "GT":
+            expected_role = "clean_HR_reference"
+        elif key == "LR_bicubic":
+            expected_role = "input_visual_reference_not_a_reconstruction_method"
+        elif key in {"teacher_original", "teacher_matched"}:
+            require(camera == "cam01", "Teacher cannot appear in the held-out camera")
+            expected_role = "training_camera_teacher_reference_only"
+            check_identity(tile["teacher_index"])
+        elif key.startswith("Wu_"):
+            expected_role = "historically_selected_Wu_development_reference_no_posthoc_cull"
+        else:
+            expected_role = "heldout_raw_reconstruction" if camera == "cam00" else "training_camera_raw_reconstruction"
+        require(tile["role"] == expected_role, "Corrected/unknown source role cannot enter a raw report grid")
+        operation = "LR_bicubic_visual_reference" if key == "LR_bicubic" else "none"
+        require(tile["source_operation"] == operation, "Unknown report source image operation")
+        require(tile["display_crop_xyxy"] == (roi if item["region"] == "face" else None), "Report crop differs from the fixed diagnostic ROI")
+        check_identity(tile["source"])
+        require(png_size(tile["source"]["path"]) == ((336, 252) if key == "LR_bicubic" else (1344, 1008)), "Wrong report source PNG dimensions")
+    if role == "Wu_CEM_paired_raw":
+        require(tiles[0]["source"] == tiles[7]["source"], "Wu/CEM GT references differ")
+        # Same three method columns, top Wu and bottom CEM, in author arm order.
+        return [dict(number=number + 1, indices=list(range(1 + start, 4 + start)) + list(range(8 + start, 11 + start)),
+                     method_columns=list(ARMS[start:start + 3]), GT_reference=tiles[0]["source"])
+                for number, start in enumerate((0, 3))]
+    limit = 6 if item["region"] == "face" else 12
+    return [dict(number=number + 1, indices=list(range(start, min(start + limit, len(tiles)))))
+            for number, start in enumerate(range(0, len(tiles), limit))]
+
+
+def report_tile_label(item, tile):
+    key = tile["key"]
+    labels = {"GT": "GT HR", "LR_bicubic": "LR bicubic · 输入参照", "teacher_original": "Teacher original · 训练伪HR",
+              "teacher_matched": "Teacher matched · 训练伪HR", "native_parent": "CEM LR parent · raw",
+              "HRref": "CEM HRref · 训练HR诊断"}
+    if key in labels:
+        return labels[key]
+    if key.startswith("Wu_"):
+        return "Wu " + key[3:].replace("areaTm_w4", "areaTm + w4") + " · 开发端点 raw"
+    return "CEM " + key.replace("areaTm_w4", "areaTm + w4") + (" · 训练HR诊断 raw" if key == "areaOracle" else " · raw")
+
+
+def report_crop(item, index, directory):
+    """Pillow-only display pixels. Called after complete preflight by author()."""
+    from PIL import Image, ImageDraw
+    tile = item["panel"]["tiles"][index]
+    source = check_identity(tile["source"])
+    with Image.open(source["path"]) as original:
+        require(original.format == "PNG" and original.mode == "RGB", "Report source must be an RGB PNG")
+        expected = (336, 252) if tile["key"] == "LR_bicubic" else (1344, 1008)
+        require(original.size == expected, "Report source decoded dimensions differ")
+        image = original.copy()
+    check_identity(tile["source"])
+    operation = tile["source_operation"]
+    if operation == "LR_bicubic_visual_reference":
+        # Identical PIL operation to frozen diagnostics Assets.image().
+        image = image.resize((1344, 1008), Image.Resampling.BICUBIC)
+    roi = item["panel"]["fixed_face_xyxy"]
+    if item["region"] == "face":
+        image = image.crop(tuple(roi))
+        processing = "fixed ROI crop; no enhancement or display resampling; Word fits original crop aspect"
+    else:
+        ImageDraw.Draw(image).rectangle(tuple(roi), outline="#ffee00", width=3)
+        processing = "whole original image plus the frozen diagnostic yellow ROI outline; no enhancement"
+    name = f"{item['scene']}_{item['camera']}_0150_{item['region']}_{item['role']}_t{index:02d}_{tile['key']}.png"
+    path = directory / name
+    require(not path.exists(), "Preserve previous report crop")
+    with path.open("xb") as stream:
+        image.save(stream, format="PNG")
+    return dict(source=source, image=identity(path), key=tile["key"], role=tile["role"],
+                original_panel=dict(path=item["panel"]["path"], sha256=item["panel"]["sha256"]),
+                original_tile_index=index, source_operation=operation,
+                fixed_crop_xyxy=list(roi) if item["region"] == "face" else None,
+                processing=processing, width=image.width, height=image.height,
+                decoded_RGB_sha256=hashlib.sha256(image.tobytes()).hexdigest())
 
 
 def preflight(args):
@@ -274,6 +369,9 @@ def preflight(args):
             check_identity(source)
             if tile["key"] not in {"GT", "LR_bicubic", "teacher_original", "teacher_matched"}:
                 require(tile["role"] in {"heldout_raw_reconstruction", "training_camera_raw_reconstruction", "historically_selected_Wu_development_reference_no_posthoc_cull"}, "Corrected image cannot replace raw reconstruction")
+
+    for item in selected:
+        report_tile_pages(item)
 
     review_path = args.review.resolve()
     review = read(review_path)
@@ -446,23 +544,66 @@ def author(state):
             md.append("| " + " | ".join(str(v).replace("\n", "<br>") for v in values) + " |")
         md.append("")
 
-    def figure(item, max_height, max_width=6.95):
+    display_directory = Path(str(state["stem"]) + ".report_assets")
+    display_directory.mkdir(parents=True, exist_ok=False)
+    state["report_image_ledger"] = []
+
+    def report_grid(item, page):
         panel = item["panel"]
-        w, h = panel["width"], panel["height"]
-        shown_width = min(max_width, max_height * w / h)
-        para = document.add_paragraph()
-        para.alignment = WD_ALIGN_PARAGRAPH.CENTER
-        para.paragraph_format.line_spacing = 1
-        para.paragraph_format.space_after = Pt(3)
-        para.paragraph_format.keep_with_next = True
-        run = para.add_run()
-        run.add_picture(panel["path"], width=Inches(shown_width))
-        for node in run._r.xpath(".//wp:docPr"):
-            node.set("descr", panel["title"] + "; fixed ROI; source SHA " + panel["sha256"])
+        grid = document.add_table(rows=0, cols=3)
+        grid.autofit = False
+        borders = OxmlElement("w:tblBorders")
+        for edge in ("top", "left", "bottom", "right", "insideH", "insideV"):
+            rule = OxmlElement("w:" + edge)
+            for name, value in dict(val="single", sz="4", color="D9D9D9").items():
+                rule.set(qn("w:" + name), value)
+            borders.append(rule)
+        grid._tbl.tblPr.append(borders)
+        for column in grid.columns:
+            column.width = Inches(width / 3)
+        for offset in range(0, len(page["indices"]), 3):
+            row = grid.add_row()
+            row._tr.get_or_add_trPr().append(OxmlElement("w:cantSplit"))
+            for slot, index in enumerate(page["indices"][offset:offset + 3]):
+                cell = row.cells[slot]
+                cell.width = Inches(width / 3)
+                cell.vertical_alignment = WD_CELL_VERTICAL_ALIGNMENT.TOP
+                margins = OxmlElement("w:tcMar")
+                for edge, twips in dict(top=0, bottom=45, left=35, right=35).items():
+                    node = OxmlElement("w:" + edge)
+                    node.set(qn("w:w"), str(twips));node.set(qn("w:type"), "dxa");margins.append(node)
+                cell._tc.get_or_add_tcPr().append(margins)
+                tile = panel["tiles"][index]
+                derived = report_crop(item, index, display_directory)
+                max_width, max_height = 2.18, (2.18 if item["region"] == "face" else 1.635)
+                scale = min(max_width / derived["width"], max_height / derived["height"])
+                shown_width, shown_height = derived["width"] * scale, derived["height"] * scale
+                para = cell.paragraphs[0]
+                para.alignment = WD_ALIGN_PARAGRAPH.CENTER
+                para.paragraph_format.line_spacing = 1
+                para.paragraph_format.space_before = para.paragraph_format.space_after = Pt(0)
+                run = para.add_run()
+                run.add_picture(derived["image"]["path"], width=Inches(shown_width), height=Inches(shown_height))
+                for node in run._r.xpath(".//wp:docPr"):
+                    node.set("descr", report_tile_label(item, tile) + "; fixed ROI; original PNG SHA " + derived["source"]["sha256"])
+                label = cell.add_paragraph()
+                label.alignment = WD_ALIGN_PARAGRAPH.CENTER
+                label.paragraph_format.space_before = Pt(2)
+                label.paragraph_format.space_after = Pt(0)
+                label.paragraph_format.line_spacing = Pt(12)
+                label.add_run(report_tile_label(item, tile)).font.size = Pt(10)
+                derived.update(scene=item["scene"], camera=item["camera"], frame=150, region=item["region"],
+                               page_group=page["number"], column=slot + 1,
+                               label=report_tile_label(item, tile), label_points=10,
+                               displayed_width_inches=shown_width, displayed_height_inches=shown_height)
+                state["report_image_ledger"].append(derived)
         scope = "留出新视角 raw" if item["camera"] == "cam00" else "训练视角 raw 拟合诊断"
-        region = "人脸固定区域" if item["region"] == "face" else "完整场景"
-        paragraph(f"{LABELS[item['scene']]}  {item['camera']}  帧索引150  {scope}  {region}。面板只按比例缩放；原始固定面板与逐图SHA保留在诊断目录。", "Caption")
-        md.extend([f"![{panel['title']}]({panel['path']})", ""])
+        paragraph(f"{LABELS[item['scene']]} {item['camera']} 帧150 {scope}。图下为Word原生10pt标签；固定来源原图只进行显示裁剪和等比例排版。完整科学原板与逐图来源SHA仍保留。", "Caption")
+        md.extend([f"科学原板 [{Path(panel['path']).name}]({panel['path']})", ""])
+        md.extend(["| 方法 | 报告显示图 |", "| --- | --- |"])
+        for derived in state["report_image_ledger"][-len(page["indices"]):]:
+            md.append("| " + derived["label"] + " | [固定来源图](" + derived["image"]["path"] + ") |")
+        md.append("")
 
     title = "CEM骨干动态超分固定端点对比"
     document.add_paragraph(title, "Title");md.extend(["# " + title, ""])
@@ -495,22 +636,22 @@ def author(state):
     for scene in SCENES:
         for camera in ("cam00", "cam01"):
             scope = "留出视角" if camera == "cam00" else "训练视角拟合诊断"
-            heading(LABELS[scene] + scope + "固定图像检查", page=True)
-            paragraph("以下整图用于定位场景结构，人脸板采用预先固定的同一ROI。主板使用raw渲染；cam01的teacher仅作训练拟合诊断，cam00没有teacher。LR bicubic图是输入视觉参照，不能当作合法新视角重建方法。")
-            whole = next(x for x in state["selected"] if x["scene"] == scene and x["camera"] == camera and x["region"] == "whole" and x["role"] == "main_raw")
-            face = next(x for x in state["selected"] if x["scene"] == scene and x["camera"] == camera and x["region"] == "face" and x["role"] == "main_raw")
-            figure(whole, 2.6)
-            figure(face, 4.5)
+            for region in ("whole", "face"):
+                item = next(x for x in state["selected"] if x["scene"] == scene and x["camera"] == camera and x["region"] == region and x["role"] == "main_raw")
+                for page in report_tile_pages(item):
+                    heading(LABELS[scene] + scope + ("完整场景" if region == "whole" else "固定人脸区域") + "第" + str(page["number"]) + "组", page=True)
+                    paragraph("所有图保持科学原板顺序。整图用于定位场景结构，人脸采用预先固定ROI。cam01的teacher仅为训练伪HR参照；cam00没有teacher。LR bicubic仅为输入视觉参照。HRref和Oracle使用训练HR，属于额外信息诊断。")
+                    report_grid(item, page)
             for text in state["review"]["scene_notes"][scene][camera]:
                 paragraph(text)
     paired = [x for x in state["selected"] if x["role"] == "Wu_CEM_paired_raw"]
-    if paired:
-        heading("Wu与CEM相同区域配对观察", page=True)
-        paragraph("每行采用相同的六个对照臂，固定帧150和相同人脸ROI；上行为Wu历史端点，下行为CEM端点。图像可用于描述可见差异，不能据锐度推断几何真实性，也不能消除两套训练流程的差异。")
-        for item in paired:
-            figure(item, 3.5)
-            for text in state["inspected"][item["panel"]["path"]]["observations"]:
-                paragraph(text)
+    for item in paired:
+        for page in report_tile_pages(item):
+            heading(LABELS[item["scene"]] + "Wu与CEM相同区域第" + str(page["number"]) + "组", page=True)
+            paragraph("三列分别为" + "、".join(page["method_columns"]) + "；上行为Wu历史开发端点，下行为CEM固定端点，均为raw渲染。GT使用同一ROI，见本景cam00人脸首组第一幅。完整六臂配对原板保留，未根据结果挑选方法。训练流程和预算差异仍存在，不能据锐度推断几何真实性。")
+            report_grid(item, page)
+        for text in state["inspected"][item["panel"]["path"]]["observations"]:
+            paragraph(text)
 
     for system in ("CEM", "Wu"):
         heading(system + "训练资源与预算", page=True)
@@ -533,7 +674,7 @@ def author(state):
             paragraph(f"额外失败成本单独保留：Cook旧HRref第一阶段耗时{failed_seconds:.2f}秒（{failed_seconds / 60:.2f}分钟），被CTS内核确认为主机内存不足而终止；这不是GPU显存不足。失败发生于首个30k检查点之前，旧目录和证据保留，未产生可续训的30k或40k检查点。两景HRref按登记的单worker IO适配在新目录从相同LR初始化开始，重启未依据留出指标选择。以上失败耗时单列为额外工程成本，不计入成功端点训练秒数。")
     heading("来源与尚未完成的验收")
     paragraph("全部28项主值来自已核验result_index或固定Wu清单对应的渲染收据与统一评价summary和300行CSV。检查点SHA、逐帧PNG身份、训练收据、代码和配置身份保存在机器结果中。生成器不读取模型或训练日志，不根据PSNR自动宣布人脸清晰或骨干达到上限。")
-    paragraph("本次图像检查为代理对非盲化固定3帧的实际检查，human_acceptance=false，实际人类盲评尚未完成。主板采用cam00和cam01的帧150；其他固定帧0和299、训练相机校正后的独立板及全部原始图像保留为补充诊断。Word排版验收单独保存为逐页PNG检查记录；文件生成本身不代表视觉验收。")
+    paragraph("本次图像检查为代理对非盲化固定3帧的实际检查，human_acceptance=false，实际人类盲评尚未完成。正文按cam00和cam01的帧150原始tile顺序重排为三列；每页人脸网格最多六幅。科学原板、其他固定帧0和299、训练相机校正后的独立板及全部原始图像保留为补充诊断。Word排版验收单独保存为逐页PNG检查记录；文件生成本身不代表视觉验收。")
     for label, item in state["sources"].items():
         paragraph(label + "\n" + item["path"] + "\nSHA256 " + item["sha256"], "Caption")
     for element in (document.element, document.styles.element):
@@ -567,7 +708,7 @@ def main():
     args = parser().parse_args()
     state = preflight(args)
     if args.check_only:
-        print(json.dumps(dict(status="complete_inputs_and_actual_review_verified_no_output", endpoints=28, inserted_panels=len(state["selected"]), docx_imported="docx" in sys.modules, output_created=False)))
+        print(json.dumps(dict(status="complete_inputs_and_actual_review_verified_no_output", endpoints=28, reviewed_original_panels=len(state["selected"]), report_layout="three_columns_native_10pt_labels", docx_imported="docx" in sys.modules, output_created=False)))
         return
     document, markdown = author(state)
     stem = state["stem"]
@@ -577,14 +718,18 @@ def main():
         document.save(stream)
     with md_path.open("x") as stream:
         stream.write(markdown)
-    receipt = dict(schema="CEM_area4_Word_source_receipt_v1", status="created_pending_root_document_render_QA", created_utc=datetime.now(timezone.utc).isoformat(),
+    receipt = dict(schema="CEM_area4_Word_source_receipt_v2", status="created_pending_root_document_render_QA", created_utc=datetime.now(timezone.utc).isoformat(),
         sources=state["sources"], DOCX=identity(docx_path), Markdown=identity(md_path), endpoints=28,
         metric_sources=[dict(system=e["system"], scene=e["scene"], arm=e["arm"], original_values=e["metrics"]["values"],
             summary=e["metrics"]["summary"], per_frame=e["metrics"]["per_frame"], checkpoint=e["checkpoint"],
             budget=e["budget"], resources=e["resources"]) for e in state["comparison"]["endpoints"]],
         HR_serial_IO_amendment=state["io_amendment"],
         formatted_metric_tables={system: metric_rows(state, system) for system in ("CEM", "Wu")},
-        inserted_panels=[dict(path=x["panel"]["path"], sha256=x["panel"]["sha256"], role=x["role"], reviewer=state["inspected"][x["panel"]["path"]]["reviewer"]) for x in state["selected"]],
+        reviewed_original_panels=[dict(path=x["panel"]["path"], sha256=x["panel"]["sha256"], role=x["role"], reviewer=state["inspected"][x["panel"]["path"]]["reviewer"], original_panel_embedded=False) for x in state["selected"]],
+        inserted_report_tiles=state["report_image_ledger"],
+        report_layout=dict(columns=3, labels="native Word 10pt", face_tiles_per_page_max=6, whole_tiles_per_page_max=12,
+                           original_scientific_diagnostics_modified=False, source_pixels_enhanced=False,
+                           derived_display_assets=str(Path(str(stem) + ".report_assets"))),
         human_acceptance=False, rendered_page_images_inspected=False, scientific_interpretation_source=state["sources"]["actual_review"],
         marker_and_render_operations="external caller responsibility; never executed by this generator", bundled_python=str(Path(sys.executable).resolve()))
     with receipt_path.open("x") as stream:
