@@ -48,6 +48,11 @@ failure, and freezes a fresh HR run without that artificial early-save
 fixture. It preserves the original 40k/50k schedule and native source.
 Startup memory cannot establish mature-model memory or convergence.
 
+`build_hr_job.py` applies that recorded startup policy to the second scene,
+using a fresh HR output directory. It does not change the native schedule or
+native model code. HR references run serially on CTS and retain their failed
+startup attempt as separate evidence.
+
 `stage_job.py` copies only absent frozen source files and verifies remote
 hashes; it never overwrites conflicting sources. `submit_remote.py` uses the
 existing GPU broker, records exact-once submission intent, waits on the remote
@@ -55,6 +60,19 @@ process exit event, and returns the declared output directories. `--reattach`
 only collects the same job; it never submits it again. `run_job.py` executes
 the declared commands serially and stops on failure. No GPU eviction or
 automatic training replay is implemented.
+
+`run_sequence.py --plan <root-relative-plan.json>` runs a finite sequence of
+explicit commands and JSON completion dependencies. It uses file events,
+stops at the first failed dependency, and never chooses an experiment, GPU,
+or retry on its own. The plan, source hash, step logs and terminal state are
+saved in a new sequence directory.
+
+`collect_parent_essential.py` returns the final native checkpoint and its
+identity metadata after successful remote completion. This allows the
+three-step SR wiring checks to start while the independent full collector
+returns all images and intermediate checkpoints. Essential collection is
+not completion of full artifact return. The six scientific continuations
+require review of real mature-parent wiring and memory evidence first.
 
 ## Evaluation and interpretation
 
@@ -69,6 +87,14 @@ both raw and observation-corrected training images. Whole images and fixed
 face regions accompany the metrics. An oracle continuation that remains
 blurred is insufficient to prove a backbone ceiling: examine the independent
 native HRref, training fit, and native topology/optimization differences.
+
+`diagnostics_images.py` consumes completed endpoints on CPU. It checks the
+predeclared frames and face regions, preserves raw versus corrected training
+renders, and can add the six complete Wu references. Its default gate rejects
+missing endpoints. `--allow-incomplete` produces an explicitly partial preview
+without a scientific completion gate. The optional temporal diagnostic is
+ground-truth-relative consecutive-image difference error; it is not optical
+flow compensation or a stand-alone perceptual stability verdict.
 
 Generated inventories, job requests, runtime snapshots, data, checkpoints,
 metrics and reports remain private research assets. Only the source and this
