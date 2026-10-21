@@ -53,6 +53,18 @@ using a fresh HR output directory. It does not change the native schedule or
 native model code. HR references run serially on CTS and retain their failed
 startup attempt as separate evidence.
 
+The subsequent Cook HR run was killed by the CTS host's global RAM OOM before
+its first 30k checkpoint. Kernel evidence and the failed output are retained.
+The native parallel image generator can accumulate decoded HR results ahead
+of training. `build_hr_serial_job.py` requires the actual CTS CPU equivalence
+receipt, preserves the original native source and stage entry, and selects a
+fresh `native_HRref_v3` output. Its owned `native_stage_serial_io.py` entry
+passes the author's existing `n_job=1` option to the original image loader.
+This makes decoding demand-driven. Real HR pixels, seeded camera order and
+CPU RNG states must match the original reader. Losses, RAdam, topology and
+the original 40k/50k clocks are unchanged. Independent per-stage IO receipts
+record the source identities and calls; no failed checkpoint is resumed.
+
 `stage_job.py` copies only absent frozen source files and verifies remote
 hashes; it never overwrites conflicting sources. `submit_remote.py` uses the
 existing GPU broker, records exact-once submission intent, waits on the remote
@@ -82,12 +94,15 @@ AlexNet LPIPS. No additional project culling, test-camera affine, or warp is
 used. Wu checkpoints are independently re-rendered without posthoc culling.
 CTS HRref rendering must be transferred for the same A100 evaluator.
 
-After the complete CTS run has returned, `returned_image_assets.py --scene
-<scene> --stage` validates the 300 images and their native provenance, copies
+After the complete CTS run has returned, `returned_image_assets_v2.py --scene
+<scene> --run <native_HRref_v3-directory> --stage` validates the 300 images,
+original native provenance and serial-IO receipts. It copies
 only missing image/evaluation assets to A100, and returns a full-SHA receipt.
-Use the explicit `native_HRref_v2` run when building its evaluation job. The
+Use the explicit `native_HRref_v3` run when building its evaluation job. The
 image transfer does not require or load the checkpoint. Full checkpoint return
 is still required from the original native job collector.
+The original `returned_image_assets.py` remains frozen for its earlier v2
+request and does not accept the new run.
 
 Cam01 frames 0,150,299 provide training-fit diagnostics. SR rendering saves
 both raw and observation-corrected training images. Whole images and fixed
@@ -110,6 +125,10 @@ the source values, paired differences, resources and interpretation limits.
 Only a complete matrix receives a completeness marker. The optional partial
 mode is an explicitly incomplete research record. This marker does not
 constitute human visual acceptance or proof of a backbone capacity limit.
+For the RAM-recovery runs, pass explicit `--hrref-run scene=path` overrides
+to the diagnostic and summarizer tools; their original defaults are retained
+as provenance. `make_report.py` requires the complete matrix and an actual
+recorded review of the fixed visual panels before authoring the Word report.
 
 Generated inventories, job requests, runtime snapshots, data, checkpoints,
 metrics and reports remain private research assets. Only the source and this
