@@ -169,6 +169,15 @@ HIGHRES_REQUIRED_TEXT = (
     "experiments/dynamic_sr_modules_20261010/geoprobe_20261017/tofflr2.py",
     "experiments/dynamic_sr_cull_retrain_20261009/selfens_20261016/group_eval.py",
     "experiments/dynamic_sr_cull_retrain_20261009/variance_20261014/ens_eval_view.py",
+    # SR-prior motion distillation (session 4dsr-25, 2026-10-21): teacher-video RAFT flow cache, Gaussian-flow supervision kit
+    # on the w4 recipe (modkit13 wraps modkit6), arm runner, two-lane GPU runner, smoke check and the Cut07 lane lists
+    "experiments/dynamic_sr_modules_20261010/motion_20261021/flowcache.py",
+    "experiments/dynamic_sr_modules_20261010/motion_20261021/modkit13.py",
+    "experiments/dynamic_sr_modules_20261010/motion_20261021/run_motion.py",
+    "experiments/dynamic_sr_modules_20261010/motion_20261021/lanes.py",
+    "experiments/dynamic_sr_modules_20261010/motion_20261021/smoke_check.py",
+    "experiments/dynamic_sr_modules_20261010/motion_20261021/jobs/cut3090a_laneA.txt",
+    "experiments/dynamic_sr_modules_20261010/motion_20261021/jobs/cut3090a_laneB.txt",
     # third-party notice for experiments/dynamic_sr_physlr_20261016/hat_arch_local.py (derived from XPixelGroup/HAT,
     # Apache-2.0; notice plus the verbatim license text, 2026-10-18)
     "experiments/dynamic_sr_physlr_20261016/THIRD_PARTY_HAT_LICENSE.txt",

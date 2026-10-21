@@ -537,6 +537,13 @@
     "experiments/dynamic_sr_modules_20261010/geoprobe_20261017/tofflr2.py": "45a74fff6b612d5ab175cc1ebec455a32492128da12c9f854c4162d251da96a5",
     "experiments/dynamic_sr_modules_20261010/geoprobe_20261017/vsel_eval.py": "edfde8678a5398dcb441a2dbb497c048b4b4397256804a52ba86c11320bdeaa5",
     "experiments/dynamic_sr_modules_20261010/modsr.py": "8cf673e1ccf39874752bf8a1ad716a355c7f78c07606fffacf6141ff951e1339",
+    "experiments/dynamic_sr_modules_20261010/motion_20261021/flowcache.py": "55ca1507715334acdb1e13a23e404db3a65dd9e337587d1471f0b90bdd8f4218",
+    "experiments/dynamic_sr_modules_20261010/motion_20261021/jobs/cut3090a_laneA.txt": "da486a19fbb7a261e8b1f0e7ae70c02e48d68a58a78d3ba05b88662bac73f5f1",
+    "experiments/dynamic_sr_modules_20261010/motion_20261021/jobs/cut3090a_laneB.txt": "e2e5600e63a1b4a79b79ce5bd27bc170304bdd34d9bd46fb45d44f9790081267",
+    "experiments/dynamic_sr_modules_20261010/motion_20261021/lanes.py": "4b60a0f47c765bb916e6af39ba1eeaa75659d539c3398db48b4a07695d6e2ce2",
+    "experiments/dynamic_sr_modules_20261010/motion_20261021/modkit13.py": "75843da3a07a5f3fa0c5f776d7adba730bc21987c9d0aaeca6bddcd1910a0022",
+    "experiments/dynamic_sr_modules_20261010/motion_20261021/run_motion.py": "d78a109c6d8eb5b8327ad3bc64af34cca0866b82381c7f9058386169bfaff207",
+    "experiments/dynamic_sr_modules_20261010/motion_20261021/smoke_check.py": "4db8b4cf08ff5f82397dd0b8cf1e50d4da64aa9255b0ea3de1967f32b46f9d7b",
     "experiments/dynamic_sr_modules_20261010/refs.py": "c589ca0eb9ec49772f5b77089027e00966f2c69e50f0444a9a3ac4094459c107",
     "experiments/dynamic_sr_modules_20261010/srfix.py": "ae0a509605b9088575664ade8b88f3a5ba3ecba0a0086271a987222c1a07f8ee",
     "experiments/dynamic_sr_motion_bound_20260923/acquire_vrheadset.py": "df349af6ee8ce12cef4106e387939f5a3c1eb6e7f15b3816e3ae33f6453ab558",
@@ -893,7 +900,7 @@
     "experiments/sr4d_20260922/summarize_minimal.py": "8e2e3e7c1c331e6651b72a1dc84db585d88bc85e0007a7aca44e700d0145d057",
     "experiments/sr4d_20260922/train_sr4d.py": "0f12fb92c513b135a31d3578dc11b36fcb15ae9101a848361ccc9f184f22ae8f",
     "experiments/sr4d_20260922/wu_entry.py": "57e74af4ea68ef3c485735179d0d15f7b2eec5245d670e9aa88e4fd7eabd05a9",
-    "scripts/publish_generic_sr.py": "c214bffa5f14e932e30bf11cbfbfd8362a9303c0b31e649553f408dd377dc109",
+    "scripts/publish_generic_sr.py": "c35921707be32205aea6b1a8c2fb37127f609437eb09f84c23f2308a04324fbf",
     "scripts/summarize_quality_headroom_20260923.py": "bbc8e37ad918ec6055f4b79df37ec8d9b50db4828ab2f8587155d6d0a1d468b2"
   }
 }
