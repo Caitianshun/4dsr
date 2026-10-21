@@ -82,6 +82,13 @@ AlexNet LPIPS. No additional project culling, test-camera affine, or warp is
 used. Wu checkpoints are independently re-rendered without posthoc culling.
 CTS HRref rendering must be transferred for the same A100 evaluator.
 
+After the complete CTS run has returned, `returned_image_assets.py --scene
+<scene> --stage` validates the 300 images and their native provenance, copies
+only missing image/evaluation assets to A100, and returns a full-SHA receipt.
+Use the explicit `native_HRref_v2` run when building its evaluation job. The
+image transfer does not require or load the checkpoint. Full checkpoint return
+is still required from the original native job collector.
+
 Cam01 frames 0,150,299 provide training-fit diagnostics. SR rendering saves
 both raw and observation-corrected training images. Whole images and fixed
 face regions accompany the metrics. An oracle continuation that remains
@@ -95,6 +102,14 @@ missing endpoints. `--allow-incomplete` produces an explicitly partial preview
 without a scientific completion gate. The optional temporal diagnostic is
 ground-truth-relative consecutive-image difference error; it is not optical
 flow compensation or a stand-alone perceptual stability verdict.
+
+`summarize_results.py --output <new-directory>` requires all 28 endpoints:
+eight CEM endpoints and six frozen Wu references for each scene. It rechecks
+the common metric identities, all 300 PNGs and per-frame CSVs, then writes
+the source values, paired differences, resources and interpretation limits.
+Only a complete matrix receives a completeness marker. The optional partial
+mode is an explicitly incomplete research record. This marker does not
+constitute human visual acceptance or proof of a backbone capacity limit.
 
 Generated inventories, job requests, runtime snapshots, data, checkpoints,
 metrics and reports remain private research assets. Only the source and this
