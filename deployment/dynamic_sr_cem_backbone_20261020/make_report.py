@@ -614,6 +614,8 @@ def author(state):
     headers = ["端点", "Cook\nPSNR ↑", "Cook\nSSIM ↑", "Cook\nLPIPS ↓", "Cut\nPSNR ↑", "Cut\nSSIM ↑", "Cut\nLPIPS ↓"]
     table(headers, metric_rows(state, "CEM"), [1.4, .95, .95, .95, .95, .95, .95])
     paragraph("areaOracle与原生HRref使用训练视角真实HR，属于额外信息诊断。cam00全程留出，未参与训练或选择本轮CEM端点。表格小数仅用于展示，JSON保留全部原始精度。")
+    paragraph("Wu流程为coarse3000+fine14000后再执行SR编号1–6000，继承父模型训练相机颜色affine，并在SR期间再次增密和剪枝。CEM父模型使用作者40k→总50k日程，父阶段没有新增affine，SR固定拓扑。训练预算、容量成长、颜色初始化、优化器和历史选择均不同，跨骨干绝对分数只能比较完整系统，不能单独识别骨干结构的因果影响。")
+    paragraph("PSNR为逐帧全图PSNR的算术平均；SSIM使用RGB 11×11高斯窗口、sigma1.5和总体协方差，去除外侧5像素；LPIPS使用AlexNet v0.1。统一评价没有消除训练硬件差异。固定3帧ROI指标和GT相对邻帧差分是独立诊断，不与300帧主均分混合，也不构成几何或时间一致性证明。")
 
     heading("Wu统一重评与配对增量", page=True)
     table(headers, metric_rows(state, "Wu"), [1.4, .95, .95, .95, .95, .95, .95])
@@ -630,8 +632,6 @@ def author(state):
     paragraph("原生HRref和6k Oracle回答不同问题。原生HRref从与LR父模型相同的LR初始化点云独立开始，以训练HR直接监督作者40k→总50k日程，保留原生拓扑成长过程。Oracle从已完成LR父检查点继续6000步、固定拓扑且无w4，仍用混合目标：第一个采样训练相机的LR项系数为1，另外两台同时间训练相机的HR项各为0.2，并保留原生正则；所有SR臂共有的颜色仿射先作用于渲染。这些系数不等于实测梯度贡献，不能据此断言LR梯度占主导。因此，两者同时改变监督目标、优化历史、拓扑成长和预算，Oracle不是纯HR原生训练，也不是严格重建上界。")
     paragraph("原生HRref通过独立IO包装器调用作者已有的n_job=1接口，按需解码训练HR，避免后台解码结果积压。冻结训练源码、输入像素、相机采样顺序、RAdam和40k→总50k日程保持不变。CTS实际环境的CPU验收确认同种子相机顺序、真实图像逐像素结果和主进程随机状态一致。此工程适配仅用于独立HRref，不改变六个SR臂。")
     paragraph("CEM六个SR臂继续父检查点的原生11组RAdam状态，绝对时钟为50001–56000，共执行6000次参数更新。固定拓扑只限制增密、剪枝和层级结构变化，并未冻结几何、外观、运动或寿命参数。每组实际RAdam步数按有梯度参与记录，完整计数见comparison.json。SR新增训练相机颜色affine从零开始；w4仅在相应臂使用，cam00颜色和位移始终为identity。")
-    paragraph("Wu流程为coarse3000+fine14000后再执行SR编号1–6000，继承父模型训练相机颜色affine，并在SR期间再次增密和剪枝。CEM父模型使用作者40k→总50k日程，父阶段没有新增affine，SR固定拓扑。训练预算、容量成长、颜色初始化、优化器和历史选择均不同，跨骨干绝对分数只能比较完整系统，不能单独识别骨干结构的因果影响。")
-    paragraph("PSNR为逐帧全图PSNR的算术平均；SSIM使用RGB 11×11高斯窗口、sigma1.5和总体协方差，去除外侧5像素；LPIPS使用AlexNet v0.1。统一评价没有消除训练硬件差异。固定3帧ROI指标和GT相对邻帧差分是独立诊断，不与300帧主均分混合，也不构成几何或时间一致性证明。")
 
     for scene in SCENES:
         for camera in ("cam00", "cam01"):
@@ -672,11 +672,12 @@ def author(state):
         if system == "CEM":
             failed_seconds = state["io_amendment"]["failed_stage_seconds"]
             paragraph(f"额外失败成本单独保留：Cook旧HRref第一阶段耗时{failed_seconds:.2f}秒（{failed_seconds / 60:.2f}分钟），被CTS内核确认为主机内存不足而终止；这不是GPU显存不足。失败发生于首个30k检查点之前，旧目录和证据保留，未产生可续训的30k或40k检查点。两景HRref按登记的单worker IO适配在新目录从相同LR初始化开始，重启未依据留出指标选择。以上失败耗时单列为额外工程成本，不计入成功端点训练秒数。")
-    heading("来源与尚未完成的验收")
+    heading("来源与尚未完成的验收", page=True)
     paragraph("全部28项主值来自已核验result_index或固定Wu清单对应的渲染收据与统一评价summary和300行CSV。检查点SHA、逐帧PNG身份、训练收据、代码和配置身份保存在机器结果中。生成器不读取模型或训练日志，不根据PSNR自动宣布人脸清晰或骨干达到上限。")
     paragraph("本次图像检查为代理对非盲化固定3帧的实际检查，human_acceptance=false，实际人类盲评尚未完成。正文按cam00和cam01的帧150原始tile顺序重排为三列；每页人脸网格最多六幅。科学原板、其他固定帧0和299、训练相机校正后的独立板及全部原始图像保留为补充诊断。Word排版验收单独保存为逐页PNG检查记录；文件生成本身不代表视觉验收。")
+    paragraph("下列文件名与SHA256用于定位来源。完整绝对路径和全部机器记录见本报告同名.source.json文件。")
     for label, item in state["sources"].items():
-        paragraph(label + "\n" + item["path"] + "\nSHA256 " + item["sha256"], "Caption")
+        paragraph(label + "  " + Path(item["path"]).name + "\nSHA256 " + item["sha256"], "Caption")
     for element in (document.element, document.styles.element):
         for border in list(element.xpath(".//w:pBdr")):
             border.getparent().remove(border)
