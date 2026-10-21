@@ -101,6 +101,9 @@ EXPERIMENT_INSTRUCTIONS = (
     "experiments/dynamic_sr_multiview_footprint_20261007/full_held_confirmation_local_RTX3090_README_v1.md",
 )
 HIGHRES_REQUIRED_TEXT = (
+    # Fixed-checkpoint S1 supplementary evaluation tools, 2026-10-21.
+    "experiments/dynamic_sr_mvfb_20261020/evaluate_train.py",
+    "experiments/dynamic_sr_mvfb_20261020/dump_eval_sequence.py",
     "experiments/dynamic_sr_cem_area_20261020/experiment_config.json",
     "experiments/dynamic_sr_cem_area_20261020/area4_interface_v1.patch",
     "experiments/dynamic_sr_highres_20261011/datasets/deskgames_cube.json",
