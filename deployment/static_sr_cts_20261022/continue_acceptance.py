@@ -74,7 +74,7 @@ def gpu_uuid(value):
     return value.lower().removeprefix('gpu-')
 def process_ticks(pid):
     try:text=Path(f'/proc/{pid}/stat').read_text()
-    except FileNotFoundError:return None
+    except (FileNotFoundError,ProcessLookupError):return None
     return int(text.rsplit(')',1)[1].split()[19])
 def pidfd_open(pid):
     if hasattr(os,'pidfd_open'):return os.pidfd_open(pid,0)

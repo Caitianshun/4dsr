@@ -97,6 +97,41 @@ class ContinuationTests(unittest.TestCase):
         with patch.object(c,'process_ticks',return_value=999):
             with self.assertRaisesRegex(ValueError,'reused'):c.wait_transfer(plan)
 
+    def test_proc_stat_esrch_is_gone_and_still_requires_verified_transfer(self):
+        plan=self.transfer_plan(pid=987654);original=Path.read_text
+        def read_text(path,*args,**kwargs):
+            if path==Path('/proc/987654/stat'):raise ProcessLookupError(3,'No such process')
+            return original(path,*args,**kwargs)
+        with patch.object(Path,'read_text',autospec=True,side_effect=read_text):
+            result=c.wait_transfer(plan)
+            self.assertEqual(result['process'],'already_exited')
+            self.assertEqual(result['verified'],c.identity('verified.json'))
+            (self.root/'verified.json').unlink()
+            with self.assertRaises(FileNotFoundError):c.wait_transfer(plan)
+
+    def test_proc_stat_esrch_after_pidfd_exit_verifies_transfer(self):
+        plan=self.transfer_plan(pid=987654);original=Path.read_text
+        stat='987654 (worker) '+' '.join(['S']+['0']*18+['2'])
+        values=iter([stat,stat,ProcessLookupError(3,'No such process')])
+        def read_text(path,*args,**kwargs):
+            if path==Path('/proc/987654/stat'):
+                value=next(values)
+                if isinstance(value,BaseException):raise value
+                return value
+            return original(path,*args,**kwargs)
+        fd=os.open(self.root/'verified.json',os.O_RDONLY)
+        with patch.object(Path,'read_text',autospec=True,side_effect=read_text),\
+             patch.object(c,'pidfd_open',return_value=fd),\
+             patch.object(c.select,'select',return_value=([fd],[],[])):
+            result=c.wait_transfer(plan)
+        self.assertEqual(result['process'],'pidfd_exit_observed')
+        self.assertEqual(result['verified'],c.identity('verified.json'))
+
+    def test_proc_stat_permission_and_other_io_errors_are_not_gone(self):
+        for error in (PermissionError(13,'Permission denied'),OSError(5,'Input/output error')):
+            with patch.object(Path,'read_text',side_effect=error):
+                with self.assertRaises(type(error)):c.process_ticks(987654)
+
     def test_reuse_during_pidfd_open_and_boot_change_refuse(self):
         plan=self.transfer_plan();fd=os.open(self.root/'verified.json',os.O_RDONLY)
         with patch.object(c,'process_ticks',side_effect=[2,999]),patch.object(c,'pidfd_open',return_value=fd):
