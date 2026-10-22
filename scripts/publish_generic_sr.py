@@ -211,6 +211,8 @@ STATIC_SR_WU_SOURCES = (
     'deployment/static_sr_cts_20261022/README.md',
     'deployment/static_sr_cts_20261022/asset_inventory.py',
     'deployment/static_sr_cts_20261022/bootstrap_remote.py',
+    'deployment/static_sr_cts_20261022/a100_teacher_bootstrap.py',
+    'deployment/static_sr_cts_20261022/test_a100_teacher_bootstrap.py',
     'deployment/static_sr_cts_20261022/build_extensions_cpu.py',
     'deployment/static_sr_cts_20261022/cleanup_scene.py',
     'deployment/static_sr_cts_20261022/continue_acceptance.py',

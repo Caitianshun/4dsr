@@ -214,6 +214,7 @@
     "deployment/sr4d_20260922/test_collect_symlink_transport.py": "d39fe79ec77ba7b789cdec485feec94c2b52346db1369b8441992ce4c71725ef",
     "deployment/sr4d_20260922/upstream_commit.txt": "ce70efc9181a9da40cf2b99df845fd1eefb06761c512a953e50d10b0da866911",
     "deployment/static_sr_cts_20261022/README.md": "5b3d396dd4dd9f9d1dfb6fd18b1d59e36896c661a5eec7731ea9c369d9661135",
+    "deployment/static_sr_cts_20261022/a100_teacher_bootstrap.py": "e7e8d5cbd562274babcc605107d681d6172887f324644b907a0711145186b85d",
     "deployment/static_sr_cts_20261022/asset_inventory.py": "f7a648b547be426b29cc2a676e6eacdb3aef26eefd6cbcea3ec4ace7c571d606",
     "deployment/static_sr_cts_20261022/bootstrap_remote.py": "e086f8547253f5e93773019a3225e81d1abe7071bebdd3b6d113bfb86735dadf",
     "deployment/static_sr_cts_20261022/build_extensions_cpu.py": "89bfcaf2ef308813b3d7b58cf922e38746591ea71e7cc8ed33f1b2b00f25c34f",
@@ -226,6 +227,7 @@
     "deployment/static_sr_cts_20261022/scene_prefix.py": "3bf3edce2567c4029280dbfae34b91c638266cc2efe294de85568502ec799221",
     "deployment/static_sr_cts_20261022/submit_remote.py": "2c7fa5b4bd82879408f82e2a8a4c6c504976088be4ef2519e9f0ce12d904bcc8",
     "deployment/static_sr_cts_20261022/sync_assets.py": "85e6584a730be783dc56384a96b86b865e49f1d2cb17627590d094eb38c0400e",
+    "deployment/static_sr_cts_20261022/test_a100_teacher_bootstrap.py": "fbc6c8a2c1710ebc7c5bf78c8d331aac667d39f43d53d43454094ec353b2fa5a",
     "deployment/static_sr_cts_20261022/test_bootstrap_remote.py": "07af3681a937d1c5ace8ab2d969d25b828755331f9127fea4ba61748cbd4249f",
     "deployment/static_sr_cts_20261022/test_cleanup_scene.py": "a5722f5eca324e37bc889f79f00e2ce6ca78ec467be98186e7cd7ac26474d4bc",
     "deployment/static_sr_cts_20261022/test_continue_acceptance.py": "8c7b9de6bdafe20109d535de338542d24de62237835129be9fc84ce53806d96b",
@@ -1013,7 +1015,7 @@
     "experiments/static_sr_wu_20261022/tests/test_teacher_acceptance.py": "f64825b606ddf39124706ad34ead8db2da9b6dd7fa41eccbcadbfa667f5598e4",
     "experiments/static_sr_wu_20261022/tests/test_teacher_tiling.py": "dd5dd5f45b244771b5b8f6f9734e72920c79fbae5c7aba4cdf535e360d9e959b",
     "experiments/static_sr_wu_20261022/train_stage.py": "98ac27574fb42ce7b99984d058c64ed9174e9e2bfd9a45c3088d8b80e08bab6a",
-    "scripts/publish_generic_sr.py": "5e68c4d3d39b6c07762f56c95963f31492c06f77f4b26d4b13bef8baee63fa2f",
+    "scripts/publish_generic_sr.py": "e2f8c8c628caa72455140b28c8c60101d229441edf1861db4f234a3b8065a02f",
     "scripts/summarize_quality_headroom_20260923.py": "bbc8e37ad918ec6055f4b79df37ec8d9b50db4828ab2f8587155d6d0a1d468b2"
   }
 }
