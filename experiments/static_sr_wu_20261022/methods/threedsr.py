@@ -156,10 +156,13 @@ class StableSRTurboBridge:
                 raise ValueError(f"Checkpoint leaves parameters uninitialized: {sorted(missing_parameters)[:12]}")
             for parameter in model.parameters():
                 parameter.requires_grad_(False)
-            return model.eval().to(device)
+            return model.eval().to(device), config
         self.weight_loads = []
-        self.model = load(self.upstream / "configs/stableSRNew/v2-finetune_text_T_512.yaml", stable_checkpoint)
-        self.vq_model = load(self.upstream / "configs/autoencoder/autoencoder_kl_64x64x4_resi.yaml", vqgan_checkpoint)
+        self.model, model_config = load(self.upstream / "configs/stableSRNew/v2-finetune_text_T_512.yaml", stable_checkpoint)
+        # Author train_3dsr.py:300 binds the full config before sampling.
+        # ddpm.py:_gaussian_weights reads configs.model.params.channels.
+        self.model.configs = model_config
+        self.vq_model, _ = load(self.upstream / "configs/autoencoder/autoencoder_kl_64x64x4_resi.yaml", vqgan_checkpoint)
         self.vq_model.decoder.fusion_w = 0.5
         self.model.register_schedule(given_betas=None, beta_schedule="linear", timesteps=1000,
                                      linear_start=0.00085, linear_end=0.0120, cosine_s=8e-3)

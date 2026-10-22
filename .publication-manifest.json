@@ -989,7 +989,7 @@
     "experiments/static_sr_wu_20261022/methods/splatsure_teacher.py": "f630f330fe4ef1e240cc53b2c41b18385586c41a9f08f0e9f8270d1dd26614cb",
     "experiments/static_sr_wu_20261022/methods/splatsure_teacher_test.py": "8234a6c5e707a069ccbc724030270a32323c8bcff56e75fcfe29df8d6577b500",
     "experiments/static_sr_wu_20261022/methods/splatsure_test.py": "c1c352df1679ab7f40ff007fc7c78c41525e2b0100e3a3f5f28d888e39eca2e3",
-    "experiments/static_sr_wu_20261022/methods/threedsr.py": "14ba079a889d1736c8ce76d2ce277995d78b328bb9fcaade1e603e35d5eb96a1",
+    "experiments/static_sr_wu_20261022/methods/threedsr.py": "95a662b243e9d4c683b8e5324c7309ecec12eb4f6406406f6e50c7ae41f04e28",
     "experiments/static_sr_wu_20261022/methods/threedsr_UPSTREAM_LICENSE.md": "8f63d92b707060d1fbe906c7dbdd5848f4b7631587700b267b7d09baa0d6bca6",
     "experiments/static_sr_wu_20261022/methods/threedsr_renderer.py": "848c38de435f353afe2099e2143206ca64c53eda5ebfe16950b719c197406326",
     "experiments/static_sr_wu_20261022/metric_acceptance.py": "8572cd53728220085a23453d3be27be3af0a42353f7b9b17d481e5bdcccccf17",
@@ -1013,7 +1013,7 @@
     "experiments/static_sr_wu_20261022/tests/test_splatsure_contract.py": "6fe7c72feb0d90342bcd81e89896b60f8c0cd4f35f5b46a38a3444bf4a8baa0b",
     "experiments/static_sr_wu_20261022/tests/test_suite.py": "5c0c64f3210cf237bc7001b471bc1f90a22589777b9dd821bc814ca94ef781f7",
     "experiments/static_sr_wu_20261022/tests/test_teacher_acceptance.py": "f64825b606ddf39124706ad34ead8db2da9b6dd7fa41eccbcadbfa667f5598e4",
-    "experiments/static_sr_wu_20261022/tests/test_teacher_tiling.py": "dd5dd5f45b244771b5b8f6f9734e72920c79fbae5c7aba4cdf535e360d9e959b",
+    "experiments/static_sr_wu_20261022/tests/test_teacher_tiling.py": "31c3403492d40f7e9d21e786ad3bab385a223c0e14ee1d7b6cca3f154c726bb1",
     "experiments/static_sr_wu_20261022/train_stage.py": "98ac27574fb42ce7b99984d058c64ed9174e9e2bfd9a45c3088d8b80e08bab6a",
     "scripts/publish_generic_sr.py": "e2f8c8c628caa72455140b28c8c60101d229441edf1861db4f234a3b8065a02f",
     "scripts/summarize_quality_headroom_20260923.py": "bbc8e37ad918ec6055f4b79df37ec8d9b50db4828ab2f8587155d6d0a1d468b2"
