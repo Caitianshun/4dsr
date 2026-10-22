@@ -25,6 +25,7 @@ import socket
 import sys
 import time
 import traceback
+import weakref
 
 from methods import sequence_matters as sequence
 
@@ -191,6 +192,49 @@ def run_sequence(args, fixture, derived_plan, output, torch, receipt):
     receipt["cost_scope"] = "One complete synchronous camera group; source FP32 and ALS lengths unchanged"
 
 
+@contextlib.contextmanager
+def observe_stablesr_checkpoint_loads(torch, audits):
+    """Audit loads without mistaking the author's LPIPS calibration for VGG.
+
+    taming/modules/losses/lpips.py first loads torchvision VGG16 (lines 17,
+    79), reuses its feature Parameter objects, then loads only lin0..4 (29).
+    Permit that exact sparse load only after observing those same backbone
+    parameters successfully loaded. All other missing parameters still fail,
+    including the subsequent top-level StableSR and CFW checkpoint loads.
+    """
+    original = torch.nn.Module.load_state_dict
+    loaded_vgg_parameters = {}
+
+    def observed(model, state, *args, **kwargs):
+        result = original(model, state, *args, **kwargs)
+        parameters = dict(model.named_parameters())
+        missing = sorted(set(parameters).intersection(result.missing_keys))
+        model_class = type(model).__module__ + "." + type(model).__name__
+        permitted = False
+        if model_class == "taming.modules.losses.lpips.LPIPS" and missing:
+            calibration = {f"lin{i}.model.1.weight" for i in range(5)}
+            backbone = {"net." + name for name, _ in model.net.named_parameters()}
+            permitted = (set(state) == calibration and set(missing) == backbone
+                and not result.unexpected_keys and all(
+                    loaded_vgg_parameters.get(id(parameters[name]), lambda: None)() is parameters[name]
+                    for name in missing))
+        audits.append({"model_class": model_class, "missing_parameters": missing,
+                       "missing_keys": list(result.missing_keys), "unexpected_keys": list(result.unexpected_keys),
+                       "permitted_sparse_lpips_calibration": permitted,
+                       "previously_loaded_vgg_parameters": missing if permitted else []})
+        if missing and not permitted:
+            raise ValueError("StableSR checkpoint left parameters uninitialized: " + repr(missing[:10]))
+        if model_class == "torchvision.models.vgg.VGG" and not result.missing_keys and not result.unexpected_keys:
+            loaded_vgg_parameters.update((id(parameter), weakref.ref(parameter)) for parameter in parameters.values())
+        return result
+
+    torch.nn.Module.load_state_dict = observed
+    try:
+        yield
+    finally:
+        torch.nn.Module.load_state_dict = original
+
+
 def run_stablesr(args, fixture, output, torch, receipt):
     from methods import splatsure_stablesr as stable
     teacher = output / "teacher"
@@ -205,10 +249,13 @@ def run_stablesr(args, fixture, output, torch, receipt):
         raise ValueError("Staged LR changed")
     plan = {"python": sys.executable, "source_root": args.upstream,
             "output_root": str(teacher), "seed": args.seed,
+            "input_shape_wh": stable.png_shape(staged),
             "model_identities": [{"role": "diffusion", "path": args.stable_checkpoint},
                                  {"role": "cfw", "path": args.vqgan_checkpoint}]}
+    plan["tiling"] = stable.stablesr_geometry(plan["input_shape_wh"])
     command = stable.command(plan)
     receipt["author_argv"] = command
+    receipt["tiling"] = plan["tiling"]
     receipt["recipe"] = stable.RECIPE
     receipt["model_loads"], receipt["floating_checks"] = [], []
     loads, checks = receipt["model_loads"], receipt["floating_checks"]
@@ -223,22 +270,8 @@ def run_stablesr(args, fixture, output, torch, receipt):
             synchronize(torch)
             before = time.perf_counter()
             state_audits = []
-            original_load = torch.nn.Module.load_state_dict
-
-            def observed_load(model, state, *a, **kw):
-                result = original_load(model, state, *a, **kw)
-                missing = sorted(set(dict(model.named_parameters())).intersection(result.missing_keys))
-                state_audits.append({"missing_parameters": missing, "missing_keys": list(result.missing_keys),
-                                     "unexpected_keys": list(result.unexpected_keys)})
-                if missing:
-                    raise ValueError("StableSR checkpoint left parameters uninitialized: " + repr(missing[:10]))
-                return result
-
-            torch.nn.Module.load_state_dict = observed_load
-            try:
+            with observe_stablesr_checkpoint_loads(torch, state_audits):
                 model = original_loader(config, checkpoint, *positional, **keywords)
-            finally:
-                torch.nn.Module.load_state_dict = original_load
             synchronize(torch)
             loads.append({"checkpoint": str(checkpoint), "elapsed_seconds": time.perf_counter() - before,
                           "state_audits": state_audits, "parameters": sum(p.numel() for p in model.parameters())})

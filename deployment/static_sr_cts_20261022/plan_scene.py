@@ -16,6 +16,10 @@ from pathlib import Path
 import re
 import shutil
 import sys
+from types import SimpleNamespace
+
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+import scene_prefix
 
 ROOT = Path(__file__).resolve().parents[2]
 EXP = 'experiments/static_sr_wu_20261022'
@@ -70,6 +74,12 @@ def write_new(path, value):
 
 def token(path):
     return '{ROOT}/' + relative(path)
+
+
+def prefix_api():
+    # Also works when a CPU test imports this file with spec_from_file_location.
+    return SimpleNamespace(ROOT=ROOT, SELF=SELF, identity=identity, resolve=resolve,
+        relative=relative, read=read, checked=checked, sha=sha, write_new=write_new, token=token, guard=guard)
 
 
 def normalize_uuid(value):
@@ -157,7 +167,7 @@ def build_dag(scene, run_id, prepared, sequence_plan, runtime_assets, base_pytho
     weights = '{ROOT}/weight/static_sr_wu_20261022'
     paths = {m: f'{run}/{m}' for m in METHODS}
     nodes = []
-    if iesrgs_cache_format not in ('npy', 'npz_deflate'):
+    if iesrgs_cache_format not in ('npy', 'npz_deflate', 'npz_byte_shuffle'):
         raise ValueError('Unsupported IE lossless cache format')
 
     def script(python, name, *args):
@@ -249,15 +259,19 @@ def storage_estimates(nodes, observations, lr_wh, hr_wh, budget):
         if kind == 'splat_weights': known = math.prod(lr_wh)*observations*4
         entry = budget.get('stages', {}).get(n['id'], {}) if budget else {}
         allowance = entry.get('additional_bytes')
+        file_limit = entry.get('maximum_file_bytes')
+        if file_limit is not None and (type(file_limit) is not int or file_limit <= 0):
+            raise ValueError('maximum_file_bytes must be a positive integer: '+n['id'])
         if allowance is not None and (not isinstance(allowance, int) or isinstance(allowance, bool) or allowance < known):
             raise ValueError('Capacity budget is below known payload: '+n['id'])
         if allowance is not None and (entry.get('basis') not in ('measured', 'conservative_bound') or not entry.get('evidence')):
             raise ValueError('Budget requires a measured/conservative basis and hashed evidence: '+n['id'])
         for evidence in entry.get('evidence', []): checked(evidence)
         estimates[n['id']] = dict(known_payload_lower_bound_bytes=known, additional_bytes=allowance,
+            maximum_file_bytes=file_limit,
             uncompressed_float32_payload_bytes=pixels*16 if kind in ('ie_float_arrays','ie_lossless_arrays') else None,
             basis=entry.get('basis', 'unknown'), evidence=entry.get('evidence', []),
-            limitations='Includes output growth and temporary peaks. PNG compression, checkpoint point count and diffusion latent overhead require a supplied bounded budget; no extrapolated compression guarantee.')
+            limitations='Includes output growth and temporary peaks. IE lossless/PNG compression, checkpoint point count and diffusion latent overhead require a supplied bounded budget; a sample compression ratio is not a full-scene capacity guarantee.')
     return estimates
 
 
@@ -303,6 +317,10 @@ def cleanup_contract(run, paths, cameras):
 def create_plan(args):
     sys.path.insert(0, str(ROOT/EXP))
     from common import training_manifest, validate_records_bundle
+    phase = getattr(args, 'phase', 'full')
+    reuse = getattr(args, 'completed_ie_prefix', None)
+    if phase == 'ie_prepare' and reuse:
+        raise ValueError('IE preparation always starts fresh; reuse is for phase full')
     prepared = resolve(args.prepared)
     configs = {m: read(prepared/args.scene/(m+'.json')) for m in METHODS}
     cfg = configs['splatsure']; manifest_path = checked(cfg['manifest'])
@@ -325,6 +343,11 @@ def create_plan(args):
                                         getattr(args,'iesrgs_cache_format','npy'))
     for node in nodes:
         node['argv'] = [token(manifest_path) if x == '__REGISTERED_MANIFEST__' else x for x in node['argv']]
+    prefix_dag = nodes[:4]
+    if tuple(n['id'] for n in prefix_dag) != scene_prefix.STAGES:
+        raise ValueError('IE prefix DAG changed')
+    if phase == 'ie_prepare':
+        nodes = prefix_dag
     blockers, accepted = [], []
     receipts = [('wiring',args.wiring_receipt), ('external',args.external_receipt), ('metrics',args.metric_receipt)]
     teachers = {}
@@ -348,8 +371,9 @@ def create_plan(args):
             validate_acceptance(kind,read(file),args.gpu_uuid,manifest['resolutions']['hr'])
             accepted.append(dict(kind=kind,**identity(file)))
         except (KeyError,ValueError,OSError) as exc: blockers.append(kind+': '+str(exc))
-    for name, file in [('base_python',args.base_python), ('stable_python',args.stable_python), ('sequence_python',args.sequence_python),
-                       ('sequence_plan',sequence_plan), ('runtime_assets',args.runtime_assets)]:
+    dependencies = [('base_python',args.base_python), ('stable_python',args.stable_python), ('sequence_python',args.sequence_python),
+                    ('sequence_plan',sequence_plan), ('runtime_assets',args.runtime_assets)]
+    for name, file in dependencies:
         if not resolve(file).is_file(): blockers.append(name+': missing '+str(file))
     if resolve(sequence_plan).is_file():
         from methods.sequence_matters import validate_sequence_plan
@@ -357,15 +381,34 @@ def create_plan(args):
     budget = read(args.budget) if args.budget else None
     if budget and (budget.get('schema') != 'static_sr_scene_capacity_budget_v1' or budget.get('scene') != args.scene):
         raise ValueError('Capacity budget belongs to a different scene/schema')
+    if phase == 'ie_prepare':
+        bounded = scene_prefix.prefix_budget(prefix_api(), nodes, len(rows), manifest['resolutions']['hr'])
+        if budget:
+            for node in nodes:
+                supplied = budget.get('stages', {}).get(node['id'], {})
+                minimum = bounded['stages'][node['id']]['additional_bytes']
+                if supplied.get('additional_bytes', -1) < minimum:
+                    raise ValueError('Prefix budget cannot reduce raw/CK failure-bound reserve: '+node['id'])
+                cap = bounded['stages'][node['id']]['maximum_file_bytes']
+                if supplied.get('maximum_file_bytes', cap) != cap:
+                    raise ValueError('IE preparation uses the fixed file-size failure caps: '+node['id'])
+                supplied['maximum_file_bytes'] = cap
+        else:
+            budget = bounded
+    context = dict(scene=args.scene, run_id=args.run_id, run_root=run, configs={m:identity(prepared/args.scene/(m+'.json')) for m in METHODS},
+                   LR_identity=cfg['manifest'], prefix_dag=prefix_dag, gpu_uuid=args.gpu_uuid)
+    reused = scene_prefix.validate(prefix_api(), reuse, context) if reuse else None
+    if reused:
+        nodes = nodes[4:]
     storage = storage_estimates(nodes,len(rows),manifest['resolutions']['lr'],manifest['resolutions']['hr'],budget)
     unknown = [name for name,s in storage.items() if s['additional_bytes'] is None]
     if unknown: blockers.append('Unknown stage storage budgets: '+', '.join(unknown))
     total = sum(s['additional_bytes'] for s in storage.values()) if not unknown else None
     disk = check_disk(total,args.reserve_bytes,run)
     if not disk['passed']: blockers.append('Current snapshot filesystem does not pass full-scene retained-output capacity gate')
-    if resolve(run).exists(): blockers.append('Run output already exists; preserve it and choose a new run-id')
+    if resolve(run).exists() and not reused: blockers.append('Run output already exists; preserve it and choose a new run-id')
     required = [identity(p) for p in sorted((ROOT/EXP).rglob('*.py'))]
-    required += [identity(ROOT/SELF),identity(ROOT/'deployment/static_sr_cts_20261022/run_job.py'),
+    required += [identity(ROOT/SELF),identity(ROOT/scene_prefix.SELF),identity(ROOT/'deployment/static_sr_cts_20261022/run_job.py'),
                  identity(manifest_path),identity(record_path),*[identity(prepared/args.scene/(m+'.json')) for m in METHODS],
                  *[dict(path=r['path'],sha256=r['sha256']) for r in accepted]]
     compact_metadata = [dict(role='manifest', **identity(manifest_path)),
@@ -376,9 +419,13 @@ def create_plan(args):
         if resolve(file).is_file(): compact_metadata.append(dict(role=role, **identity(file)))
     compact_metadata += [dict(role='GPU_acceptance:'+r['kind'], path=r['path'],sha256=r['sha256']) for r in accepted]
     required += [dict(path=r['path'],sha256=r['sha256']) for r in compact_metadata]
-    if budget: required += [identity(args.budget)]
+    if args.budget: required += [identity(args.budget)]
+    if reused:
+        required += [reused[k] for k in ('completion','terminal','status')]
+        compact_metadata += [dict(role='completed_ie_prefix:'+k,**reused[k]) for k in ('completion','terminal','status')]
     result = dict(schema='static_sr_scene_execution_plan_v1',status='blocked' if blockers else 'executable_after_resource_admission',
         scene=args.scene, scene_name=manifest['scene'], run_id=args.run_id, run_root=run, root=str(ROOT),
+        phase=phase, prefix_dag=prefix_dag, completed_ie_prefix=reused, base_python=args.base_python,
         scene_priority=list(PRIORITY), one_scene_at_a_time=True, blockers=blockers,
         gpu_uuid=args.gpu_uuid, training_observations=len(rows), frames=300, train_cameras=manifest['splits']['train'],
         heldout_cameras=['cam00'], LR_identity=cfg['manifest'], required_files=required,
@@ -390,7 +437,7 @@ def create_plan(args):
         final_outputs={m:paths[m]+('/coupled' if m=='threedsr' else '/sr') for m in METHODS},
         configs={m:identity(prepared/args.scene/(m+'.json')) for m in METHODS},
         compact_metadata=compact_metadata,
-        return_policy='Compact metrics, identities, costs and logs only; no checkpoint, PNG, NPY, latent or raw cache transfer.',
+        return_policy='Compact prefix evidence or final metrics, identities, costs and logs only; no checkpoint, PNG, NPY, latent or raw cache transfer.',
         env=dict(PYTHONDONTWRITEBYTECODE='1',TORCH_HOME='{ROOT}/weight/static_sr_wu_20261022/evaluation/torch',
                  HF_HUB_OFFLINE='1',TRANSFORMERS_OFFLINE='1'),
         GPU_calls=0, submitted=False, cleanup_executed=False)
@@ -398,24 +445,36 @@ def create_plan(args):
 
 
 def materialize(args, plan):
-    out = resolve(args.out);out.mkdir(parents=True,exist_ok=False)
+    out = resolve(args.out)
+    if plan.get('run_root') and out.absolute().is_relative_to(resolve(plan['run_root']).absolute()):
+        raise ValueError('Keep the plan/job spec outside the execution run; run_job requires a fresh log directory')
+    out.mkdir(parents=True,exist_ok=False)
     plan_path = out/'plan.json';write_new(plan_path,plan)
     template = dict(schema='static_sr_scene_capacity_budget_v1',scene=plan['scene'],
         note='Fill all stages with measured or conservative-bound additional bytes and hashed supporting evidence; unknown is deliberately blocked.',
-        stages={n['id']:dict(additional_bytes=None,basis='unknown',evidence=[],
+        stages={n['id']:dict(additional_bytes=None,maximum_file_bytes=None,basis='unknown',evidence=[],
             known_payload_lower_bound_bytes=plan['storage'][n['id']]['known_payload_lower_bound_bytes']) for n in plan['dag']})
     write_new(out/'capacity_budget_template.json',template)
     if plan['status'] == 'blocked': return
     commands=[]
+    if plan.get('completed_ie_prefix'):
+        commands.append(dict(name='verify_completed_ie_prefix',argv=[args.base_python,'{ROOT}/'+SELF,'verify-prefix','--plan',token(plan_path)]))
     for node in plan['dag']:
         commands.append(dict(name=node['id']+'_disk_guard',argv=[args.base_python,'{ROOT}/'+SELF,'guard','--plan',token(plan_path),'--stage',node['id']]))
-        commands.append(dict(name=node['id'],argv=node['argv']))
-    commands.append(dict(name='collect_compact_results',argv=[args.base_python,'{ROOT}/'+SELF,'collect','--plan',token(plan_path)]))
-    job_out=plan['run_root']+'/job_logs'
-    job=dict(job_id='static-sr-'+plan['scene'].lower()+'-'+plan['run_id'],method='four_static_SR_Wu_adaptations',scene=plan['scene'],
+        capped = plan['storage'][node['id']].get('maximum_file_bytes') is not None
+        argv = ([args.base_python,'{ROOT}/'+SELF,'stage-run','--plan',token(plan_path),'--stage',node['id']]
+                if capped else node['argv'])
+        commands.append(dict(name=node['id'],argv=argv))
+    is_prefix = plan.get('phase') == 'ie_prepare'
+    commands.append(dict(name='seal_ie_prefix' if is_prefix else 'collect_compact_results',
+                         argv=[args.base_python,'{ROOT}/'+SELF,'seal-prefix' if is_prefix else 'collect','--plan',token(plan_path)]))
+    job_out=plan['run_root']+('/job_logs_ie_prepare' if is_prefix else '/job_logs')
+    returns = ([plan['run_root']+'/ie_prefix_completion.json', plan['run_root']+'/prefix_stage_receipts']
+               if is_prefix else [plan['run_root']+'/compact'])
+    job=dict(job_id='static-sr-'+plan['scene'].lower()+'-'+plan['run_id']+('-ie-prepare' if is_prefix else ''),method='IE_preparation_prefix' if is_prefix else 'four_static_SR_Wu_adaptations',scene=plan['scene'],
         gpu_uuid=plan['gpu_uuid'],shared_project_root=args.shared_project_root,training_only_inputs=True,no_proposed_modules=True,
         heldout_HR_use='evaluation_only',out=job_out,env=plan['env'],required_files=plan['required_files']+[identity(plan_path)],
-        commands=commands,return_paths=[plan['run_root']+'/compact',job_out+'/status.json',job_out+'/complete.json',job_out+'/job.json',job_out+'/diagnostics.json'])
+        commands=commands,return_paths=returns+[job_out+'/status.json',job_out+'/complete.json',job_out+'/job.json',job_out+'/diagnostics.json'])
     write_new(out/'job.json',job)
 
 
@@ -504,6 +563,8 @@ def collect(plan_path):
 def main():
     parser=argparse.ArgumentParser(description=__doc__);sub=parser.add_subparsers(dest='action',required=True)
     p=sub.add_parser('plan');p.add_argument('--scene',choices=PRIORITY,default='Discussion07');p.add_argument('--run-id',required=True)
+    p.add_argument('--phase',choices=['full','ie_prepare'],default='full')
+    p.add_argument('--completed-ie-prefix',help='SHA-bound successful IE prefix manifest; full phase only, same scene and run-id')
     p.add_argument('--prepared',default='output/static_sr_wu_20261022/cts_prepared');p.add_argument('--out',required=True)
     p.add_argument('--gpu-uuid',required=True);p.add_argument('--shared-project-root',default='/home/cts/Project/4DSR')
     p.add_argument('--base-python',required=True);p.add_argument('--stable-python',default=str(ROOT/'output/static_sr_wu_20261022/runtime/stablesr_env/bin/python'))
@@ -511,13 +572,19 @@ def main():
     p.add_argument('--runtime-assets',default='output/static_sr_wu_20261022/runtime/cts_bootstrap/runtime_assets_cts.json')
     p.add_argument('--sequence-plan');p.add_argument('--wiring-receipt');p.add_argument('--external-receipt');p.add_argument('--metric-receipt')
     p.add_argument('--teacher-receipt',action='append',default=[]);p.add_argument('--budget');p.add_argument('--reserve-bytes',type=int,default=20*GIB)
-    p.add_argument('--iesrgs-cache-format',choices=['npy','npz_deflate'],default='npy')
-    for action in ('guard','collect'):
+    p.add_argument('--iesrgs-cache-format',choices=['npy','npz_deflate','npz_byte_shuffle'],default='npy',
+                   help='IE external/internal float32 cache storage; lossless compression still requires an explicit scene capacity budget')
+    for action in ('guard','collect','seal-prefix','verify-prefix','stage-run'):
         q=sub.add_parser(action);q.add_argument('--plan',required=True)
-        if action=='guard':q.add_argument('--stage',required=True)
+        if action in ('guard','stage-run'):q.add_argument('--stage',required=True)
     args=parser.parse_args()
     if args.action=='guard':guard(args.plan,args.stage)
     elif args.action=='collect':collect(args.plan)
+    elif args.action=='seal-prefix':scene_prefix.seal(prefix_api(),args.plan)
+    elif args.action=='stage-run':scene_prefix.run_stage(prefix_api(),args.plan,args.stage)
+    elif args.action=='verify-prefix':
+        plan=read(args.plan)
+        scene_prefix.validate(prefix_api(),checked(plan['completed_ie_prefix']['completion']),plan,require_fresh=False)
     else:
         if not re.fullmatch(r'[A-Za-z0-9_-]+',args.run_id) or args.reserve_bytes<0:raise ValueError('Unsafe run-id or negative reserve')
         relative(args.out)

@@ -15,10 +15,59 @@ between scenes.
 
 The controller completes one scene at a time. `plan_scene.py` requires real GPU
 wiring, teacher and metric acceptance receipts, full training-input identities,
-and an explicit per-stage disk budget before it emits a runnable job. A missing
+and a bounded per-stage disk budget before it emits a runnable job. The default
+`--phase full` requires explicit budgets for all scheduled stages. A missing
 budget or acceptance receipt produces a blocked plan, not training permission.
 Discussion07 is the initial planning scene because its raw prior volume is
 smaller; all six scenes remain required.
+
+IE cache storage is explicit: `plan_scene.py plan --iesrgs-cache-format` accepts
+`npy` (the default), `npz_deflate`, and `npz_byte_shuffle`. The planner passes the
+selected format to both the external teacher and internal reconstruction cache
+producers. Byte shuffle groups the four bytes of each float32 value into byte
+planes before lossless compression; decoding restores the original array bytes.
+Both compressed formats use the same `ie_lossless_arrays` storage category.
+They still require a scene-specific capacity budget with hashed measured or
+conservative-bound evidence, plus the actual filesystem free-space checks.
+The local `cts_ie_byte_shuffle_probe_v1.json` receipt covers sample roundtrips and
+compression measurements only. It does not establish full-scene capacity, and
+the planner never converts its sample compression ratio into a storage allowance.
+
+`--phase ie_prepare` schedules exactly four original stages: external IE priors,
+the full 30000-iteration internal teacher, its frozen HR cache, and index merge.
+It keeps all six acceptance categories required by the full plan, including all
+three actual teacher tests and the unified metric test. This phase only changes
+which commands and storage budgets are scheduled. It does not shorten training.
+The built-in budget uses uncompressed float32 bytes plus container/filesystem
+overhead, 33 GiB for internal training, and 64 MiB for merge records. For
+Discussion07 it requires 133.1631 GiB of new output allowance plus the default
+20 GiB free-space reserve. This is independent of measured compression ratios.
+The checkpoint command inherits an operating-system 32 GiB single-file limit;
+an oversized save fails and produces diagnostics rather than reducing points
+or iterations. This failure boundary does not guarantee that training succeeds.
+
+Keep `--out` plan/job specifications outside the scene run, for example under
+`output/static_sr_wu_20261022/cts_job_specs/`. On successful exit of all four
+stages, the job immediately seals `ie_prefix_completion.json`, binding original
+commands, scene/run, configuration, source/input identities, and every generated
+file SHA256. The successful terminal job record is also required before reuse.
+Later, use `--phase full --completed-ie-prefix <that completion file>` with the
+same scene, run ID, and cache format. The planner verifies the full evidence and
+all prior bytes, skips the four finished stages, and budgets only remaining new
+outputs against current free space. Fresh remaining output paths are mandatory.
+The full job rechecks the prefix before executing its remaining commands. A
+partial/failed prefix, changed input/source, or changed artifact cannot resume.
+The prefix returns compact evidence; it does not return the large caches or
+authorize scene cleanup.
+
+A capacity-budget stage may optionally specify a positive integer
+`maximum_file_bytes`. The `stage-run` resource wrapper reads this value only
+from the frozen plan, preserves the scientific command argv, and fails a write
+that exceeds the file limit. It applies to each file, not aggregate directory
+size; `additional_bytes` must still cover all retained files, temporary peaks,
+and logs. Full plans without this field keep their original direct commands.
+No checkpoint allowance inferred from an older model is a guaranteed upper
+bound; an explicitly enforced save limit is a failure boundary.
 
 The static teacher bundles must be complete before the three final static SR
 branches run. LR reconstruction and IE internal-teacher training are prerequisite
@@ -61,6 +110,8 @@ without rerunning the corresponding preparation/training stages.
   automatically replays a failed job.
 - `plan_scene.py` constructs the formal scene pipeline and collects compact
   results. Its disk guards require measured available space before each stage.
+- `scene_prefix.py` seals and verifies the four-stage IE prefix and enforces
+  optional single-file resource limits without changing scientific commands.
 - `cleanup_scene.py` validates returned results, prepares a closed deletion
   manifest, and applies cleanup only after all completion and identity checks.
 

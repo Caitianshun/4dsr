@@ -6,7 +6,7 @@ from .splatsure_stablesr import command,png_shape,WEIGHTS,RECIPE
 
 class StableSRBridgeTests(unittest.TestCase):
     def test_main_teacher_command_is_standard_stablesr_not_turbo(self):
-        value=dict(python='/env/bin/python',source_root='/official/StableSR',output_root='/new/cache',seed=42,
+        value=dict(python='/env/bin/python',source_root='/official/StableSR',output_root='/new/cache',seed=42,input_shape_wh=[336,252],
                    model_identities=[dict(role=k,path='/weights/'+v[0]) for k,v in WEIGHTS.items()])
         args=command(value)
         self.assertEqual(args[args.index('--ddpm_steps')+1],'200')

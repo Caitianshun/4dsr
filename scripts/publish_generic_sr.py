@@ -218,12 +218,14 @@ STATIC_SR_WU_SOURCES = (
     'deployment/static_sr_cts_20261022/plan_scene.py',
     'deployment/static_sr_cts_20261022/prepare_cpu_suite.py',
     'deployment/static_sr_cts_20261022/run_job.py',
+    'deployment/static_sr_cts_20261022/scene_prefix.py',
     'deployment/static_sr_cts_20261022/submit_remote.py',
     'deployment/static_sr_cts_20261022/sync_assets.py',
     'deployment/static_sr_cts_20261022/test_bootstrap_remote.py',
     'deployment/static_sr_cts_20261022/test_cleanup_scene.py',
     'deployment/static_sr_cts_20261022/test_continue_acceptance.py',
     'deployment/static_sr_cts_20261022/test_plan_scene.py',
+    'deployment/static_sr_cts_20261022/test_scene_prefix.py',
     'deployment/static_sr_cts_20261022/test_submit_remote.py',
     'deployment/static_sr_cts_20261022/test_transport_inventory.py',
     'deployment/static_sr_cts_20261022/transport_inventory.py',
@@ -282,6 +284,7 @@ STATIC_SR_WU_SOURCES = (
     'experiments/static_sr_wu_20261022/tests/test_splatsure_contract.py',
     'experiments/static_sr_wu_20261022/tests/test_suite.py',
     'experiments/static_sr_wu_20261022/tests/test_teacher_acceptance.py',
+    'experiments/static_sr_wu_20261022/tests/test_teacher_tiling.py',
     'experiments/static_sr_wu_20261022/train_stage.py',
 )
 DYNAMIC_LR_SOURCE_MANIFESTS = (

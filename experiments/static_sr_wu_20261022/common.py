@@ -7,6 +7,9 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[2]
 SCHEMA = 'static_sr_wu_adaptation_v1'
 METHODS = ('splatsure', 'iesrgs', 'sequence_matters', 'threedsr')
+SHUFFLE_CODEC = 'float32_byte_shuffle'
+SHUFFLE_VERSION = 1
+MAX_SHUFFLED_PRIOR_BYTES = 512 * (1 << 20)
 
 
 def sha(path):
@@ -34,8 +37,73 @@ def checked(item):
     return p
 
 
+def _shuffle_metadata(value):
+    """Closed version-1 schema; reject sizes before allocating the decoded array."""
+    import math
+    import re
+    keys = {'format', 'codec', 'codec_version', 'dtype', 'dtype_str', 'shape', 'array_order', 'array_sha256'}
+    if not isinstance(value, dict) or set(value) != keys:
+        raise ValueError('Byte-shuffle metadata fields differ')
+    if (value['format'] != 'npz_byte_shuffle' or value['codec'] != SHUFFLE_CODEC
+            or type(value['codec_version']) is not int or value['codec_version'] != SHUFFLE_VERSION
+            or value['dtype'] != 'float32' or value['dtype_str'] != '<f4' or value['array_order'] != 'C'):
+        raise ValueError('Unknown byte-shuffle codec/version/dtype/order')
+    shape = value['shape']
+    if (not isinstance(shape, list) or not 1 <= len(shape) <= 4
+            or any(type(d) is not int or not 0 < d <= 65536 for d in shape)
+            or math.prod(shape) * 4 > MAX_SHUFFLED_PRIOR_BYTES):
+        raise ValueError('Invalid or oversized byte-shuffle shape')
+    if not isinstance(value['array_sha256'], str) or not re.fullmatch('[a-f0-9]{64}', value['array_sha256']):
+        raise ValueError('Invalid byte-shuffle raw SHA256')
+    return math.prod(shape)
+
+
+def _read_shuffle_member(archive, name, expected_shape=None, max_bytes=4096):
+    """Inspect the NPY header and exact byte count before allocation; no pickle."""
+    import math
+    import numpy as np
+    info = archive.getinfo(name)
+    if not 0 < info.file_size <= max_bytes + 256:
+        raise ValueError('Oversized byte-shuffle archive member')
+    with archive.open(info) as stream:
+        if np.lib.format.read_magic(stream) != (1, 0):
+            raise ValueError('Unsupported byte-shuffle NPY header version')
+        shape, fortran, dtype = np.lib.format.read_array_header_1_0(stream, max_header_size=128)
+        if dtype != np.dtype('uint8') or fortran:
+            raise ValueError('Byte-shuffle members must be C-order uint8 arrays')
+        if (expected_shape is not None and shape != expected_shape) or (
+                expected_shape is None and (len(shape) != 1 or not 0 < shape[0] <= max_bytes)):
+            raise ValueError('Byte-shuffle member shape differs')
+        size = math.prod(shape)
+        if size > max_bytes or info.file_size != stream.tell() + size:
+            raise ValueError('Byte-shuffle member byte count differs')
+        raw = stream.read(size + 1)
+        if len(raw) != size:
+            raise ValueError('Byte-shuffle member payload length differs')
+    return np.frombuffer(raw, dtype=np.uint8).reshape(shape)
+
+
+def _load_shuffled_array(archive):
+    import numpy as np
+    def unique_fields(pairs):
+        result = {}
+        for key, value in pairs:
+            if key in result:
+                raise ValueError('Duplicate byte-shuffle metadata field')
+            result[key] = value
+        return result
+    raw_metadata = _read_shuffle_member(archive, 'metadata.npy').tobytes()
+    metadata = json.loads(raw_metadata.decode('ascii'), object_pairs_hook=unique_fields)
+    count = _shuffle_metadata(metadata)
+    shuffled = _read_shuffle_member(archive, 'array.npy', (4, count), count * 4)
+    array = np.array(shuffled.T, copy=True, order='C').reshape(-1).view('<f4').reshape(metadata['shape'])
+    if hashlib.sha256(array.tobytes(order='C')).hexdigest() != metadata['array_sha256']:
+        raise ValueError('Byte-shuffle restored raw SHA256 differs')
+    return array, metadata
+
+
 def load_prior_array(item, require_float32=False):
-    """Read one hashed NPY or single-member, lossless NPZ; never enable pickle.
+    """Read hashed NPY, plain NPZ, or versioned byte-shuffle NPZ; no pickle.
 
     Legacy NPY identities contain only path/sha256 and remain supported. New
     storage metadata is optional, but every supplied value is verified. NPZ
@@ -44,6 +112,7 @@ def load_prior_array(item, require_float32=False):
     import numpy as np
     import zipfile
     p = checked(item)
+    encoded_metadata = {}
     if p.suffix == '.npy':
         storage_format = 'npy'
         array = np.load(p, allow_pickle=False)
@@ -51,11 +120,17 @@ def load_prior_array(item, require_float32=False):
         storage_format = 'npz_deflate'
         with zipfile.ZipFile(p) as archive:
             members = archive.infolist()
-            if (len(members) != 1 or members[0].filename != 'array.npy'
-                    or members[0].compress_type != zipfile.ZIP_DEFLATED):
-                raise ValueError('Prior NPZ must contain exactly one deflated array.npy member')
-        with np.load(p, allow_pickle=False) as archive:
-            array = archive['array']
+            names = [m.filename for m in members]
+            if (len(set(names)) != len(names) or any(m.compress_type != zipfile.ZIP_DEFLATED or m.flag_bits & 1 for m in members)):
+                raise ValueError('Prior NPZ requires unique, unencrypted deflated members')
+            if names == ['array.npy']:
+                with np.load(p, allow_pickle=False) as plain:
+                    array = plain['array']
+            elif set(names) == {'array.npy', 'metadata.npy'}:
+                storage_format = 'npz_byte_shuffle'
+                array, encoded_metadata = _load_shuffled_array(archive)
+            else:
+                raise ValueError('Prior NPZ must contain exactly one deflated array.npy member or the versioned byte-shuffle pair')
         require_float32 = True
     else:
         raise ValueError('Expected .npy or .npz prior array')
@@ -66,8 +141,12 @@ def load_prior_array(item, require_float32=False):
     if not np.isfinite(array).all():
         raise ValueError('Nonfinite prior array')
     storage = item.get('storage', {})
+    if not isinstance(storage, dict):
+        raise ValueError('Prior storage metadata must be an object')
+    if encoded_metadata and storage:
+        _shuffle_metadata(storage)
     expected = {'format': storage_format, 'dtype': str(array.dtype),
-                'shape': list(array.shape), 'array_order': 'C'}
+                'shape': list(array.shape), 'array_order': 'C', **encoded_metadata}
     if 'array_sha256' in storage:
         expected['array_sha256'] = hashlib.sha256(array.tobytes(order='C')).hexdigest()
     for key, value in storage.items():

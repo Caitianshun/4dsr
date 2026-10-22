@@ -18,7 +18,7 @@ def main():
     p.add_argument('--depth-checkpoint')
     p.add_argument('--internal-index')
     p.add_argument('--external-index')
-    p.add_argument('--cache-format', choices=('npy', 'npz_deflate'), default='npy',
+    p.add_argument('--cache-format', choices=('npy', 'npz_deflate', 'npz_byte_shuffle'), default='npy',
                    help='IE array container only; both preserve the exact float32 values')
     a = p.parse_args()
     if a.cache_format != 'npy' and a.kind not in ('iesrgs_external', 'iesrgs_internal'):

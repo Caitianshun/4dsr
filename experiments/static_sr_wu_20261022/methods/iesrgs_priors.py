@@ -23,11 +23,11 @@ from .iesrgs import UPSTREAM_COMMIT, IESRGSPriors
 from .iesrgs_renderer import compute_3d_filter, render_state
 
 try:
-    from ..common import checked, identity, load_prior_array, read, resolve, sha, training_manifest, write_new
+    from ..common import SHUFFLE_CODEC, SHUFFLE_VERSION, _shuffle_metadata, checked, identity, load_prior_array, read, resolve, sha, training_manifest, write_new
 except ImportError:
-    from common import checked, identity, load_prior_array, read, resolve, sha, training_manifest, write_new
+    from common import SHUFFLE_CODEC, SHUFFLE_VERSION, _shuffle_metadata, checked, identity, load_prior_array, read, resolve, sha, training_manifest, write_new
 
-CACHE_FORMATS = ('npy', 'npz_deflate')
+CACHE_FORMATS = ('npy', 'npz_deflate', 'npz_byte_shuffle')
 
 
 def _upstream(root):
@@ -59,18 +59,29 @@ def _save_array(root, name, value, cache_format='npy'):
     """Store the existing float32 payload exactly, one image/field per file."""
     _validate_cache_format(cache_format)
     p = (Path(root) / name).with_suffix('.npy' if cache_format == 'npy' else '.npz')
-    array = np.ascontiguousarray(value.detach().cpu().numpy().astype(np.float32, copy=False))
+    original = value.detach().cpu().numpy()
+    if cache_format == 'npz_byte_shuffle' and original.dtype.str != '<f4':
+        raise ValueError('Byte-shuffle v1 requires original little-endian float32, without numeric conversion')
+    array = np.ascontiguousarray(original.astype(np.float32, copy=False))
     if not np.isfinite(array).all():
         raise ValueError('Nonfinite IE prior array')
+    storage = dict(format=cache_format, dtype=str(array.dtype), shape=list(array.shape),
+                   array_order='C', array_sha256=hashlib.sha256(array.tobytes(order='C')).hexdigest())
+    if cache_format == 'npz_byte_shuffle':
+        storage.update(codec=SHUFFLE_CODEC, codec_version=SHUFFLE_VERSION, dtype_str=array.dtype.str)
+        _shuffle_metadata(storage)
     p.parent.mkdir(parents=True, exist_ok=True)
     with p.open("xb") as handle:
         if cache_format == 'npy':
             np.save(handle, array, allow_pickle=False)
-        else:
+        elif cache_format == 'npz_deflate':
             np.savez_compressed(handle, array=array)
+        else:
+            shuffled = np.ascontiguousarray(array.view(np.uint8).reshape(-1, 4).T)
+            metadata = np.frombuffer(json.dumps(storage, sort_keys=True, separators=(',', ':')).encode('ascii'), dtype=np.uint8)
+            np.savez_compressed(handle, array=shuffled, metadata=metadata)
     item = identity(p)
-    item['storage'] = dict(format=cache_format, dtype=str(array.dtype), shape=list(array.shape),
-                           array_order='C', array_sha256=hashlib.sha256(array.tobytes(order='C')).hexdigest())
+    item['storage'] = storage
     return item
 
 

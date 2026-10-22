@@ -157,14 +157,53 @@ def training_targets(manifest_path):
     return manifest,sorted(targets,key=lambda r:r['staged_name'])
 
 
+def outer_tile_geometry(padded_shape_hw):
+    """Select supported square autoencoder tiles without enlarging image content.
+
+    StableSR README:179-180 permits tile >= 512 and stride < tile. Its
+    ImageSpliterTh uses a square Gaussian weight even for a truncated patch.
+    Cap only when the default chop branch would produce that invalid rectangle.
+    The inner diffusion tile remains 512 pixels / 64 latent cells.
+    """
+    height,width=map(int,padded_shape_hw)
+    if min(height,width)<512 or height%32 or width%32:
+        raise ValueError('Expected preconditioned dimensions >=512 and divisible by32')
+    tiled=max(height,width)>1280
+    tile=min(1280,height,width) if tiled else 1280
+    stride=min(1000,tile-32)
+    return dict(schema='square_outer_tile_geometry_v1',padded_shape_hw=[height,width],
+        tiled=tiled,requested_tile=1280,requested_stride=1000,tile=tile,stride=stride,
+        policy='cap_square_tile_to_short_side_only_when_default_chop_required; stride=min(1000,tile-32)',
+        adapted=tile!=1280,risk='Smaller autoencoder tiles may introduce border artifacts (StableSR README:180)')
+
+
+def stablesr_geometry(input_shape_wh):
+    """Predict the pinned author script's working grid, including its exact pad."""
+    if len(input_shape_wh)!=2 or any(type(x) is not int or x<=0 for x in input_shape_wh):
+        raise ValueError('Expected positive integer PNG width and height')
+    width,height=input_shape_wh
+    ratio=max(512/min(height,width),4)
+    working=[int(height*ratio),int(width*ratio)]
+    # The author pads BOTH axes to the next32 if either is unaligned. Preserve
+    # this behavior: an already-aligned width can gain another32 in this branch.
+    padded=[(n//32+1)*32 for n in working] if any(n%32 for n in working) else working[:]
+    return dict(outer_tile_geometry(padded),input_shape_wh=list(input_shape_wh),
+        working_shape_hw=working,target_shape_wh=[width*4,height*4],
+        input_size=512,ddpm_steps=200,diffusion_tile_latent=64,diffusion_tile_overlap=32,
+        padding_policy='unchanged_author_next32_both_axes_if_either_unaligned')
+
+
 def command(plan):
     weights={item['role']:item['path'] for item in plan['model_identities']}
+    geometry=stablesr_geometry(plan['input_shape_wh'])
+    if 'tiling' in plan and plan['tiling']!=geometry:
+        raise ValueError('Recorded tiling differs from the fixed input-geometry policy')
     return [plan['python'],str(Path(plan['source_root'])/SCRIPT),'--config',str(Path(plan['source_root'])/CONFIG),
         '--ckpt',weights['diffusion'],'--vqgan_ckpt',weights['cfw'],
         '--init-img',str(Path(plan['output_root'])/'inputs'),'--outdir',str(Path(plan['output_root'])/'generated'),
         '--ddpm_steps','200','--dec_w','0.5','--colorfix_type','adain','--upscale','4',
         '--seed',str(plan['seed']),'--n_samples','1','--input_size','512','--tile_overlap','32',
-        '--vqgantile_size','1280','--vqgantile_stride','1000','--precision','autocast']
+        '--vqgantile_size',str(geometry['tile']),'--vqgantile_stride',str(geometry['stride']),'--precision','autocast']
 
 
 def plan(manifest_path,output_root,source=DEFAULT_SOURCE,weight_root=None,python=None,runtime_assets=None):
@@ -195,7 +234,8 @@ def plan(manifest_path,output_root,source=DEFAULT_SOURCE,weight_root=None,python
         execution_workdir=str(out/'execution_workdir'),python=python,seed=42,
         producer=[identity(__file__)]+[identity(source/p) for p in (SCRIPT,CONFIG,CFW_CONFIG,'environment.yaml','README.md')],
         model_identities=models,runtime_assets=assets,runtime_assets_identity=identity(runtime_assets) if runtime_assets else None,
-        missing_dependencies=missing,parameter_updates=0,HR_images_read=0,heldout_images_read=0,targets=targets)
+        missing_dependencies=missing,parameter_updates=0,HR_images_read=0,heldout_images_read=0,targets=targets,
+        input_shape_wh=manifest['resolutions']['lr'],tiling=stablesr_geometry(manifest['resolutions']['lr']))
     value['command']=command(value)
     dump(out/'plan.json',value)
     return value
@@ -204,6 +244,8 @@ def plan(manifest_path,output_root,source=DEFAULT_SOURCE,weight_root=None,python
 def revalidate(plan):
     source_check(plan['source_root'])
     if sha(plan['manifest']['path'])!=plan['manifest']['sha256']:raise ValueError('manifest changed')
+    if json.loads(Path(plan['manifest']['path']).read_text())['resolutions']['lr']!=plan['input_shape_wh']:
+        raise ValueError('Planned tile input grid differs from the bound manifest')
     for item in plan['producer']+plan['model_identities']:
         if sha(item['path'])!=item['sha256']:raise ValueError('source or model identity changed')
     if plan['runtime_assets'] is None:raise ValueError('runtime cache identities missing')

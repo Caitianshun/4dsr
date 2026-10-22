@@ -15,6 +15,15 @@ SplatSuRe 主论文使用 StableSR。`splatsure_teacher.py` 提供论文支持�
 
 3DSR 源码在跨图/patch 循环中复用最后一个 `x_T`，且没有持久化下一轮状态。本适配按论文 Algorithm 1 为每个 scene/camera/time/patch 保存独立状态；同时修复反馈图的 padding/crop 次序。必须标为论文机制修复适配版，并保留源码差异。它不能退化为一次性离线图像 SR 缓存。
 
+StableSR 外层分块适配：CTS `diffusion_v3` 在 Cook 完成 200 步后，作者 `scripts/util_image.py:797` 将高度 1024 的矩形 patch 与固定 1280×1280 高斯权重相乘而失败，尚未生成教师图。作者 [StableSR README:179–180](https://github.com/IceClear/StableSR/blob/398ee9383777e255540ea027a704c8ce1f32145b/README.md#L179-L180) 明确允许调整 `--vqgantile_size/stride`，要求 tile≥512、stride<tile，并提示小 tile 可能增加边缘伪影。[SplatSuRe README:36](https://github.com/pranav-asthana/SplatSuRe/blob/df40abb8d92a02656268cb0a0b97acc2495b9307/README.md#L36) 只指定采用 StableSR 生成 SISR 输入，没有公开固定 1280 的调用约束。因此固定采用几何规则：仅当原 1280 阈值触发分块时，`tile=min(1280,padded_height,padded_width)`，`stride=min(1000,tile−32)`；否则保留原不分块路径。该规则不依赖指标，不额外补边到 1280，不修改作者源码。这里的外层 tile 是图像空间编码/解码分块；**扩散 `input_size=512`、latent tile=64、overlap=32、DDPM200、模型/权重均保持原样**。配方标识保留原主族标识，具体接口适配由 plan/receipt 的 `tiling` 字段明确区分；旧计划必须重新生成。
+
+| 场景 | LR 尺寸 W×H | StableSR 实际补边 H×W；tile/stride | 3DSR 实际补边 H×W；tile/stride |
+| --- | --- | --- | --- |
+| Cook、Cut、Coffee、Flame | 336×252 | 1024×1376；1024/992 | 1024×1344；原1280/1000，矩形边块 |
+| Discussion、VRHeadset | 320×180 | 736×1312；736/704 | 736×1280；保留不分块 |
+
+两条路径补边不同：StableSR 原脚本在任一轴未对齐32时将两轴都推进到下一个32；3DSR 已披露适配采用最小 modulo32 补边。3DSR 的作者分块器 `utils/util_image.py:797–803` 已将高斯权重裁到实际矩形 patch，因此没有相同累加错误；保持原1280/1000分块参数和 Turbo 四步/四轮机制；每个观测的 `tiling` 和 patch region 写入 latent 状态，后续轮次必须完全一致。CPU 测试使用原作者分块器验证全覆盖、形状和四轮状态，不代表真实扩散图像质量已通过。最终 Cook 输出仍为1344×1008，MeetRoom 输出仍为1280×720；实际效果及边缘伪影需真实 GPU 教师验收与后续评价。
+
 3DSR 每轮 5k 更新采样少于 Cook 的 6000 个训练观测。因此单轮不保证所有 camera/time 都被采样。这是作者迭代预算用于动态数据后的覆盖率差异，结果解释和后续匹配预算对照必须记录。
 
 ## 数据和比较协议
@@ -55,6 +64,7 @@ python train_stage.py --config CONFIG --stage sr --prior-bundle PRIORS --out NEW
 - Splat 主配方/变体：`methods/splatsure_stablesr.py` / `methods/splatsure_teacher.py`；权重图用 `prepare_priors.py --kind splatsure_weights --checkpoint LR_CK --rasterizer-source PINNED_SPLAT_RASTERIZER ...`。`bundle_priors.py` 合并已完成教师与权重图并核对身份。
 - IE：`prepare_priors.py --kind iesrgs_external --upstream ... --swinir-checkpoint ... --depth-checkpoint ...`，随后 `--kind iesrgs_internal --checkpoint INTERNAL_CK`，再用 `--kind iesrgs_merge --external-index ... --internal-index ...`。
   两类生产入口可显式传 `--cache-format npz_deflate`，无损压缩原 float32 数组。训练读取同时核验文件 SHA、数组形状、精度和原始数组 SHA；默认 `npy` 保留兼容。两种实际尺寸、两条读取路径的损失与 RGB/深度梯度已通过逐位一致检查。压缩率依赖内容，完整场景仍须独立登记容量预算。
+  新增 `--cache-format npz_byte_shuffle`：先将每个 float32 的四个字节按字节位置重排，再作相同 DEFLATE 压缩；解码反向重排，不量化、不改变位值。版本 1 固定为 little-endian float32，单数组不超过 512 MiB。每个 NPZ 只含 `array.npy`（uint8 字节平面）和 `metadata.npy`（uint8 编码的严格 JSON）；元数据保存原形状、类型、编码名/版本及原始数组 SHA。读取在分配数组前核对成员、头部和字节数，拒绝未知字段/版本、重复成员、对象数组、非法形状和 SHA 不符。旧 NPY 和普通 NPZ 保持兼容；新格式的 CPU/GPU 验收范围须查独立收据，不能仅凭压缩探针宣布训练验收通过。
 - Sequence：`methods/sequence_matters.py --manifest TRAIN_RECORDS --upstream ... --psrt-checkpoint ... --spynet-checkpoint ... --output ...`。`--plan-only` 提前完成 CPU ORB/ALS 分组。正式推理传 `--sequence-plan 已完成的receipt.json` 直接复用，并核对输入/分组/源码；不重新计算 ORB。之后 `bundle_priors.py` 绑定真实 PSRT 输出。
 - 3DSR：`run_threedsr.py --config CONFIG --records TRAIN_RECORDS --lr-checkpoint LR_CK --upstream ... --stable-checkpoint ... --vqgan-checkpoint ... --teacher-python TEACHER_PYTHON --runtime-assets RUNTIME_ASSETS_JSON --out NEW_RUN`。扩散进程结束后串接重建，再串接回渲，不使用定时轮询。LR→SR 重置 Adam 一次；四轮之间保留模型和 Adam（检查点往返），学习率时钟按作者每轮重置。视角采样及增密所用的 Python/NumPy/Torch/CUDA 随机数状态跨轮连续，避免每轮重复相同的观测子集。
 

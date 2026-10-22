@@ -15,15 +15,44 @@ p=importlib.util.module_from_spec(spec);spec.loader.exec_module(p)
 
 class ScenePlanTests(unittest.TestCase):
     def test_lossless_storage_is_explicit_and_never_assumes_a_ratio(self):
+        for format in ('npz_deflate','npz_byte_shuffle'):
+            with self.subTest(format=format):
+                _,nodes,_,_=p.build_dag('Discussion07','unit_only','prepared','plans/receipt.json','assets.json',
+                    '/base/python','/stable/python','/sequence/python',iesrgs_cache_format=format)
+                by={n['id']:n for n in nodes}
+                sizes=p.storage_estimates(nodes,3600,[320,180],[1280,720],None)
+                for name in ('ie_external','ie_internal_cache'):
+                    argv=by[name]['argv']
+                    self.assertEqual(argv.count('--cache-format'),1)
+                    self.assertEqual(argv[argv.index('--cache-format')+1],format)
+                    self.assertEqual(by[name]['storage_kind'],'ie_lossless_arrays')
+                    self.assertIsNone(sizes[name]['additional_bytes'])
+                    self.assertEqual(sizes[name]['uncompressed_float32_payload_bytes'],53084160000)
+                    self.assertFalse(p.check_disk(sizes[name]['additional_bytes'],0,p.ROOT)['passed'])
+
+    def test_byte_shuffle_cli_is_opt_in_and_blocked_budget_stays_blocked(self):
+        plan=dict(status='blocked',scene='Discussion07',blockers=['Unknown stage storage budgets'])
+        args=['plan_scene.py','plan','--run-id','unit_only','--out','output/unit_only',
+              '--gpu-uuid','GPU-test','--base-python','/base/python']
+        for extra,format in (([],'npy'),(['--iesrgs-cache-format','npz_byte_shuffle'],'npz_byte_shuffle')):
+            with self.subTest(format=format),patch.object(p.sys,'argv',args+extra), \
+                 patch.object(p,'create_plan',return_value=plan) as create, \
+                 patch.object(p,'materialize') as materialize,patch('builtins.print'):
+                with self.assertRaises(SystemExit) as stopped:p.main()
+                self.assertEqual(stopped.exception.code,2)
+                self.assertEqual(create.call_args.args[0].iesrgs_cache_format,format)
+                self.assertEqual(materialize.call_args.args[1]['status'],'blocked')
+
+    def test_byte_shuffle_still_requires_explicit_hashed_budget_evidence(self):
         _,nodes,_,_=p.build_dag('Discussion07','unit_only','prepared','plans/receipt.json','assets.json',
-            '/base/python','/stable/python','/sequence/python',iesrgs_cache_format='npz_deflate')
-        by={n['id']:n for n in nodes}
+            '/base/python','/stable/python','/sequence/python',iesrgs_cache_format='npz_byte_shuffle')
         for name in ('ie_external','ie_internal_cache'):
-            self.assertIn('npz_deflate',by[name]['argv'])
-            self.assertEqual(by[name]['storage_kind'],'ie_lossless_arrays')
-        sizes=p.storage_estimates(nodes,3600,[320,180],[1280,720],None)
-        self.assertIsNone(sizes['ie_external']['additional_bytes'])
-        self.assertEqual(sizes['ie_external']['uncompressed_float32_payload_bytes'],53084160000)
+            budget={'stages':{name:{'additional_bytes':100,'basis':'measured','evidence':[]}}}
+            with self.subTest(stage=name),self.assertRaisesRegex(ValueError,'hashed evidence'):
+                p.storage_estimates(nodes,3600,[320,180],[1280,720],budget)
+        with self.assertRaisesRegex(ValueError,'Unsupported IE lossless'):
+            p.build_dag('Discussion07','unit_only','prepared','plans/receipt.json','assets.json',
+                '/base/python','/stable/python','/sequence/python',iesrgs_cache_format='unregistered_codec')
 
     def dag(self):
         return p.build_dag('Discussion07','unit_only','prepared','plans/receipt.json','assets.json',

@@ -247,8 +247,19 @@ class StableSRTurboBridge:
                             raise ValueError(f"Wrong Wu feedback render size for {key}")
                         feedback = F.interpolate(feedback, size=working_shape, mode="bicubic", align_corners=False).clamp(-1, 1)
                         feedback = F.pad(feedback, pad, mode="reflect")
-                    tiled = conditioned.shape[-2] > 1280 or conditioned.shape[-1] > 1280
-                    splitter = self.splitter(conditioned, 1280, 1000, sf=1) if tiled else None
+                    # Unlike StableSR, the pinned 3DSR author splitter already
+                    # crops Gaussian weights to rectangular edge patches
+                    # (utils/util_image.py:797-803). Keep its1280/1000 parameters.
+                    tiling = dict(schema="threedsr_author_outer_tile_v1",tile=1280,stride=1000,
+                                  tiled=max(conditioned.shape[-2:])>1280,adapted=False,
+                                  padded_shape_hw=list(conditioned.shape[-2:]),
+                                  working_shape_hw=list(working_shape),target_shape_hw=list(target_shape),
+                                  weight_edge_policy="author_crop_weight_to_actual_patch_shape",
+                                  padding_policy="minimal_modulo32_before_crop_and_x4_resize")
+                    if previous is not None and previous.get("tiling") != tiling:
+                        raise ValueError("Tiling geometry changed between diffusion rounds")
+                    tiled = tiling["tiled"]
+                    splitter = self.splitter(conditioned, tiling["tile"], tiling["stride"], sf=1) if tiled else None
                     patches = splitter if tiled else [(conditioned, (0, conditioned.shape[-2], 0, conditioned.shape[-1]))]
                     patch_states = {}
                     iteration = 3 - round_index
@@ -295,7 +306,7 @@ class StableSRTurboBridge:
                     Image.fromarray(rgb).save(target)
                     state = {"key": key, "lr_sha256": input_hash, "round_index": round_index,
                              "patches": patch_states, "upstream_commit": UPSTREAM_COMMIT,
-                             "model_identity": model_identity, "scene": record["scene"]}
+                             "model_identity": model_identity, "scene": record["scene"],"tiling":tiling}
                     temp_state = state_path.with_suffix(".partial")
                     torch.save(state, temp_state)
                     temp_state.replace(state_path)
@@ -304,7 +315,7 @@ class StableSRTurboBridge:
                                                 "time": record["time"], "lr_sha256": input_hash,
                                                 "render_sha256": sha256(rendered_paths[key]) if round_index else None,
                                                 "target_sha256": sha256(target), "patch_count": len(patch_states),
-                                                "seed": per_key_seed + round_index})
+                                                "seed": per_key_seed + round_index,"tiling":tiling})
             receipt["status"] = "diffusion_round_complete"
         except Exception as error:
             receipt["status"] = "failed"

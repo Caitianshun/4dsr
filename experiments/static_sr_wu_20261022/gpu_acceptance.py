@@ -53,7 +53,9 @@ def select_samples(manifest, rows, frames):
     return groups
 
 
-def make_plan(prepared, scenes, frames):
+def make_plan(prepared, scenes, frames, ie_cache_format='npy'):
+    if ie_cache_format not in ('npy','npz_deflate','npz_byte_shuffle'):
+        raise ValueError('Unsupported IE fixture cache format')
     result=[]
     if len(set(scenes)) != len(scenes) or set(scenes) - dict(SCENES).keys():
         raise ValueError('Use unique registered six-scene names')
@@ -87,6 +89,7 @@ def make_plan(prepared, scenes, frames):
     return dict(schema='static_sr_wu_gpu_acceptance_v1',status='pending_GPU_execution',GPU_executed=False,
         scientific_result=False,formal_parent_allowed=False,formal_prior_allowed=False,
         scenes=result,frames=list(frames),methods=list(METHODS),source=identity(__file__),
+        iesrgs_cache_format=ie_cache_format,
         source_snapshot={str(p.relative_to(ROOT)):identity(p) for p in Path(__file__).parent.rglob('*.py')},
         rgb_equivalence_gate=RGB_GATE,gate_note='Preregistered engineering tolerance; not a published paper tolerance',
         exclusions=['official SR/depth/diffusion teacher-network inference','teacher quality','formal parent training',
@@ -170,7 +173,10 @@ def method_render(backend,obs,resolution='hr'):
     return backend.render(obs,state=state,resolution=resolution)
 
 
-def save_array(out,name,value):
+def save_array(out,name,value,cache_format='npy'):
+    if cache_format!='npy':
+        from methods.iesrgs_priors import _save_array
+        return _save_array(out,name,value,cache_format)
     import numpy as np
     path=out/(name+'.npy');path.parent.mkdir(parents=True,exist_ok=True)
     with path.open('xb') as file:np.save(file,value.detach().float().cpu().numpy(),allow_pickle=False)
@@ -211,7 +217,7 @@ def splat_probe(backend,group,api):
         fewer_than_three_views=int((acc.seen_count<3).sum()),fixture_parent=True)
 
 
-def fixture_priors(backend,obs,out,weight=None):
+def fixture_priors(backend,obs,out,weight=None,ie_cache_format='npy'):
     """Deliberately non-formal arrays; no prior-bundle schema is emitted."""
     import torch
     import torch.nn.functional as F
@@ -235,7 +241,8 @@ def fixture_priors(backend,obs,out,weight=None):
             if backend.config['method']=='splatsure':
                 if weight is None:raise ValueError('Real contribution-derived fixture weights required')
                 values['weight']=weight
-        return {name:save_array(out,f"{obs['camera_id']}_{obs['frame_index']:04d}_{name}",value) for name,value in values.items()}
+        cache_format=ie_cache_format if backend.config['method']=='iesrgs' else 'npy'
+        return {name:save_array(out,f"{obs['camera_id']}_{obs['frame_index']:04d}_{name}",value,cache_format) for name,value in values.items()}
 
 
 def optimizer_step(backend,batch,stage,priors,iteration):
@@ -379,7 +386,8 @@ def run_acceptance(plan,out,prepared,splat_source,splat_binary,ie_root,threedsr_
                     record['depth_probes'].append(dict(frame=obs['frame_index'],depth=stats,depth_only_gradients=grad,
                         filter=tensor_stats(packet['filter_3d']),depth_source='official_RADE_median_depth'))
                     del packet
-                entries={(obs['camera_id'],obs['frame_index']):fixture_priors(backend,obs,target/'fixture_tensors',weight)}
+                entries={(obs['camera_id'],obs['frame_index']):fixture_priors(backend,obs,target/'fixture_tensors',weight,
+                    plan.get('iesrgs_cache_format','npy'))}
                 record['updates'].append(optimizer_step(backend,[obs],'sr',entries,len(record['updates'])+1))
                 save_receipt(out,plan)
             record['roundtrip']=checkpoint_roundtrip(backend,groups[-1][0],target,len(record['updates']))
@@ -407,13 +415,14 @@ def main():
     p.add_argument('--scenes',nargs='+',choices=[s for s,_ in SCENES],default=list(DEFAULT_SCENES))
     p.add_argument('--frames',nargs='+',type=int,default=list(DEFAULT_FRAMES))
     p.add_argument('--out',required=True,type=Path)
+    p.add_argument('--ie-cache-format',choices=['npy','npz_deflate','npz_byte_shuffle'],default='npy')
     mode=p.add_mutually_exclusive_group();mode.add_argument('--run',action='store_true');mode.add_argument('--check-only',action='store_true')
     p.add_argument('--splat-source',type=Path,default=ROOT/'tmp/static_sr_wu_20261022/upstream/splatsure-rasterizer')
     p.add_argument('--splat-binary',type=Path,default=ROOT/'output/static_sr_wu_20261022/runtime/splatsure')
     p.add_argument('--ie-root',type=Path,default=ROOT/'output/static_sr_wu_20261022/runtime/iesrgs')
     p.add_argument('--threedsr-binary',type=Path,default=ROOT/'output/static_sr_wu_20261022/runtime/threedsr/lib')
     a=p.parse_args()
-    plan=make_plan(resolve(a.prepared),a.scenes,a.frames)
+    plan=make_plan(resolve(a.prepared),a.scenes,a.frames,a.ie_cache_format)
     out=resolve(a.out);out.mkdir(parents=True,exist_ok=False)
     plan['runtime_paths']={key:str(resolve(getattr(a,key))) for key in ('splat_source','splat_binary','ie_root','threedsr_binary')}
     save_receipt(out,plan)
