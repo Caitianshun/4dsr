@@ -1,0 +1,37 @@
+IE-SRGS-on-Wu-4DGS source attribution
+===================================
+
+The supervision semantics, model settings, Mip filtering equations and RADE
+interface are adapted from the official IE-SRGS implementation:
+  https://github.com/ZheXues/IE-SRGS
+  commit 74d60d5bb0f49974ac0efa3497dbbd9e246480f4
+  Xiang Feng, Tieshi Zhong, Shuo Chang, Weiliu Wang, Chengkai Wang,
+  Yifei Chen, Tongyu Hu, Yuhe Wang, Zhenzhong Kuang, Xuefei Yin, Yanming Zhu.
+  AAAI 2026, DOI: 10.1609/aaai.v40i5.37398
+
+The author repository builds on Mip-Splatting and 3D Gaussian Splatting.
+Its LICENSE.md states a non-commercial research/evaluation license from
+Inria and MPII. Keep the original LICENSE.md with any local source/build
+distribution and comply with it. This notice does not relicense the author
+implementation. No upstream CUDA source snapshot or pretrained weights are
+included in this project's public source package.
+
+The adapter explicitly replaces static Gaussians with Wu 4DGaussians effective
+states and time-indexed sampling. It must not be represented as the original
+static benchmark result. Original rasterization and model implementations are
+loaded as external dependencies from separately versioned local checkouts.
+
+The local CUDA 12.8 compatibility patch adds only the missing standard header
+<cstdint> in cuda_rasterizer/rasterizer_impl.h. The original checkout is kept
+unchanged. Binary provenance and this patch's hash are recorded in the local
+build_receipt.json; GPU correctness is a separate acceptance step.
+
+SwinIR: Jingyun Liang et al., https://github.com/JingyunLiang/SwinIR
+Depth Anything V2: Lihe Yang et al., https://github.com/DepthAnything/Depth-Anything-V2
+Their source and pretrained-model licenses remain applicable. In particular,
+the selected Depth Anything V2-Large weights must not be silently replaced
+with the Small model to avoid the selected model's availability or license.
+
+The full author repository license is preserved at the locally cloned
+tmp/static_sr_wu_20261022/upstream/iesrgs/LICENSE.md and can be obtained at:
+https://github.com/ZheXues/IE-SRGS/blob/74d60d5bb0f49974ac0efa3497dbbd9e246480f4/LICENSE.md

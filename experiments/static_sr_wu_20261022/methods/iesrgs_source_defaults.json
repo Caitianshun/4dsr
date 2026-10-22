@@ -1,0 +1,61 @@
+{
+  "source_commit": "74d60d5bb0f49974ac0efa3497dbbd9e246480f4",
+  "label": "IE-SRGS released static reference defaults; Wu adaptation must disclose overrides",
+  "internal_stage": {
+    "iterations": 30000,
+    "views_per_step": 3,
+    "view_loss_reduction": "sum",
+    "resolution": "lr",
+    "mip_filter": true,
+    "use_depth": false,
+    "initialization": "fresh",
+    "densification_statistics": "last sampled view only"
+  },
+  "final_stage": {
+    "iterations": 30000,
+    "views_per_step": 1,
+    "resolution": "hr",
+    "mip_filter": true,
+    "use_depth": "rade_median_depth",
+    "initialization": "fresh",
+    "teacher_filter_resolution": "lr"
+  },
+  "OptimizationParams": {
+    "position_lr_init": 0.00016,
+    "position_lr_final": 1.6e-06,
+    "position_lr_delay_mult": 0.01,
+    "position_lr_max_steps": 30000,
+    "feature_lr": 0.0025,
+    "opacity_lr": 0.05,
+    "scaling_lr": 0.005,
+    "rotation_lr": 0.001,
+    "percent_dense": 0.01,
+    "lambda_dssim": 0.2,
+    "inner_lr": 0.001,
+    "external_lr": 0.0001,
+    "densification_interval": 100,
+    "opacity_reset_interval": 3000,
+    "densify_from_iter": 500,
+    "densify_until_iter": 15000,
+    "densify_grad_threshold": 0.0002,
+    "min_opacity": 0.005
+  },
+  "rendering": {
+    "kernel_size": 0.1,
+    "mip_3d_variance_coefficient": 0.2,
+    "require_coord": false
+  },
+  "source_optimizer_update_rule": "iteration < iterations (29999 updates for 30000 iterations)",
+  "mask_threshold_real": 0.9,
+  "mask_threshold_synthetic": 0.6,
+  "official_teacher_models": {
+    "swinir": "001_classicalSR_DF2K_s64w8_SwinIR-M_x4.pth",
+    "depth_anything": "depth_anything_v2_vitl.pth"
+  },
+  "dynamic_adaptation_required": {
+    "deformation_optimizer": "shared Wu HexPlanes and heads; explicitly recorded in run config",
+    "time_sampling": "same timestamp three distinct training cameras for internal stage",
+    "mip_filter": "compute on deformed state, train camera resolution per stage",
+    "prohibited": "cross-scene teacher states, heldout-camera priors, warmstarting final from internal"
+  }
+}

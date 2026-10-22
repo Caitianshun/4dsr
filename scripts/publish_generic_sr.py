@@ -178,9 +178,62 @@ HIGHRES_REQUIRED_TEXT = (
     "experiments/dynamic_sr_modules_20261010/motion_20261021/smoke_check.py",
     "experiments/dynamic_sr_modules_20261010/motion_20261021/jobs/cut3090a_laneA.txt",
     "experiments/dynamic_sr_modules_20261010/motion_20261021/jobs/cut3090a_laneB.txt",
+    # LR-anchored per-frame dynamic refinement (sessions 4dsr-f3 and 4dsr-25, 2026-10-21): the P1 absorbability bound (v2) and its
+    # scene driver, the full-frame residual fitter, the fit-then-evaluate driver, the cam00 evaluator with residuals and the temporal
+    # read-out, and the Cut07 ablation lane lists that were actually run (local 3090: teacher / lr+teacher; A100: kNN 0 / mr1248t300)
+    "experiments/dynamic_sr_modules_20261010/absorb_20261021/absorb_bound2.py",
+    "experiments/dynamic_sr_modules_20261010/absorb_20261021/run_scenes2.py",
+    "experiments/dynamic_sr_modules_20261010/absorb_20261021/perframe_fit.py",
+    "experiments/dynamic_sr_modules_20261010/absorb_20261021/run_fit_eval.py",
+    "experiments/dynamic_sr_modules_20261010/perframe_20261021/eval_resid.py",
+    "experiments/dynamic_sr_modules_20261010/perframe_20261021/jobs/cut3090ab_laneA.txt",
+    "experiments/dynamic_sr_modules_20261010/perframe_20261021/jobs/cut3090ab_laneB.txt",
+    "experiments/dynamic_sr_modules_20261010/perframe_20261021/jobs/cuta100_laneC.txt",
+    "experiments/dynamic_sr_modules_20261010/perframe_20261021/jobs/cuta100_laneD.txt",
     # third-party notice for experiments/dynamic_sr_physlr_20261016/hat_arch_local.py (derived from XPixelGroup/HAT,
     # Apache-2.0; notice plus the verbatim license text, 2026-10-18)
     "experiments/dynamic_sr_physlr_20261016/THIRD_PARTY_HAT_LICENSE.txt",
+)
+STATIC_SR_WU_SOURCES = (
+    "experiments/static_sr_wu_20261022/THIRD_PARTY_NOTICES.md",
+    "experiments/static_sr_wu_20261022/methods/sequence_matters_UPSTREAM_LICENSE.md",
+    "experiments/static_sr_wu_20261022/methods/threedsr_UPSTREAM_LICENSE.md",
+    'experiments/static_sr_wu_20261022/README.md',
+    'experiments/static_sr_wu_20261022/backend.py',
+    'experiments/static_sr_wu_20261022/bundle_priors.py',
+    'experiments/static_sr_wu_20261022/check_cpu.py',
+    'experiments/static_sr_wu_20261022/common.py',
+    'experiments/static_sr_wu_20261022/methods/iesrgs.py',
+    'experiments/static_sr_wu_20261022/methods/iesrgs_NOTICE.txt',
+    'experiments/static_sr_wu_20261022/methods/iesrgs_UPSTREAM_LICENSE.md',
+    'experiments/static_sr_wu_20261022/methods/iesrgs_build_runtime.py',
+    'experiments/static_sr_wu_20261022/methods/iesrgs_cpu_tests.py',
+    'experiments/static_sr_wu_20261022/methods/iesrgs_cuda128_cstdint.patch',
+    'experiments/static_sr_wu_20261022/methods/iesrgs_priors.py',
+    'experiments/static_sr_wu_20261022/methods/iesrgs_renderer.py',
+    'experiments/static_sr_wu_20261022/methods/iesrgs_source_defaults.json',
+    'experiments/static_sr_wu_20261022/methods/sequence_matters.py',
+    'experiments/static_sr_wu_20261022/methods/splatsure.py',
+    'experiments/static_sr_wu_20261022/methods/splatsure_UPSTREAM_LICENSE.txt',
+    'experiments/static_sr_wu_20261022/methods/splatsure_prepare.py',
+    'experiments/static_sr_wu_20261022/methods/splatsure_stablesr.py',
+    'experiments/static_sr_wu_20261022/methods/splatsure_stablesr_test.py',
+    'experiments/static_sr_wu_20261022/methods/splatsure_teacher.py',
+    'experiments/static_sr_wu_20261022/methods/splatsure_teacher_test.py',
+    'experiments/static_sr_wu_20261022/methods/splatsure_test.py',
+    'experiments/static_sr_wu_20261022/methods/threedsr.py',
+    'experiments/static_sr_wu_20261022/methods/threedsr_renderer.py',
+    'experiments/static_sr_wu_20261022/prepare.py',
+    'experiments/static_sr_wu_20261022/prepare_priors.py',
+    'experiments/static_sr_wu_20261022/prepare_suite.py',
+    'experiments/static_sr_wu_20261022/render_eval.py',
+    'experiments/static_sr_wu_20261022/run_threedsr.py',
+    'experiments/static_sr_wu_20261022/tests/test_integration.py',
+    'experiments/static_sr_wu_20261022/tests/test_pipeline_contract.py',
+    'experiments/static_sr_wu_20261022/tests/test_sequence_diffusion.py',
+    'experiments/static_sr_wu_20261022/tests/test_splatsure_contract.py',
+    'experiments/static_sr_wu_20261022/tests/test_suite.py',
+    'experiments/static_sr_wu_20261022/train_stage.py',
 )
 DYNAMIC_LR_SOURCE_MANIFESTS = (
     "deployment/dynamic_lr_baselines_20261020/methods/wu_multi/public_source_files.json",
@@ -322,6 +375,8 @@ def select_sources() -> dict[str, bytes]:
     for relative in EXPERIMENT_INSTRUCTIONS:
         add_file(selected, SOURCE / relative, relative)
     for relative in HIGHRES_REQUIRED_TEXT:
+        add_file(selected, SOURCE / relative, relative)
+    for relative in STATIC_SR_WU_SOURCES:
         add_file(selected, SOURCE / relative, relative)
     # Method owners review only small source/configuration files. Generated
     # scientific results and complete third-party/runtime copies stay private.
