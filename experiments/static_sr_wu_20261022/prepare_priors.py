@@ -18,7 +18,11 @@ def main():
     p.add_argument('--depth-checkpoint')
     p.add_argument('--internal-index')
     p.add_argument('--external-index')
+    p.add_argument('--cache-format', choices=('npy', 'npz_deflate'), default='npy',
+                   help='IE array container only; both preserve the exact float32 values')
     a = p.parse_args()
+    if a.cache_format != 'npy' and a.kind not in ('iesrgs_external', 'iesrgs_internal'):
+        p.error('--cache-format applies only to IE external/internal production; merge infers both formats')
     cfg = read(a.config)
     training_manifest(checked(cfg['manifest']), verify_pixels=True)
     if a.kind != 'iesrgs_merge':
@@ -30,14 +34,15 @@ def main():
         merge_priors(a.external_index, a.internal_index, a.out)
     elif a.kind == 'iesrgs_external':
         from methods.iesrgs_priors import prepare_external
-        prepare_external(cfg, a.upstream, identity(a.swinir_checkpoint), identity(a.depth_checkpoint), a.out, device='cuda')
+        prepare_external(cfg, a.upstream, identity(a.swinir_checkpoint), identity(a.depth_checkpoint), a.out,
+                         device='cuda', cache_format=a.cache_format)
     else:
         from backend import WuBackend
         ck = identity(a.checkpoint)
         backend = WuBackend(cfg, checkpoint=ck)
         if a.kind == 'iesrgs_internal':
             from methods.iesrgs_priors import prepare_internal
-            prepare_internal(backend, ck, a.out)
+            prepare_internal(backend, ck, a.out, cache_format=a.cache_format)
         else:
             from methods.splatsure_prepare import load_official_rasterizer, prepare_splatsure_cache
             payload = backend.torch.load(checked(ck), map_location='cpu', weights_only=False)

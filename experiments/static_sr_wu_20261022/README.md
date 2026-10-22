@@ -54,6 +54,7 @@ python train_stage.py --config CONFIG --stage sr --prior-bundle PRIORS --out NEW
 
 - Splat 主配方/变体：`methods/splatsure_stablesr.py` / `methods/splatsure_teacher.py`；权重图用 `prepare_priors.py --kind splatsure_weights --checkpoint LR_CK --rasterizer-source PINNED_SPLAT_RASTERIZER ...`。`bundle_priors.py` 合并已完成教师与权重图并核对身份。
 - IE：`prepare_priors.py --kind iesrgs_external --upstream ... --swinir-checkpoint ... --depth-checkpoint ...`，随后 `--kind iesrgs_internal --checkpoint INTERNAL_CK`，再用 `--kind iesrgs_merge --external-index ... --internal-index ...`。
+  两类生产入口可显式传 `--cache-format npz_deflate`，无损压缩原 float32 数组。训练读取同时核验文件 SHA、数组形状、精度和原始数组 SHA；默认 `npy` 保留兼容。两种实际尺寸、两条读取路径的损失与 RGB/深度梯度已通过逐位一致检查。压缩率依赖内容，完整场景仍须独立登记容量预算。
 - Sequence：`methods/sequence_matters.py --manifest TRAIN_RECORDS --upstream ... --psrt-checkpoint ... --spynet-checkpoint ... --output ...`。`--plan-only` 提前完成 CPU ORB/ALS 分组。正式推理传 `--sequence-plan 已完成的receipt.json` 直接复用，并核对输入/分组/源码；不重新计算 ORB。之后 `bundle_priors.py` 绑定真实 PSRT 输出。
 - 3DSR：`run_threedsr.py --config CONFIG --records TRAIN_RECORDS --lr-checkpoint LR_CK --upstream ... --stable-checkpoint ... --vqgan-checkpoint ... --teacher-python TEACHER_PYTHON --runtime-assets RUNTIME_ASSETS_JSON --out NEW_RUN`。扩散进程结束后串接重建，再串接回渲，不使用定时轮询。LR→SR 重置 Adam 一次；四轮之间保留模型和 Adam（检查点往返），学习率时钟按作者每轮重置。视角采样及增密所用的 Python/NumPy/Torch/CUDA 随机数状态跨轮连续，避免每轮重复相同的观测子集。
 
@@ -61,9 +62,9 @@ python train_stage.py --config CONFIG --stage sr --prior-bundle PRIORS --out NEW
 
 ## 验收与指标
 
-CPU 测试包括作者公式与梯度对照、源 ALS 控制流对照、Mip 滤波、同时间分组、测试相机隔离和实际相机投影。三个作者扩展已分别编译，且在一个 CPU 进程中共存导入；StableSR 与 3DSR 可共用本机独立 `output/static_sr_wu_20261022/runtime/stablesr_env/bin/python`，已完成实际模块导入、离线 OpenCLIP 缓存解析与依赖检查，环境兼容记录位于 `output/static_sr_wu_20261022/runtime/stablesr_env_audit/acceptance.json`。这些检查均未加载扩散大模型；**未执行 GPU forward/backward、教师推理或正式训练**。
+CPU 测试包括作者公式与梯度对照、源 ALS 控制流对照、Mip 滤波、同时间分组、测试相机隔离和实际相机投影。三个作者扩展已分别编译，且在一个 CPU 进程中共存导入；StableSR 与 3DSR 可共用本机独立 `output/static_sr_wu_20261022/runtime/stablesr_env/bin/python`，已完成实际模块导入、离线 OpenCLIP 缓存解析与依赖检查，环境兼容记录位于 `output/static_sr_wu_20261022/runtime/stablesr_env_audit/acceptance.json`。上述本机环境记录只证明 CPU 导入。后续 CTS 验收已在 Cook07 与 Discussion07 两种原始尺寸上通过四方法共 8 组短程前后向、参数更新和检查点恢复，并通过 IE 外部教师真实推理及统一指标测试。PSRT、StableSR、3DSR 的真实教师验收和正式六场景训练状态，以独立 CTS 收据为准；不能从短程连接测试推断方法效果。逐场景执行、容量门和指标回传后清理见 `deployment/static_sr_cts_20261022/README.md`。
 
-Sequence Matters 的独立解释器为 `output/static_sr_wu_20261022/runtime/sequence_env/bin/python`，固定入口为同级 `sequence_env_audit/run_teacher.sh`。BasicSR 1.4.2、timm 0.6.12、真实 PSRT 模块导入与权重 CPU 张量解析已通过；原作者未锁定这两个包的版本，完整模型构造与推理仍待 GPU 验收。
+Sequence Matters 的独立解释器为 `output/static_sr_wu_20261022/runtime/sequence_env/bin/python`，固定入口为同级 `sequence_env_audit/run_teacher.sh`。BasicSR 1.4.2、timm 0.6.12、真实 PSRT 模块导入与权重 CPU 张量解析已通过；原作者未锁定这两个包的版本。CTS 已在 Cook07 与 Discussion07 的帧 0 分别完成 20 和 12 个同步训练视角的实际 FP32 PSRT 推理，输出原始 HR 尺寸并经回传 SHA 核验；完整 300 帧先验与正式训练仍须单独完成。
 
 本轮已下载或复用所需官方教师权重并通过哈希校验。训练前仍需核对独立教师依赖、生成真实缓存，并完成各方法的真实 GPU 小步检查、median-depth→形变梯度检查、显存/计时及 checkpoint roundtrip。使用明确固定的 SwinIR-M、Depth Anything V2-Large、PSRT/SpyNet、StableSR/StableSR-Turbo/VQGAN；不能用其他模型替代。无需 CUDA 的权重下载、哈希与可行的 CPU 加载已按本地收据准备；下载记录不能当作教师输出。需要记录 source model、权重 SHA 和参数，不能复用其他项目场景专用权重。
 

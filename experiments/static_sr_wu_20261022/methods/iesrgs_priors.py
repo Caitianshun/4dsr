@@ -7,6 +7,7 @@ start training or choose a GPU. Call only after resource admission.
 from __future__ import annotations
 
 import importlib.util
+import hashlib
 import json
 import subprocess
 import sys
@@ -22,9 +23,11 @@ from .iesrgs import UPSTREAM_COMMIT, IESRGSPriors
 from .iesrgs_renderer import compute_3d_filter, render_state
 
 try:
-    from ..common import checked, identity, read, resolve, sha, training_manifest, write_new
+    from ..common import checked, identity, load_prior_array, read, resolve, sha, training_manifest, write_new
 except ImportError:
-    from common import checked, identity, read, resolve, sha, training_manifest, write_new
+    from common import checked, identity, load_prior_array, read, resolve, sha, training_manifest, write_new
+
+CACHE_FORMATS = ('npy', 'npz_deflate')
 
 
 def _upstream(root):
@@ -47,12 +50,28 @@ def _no_bytecode():
         sys.dont_write_bytecode = previous
 
 
-def _save_array(root, name, value):
-    p = root / name
+def _validate_cache_format(cache_format):
+    if cache_format not in CACHE_FORMATS:
+        raise ValueError(f'Unsupported IE cache format: {cache_format}')
+
+
+def _save_array(root, name, value, cache_format='npy'):
+    """Store the existing float32 payload exactly, one image/field per file."""
+    _validate_cache_format(cache_format)
+    p = (Path(root) / name).with_suffix('.npy' if cache_format == 'npy' else '.npz')
+    array = np.ascontiguousarray(value.detach().cpu().numpy().astype(np.float32, copy=False))
+    if not np.isfinite(array).all():
+        raise ValueError('Nonfinite IE prior array')
     p.parent.mkdir(parents=True, exist_ok=True)
     with p.open("xb") as handle:
-        np.save(handle, value.detach().cpu().numpy().astype(np.float32), allow_pickle=False)
-    return identity(p)
+        if cache_format == 'npy':
+            np.save(handle, array, allow_pickle=False)
+        else:
+            np.savez_compressed(handle, array=array)
+    item = identity(p)
+    item['storage'] = dict(format=cache_format, dtype=str(array.dtype), shape=list(array.shape),
+                           array_order='C', array_sha256=hashlib.sha256(array.tobytes(order='C')).hexdigest())
+    return item
 
 
 def _fresh_output(path):
@@ -61,11 +80,11 @@ def _fresh_output(path):
     return root
 
 
-def _base_index(config, manifest, model_identities, kind):
+def _base_index(config, manifest, model_identities, kind, cache_format='npy'):
     return dict(schema="static_sr_wu_prior_bundle_v1", manifest=config["manifest"],
                 scene=manifest["scene"], training_only=True,
                 producer=[identity(__file__), identity(Path(__file__).with_name("iesrgs.py"))],
-                model_identities=model_identities, kind=kind,
+                model_identities=model_identities, kind=kind, cache_format=cache_format,
                 upstream_commit=UPSTREAM_COMMIT, entries=[])
 
 
@@ -158,13 +177,14 @@ def external_tensors(lr, swinir, depth_model):
 
 
 def prepare_external(config, upstream_root, swinir_checkpoint, depth_checkpoint,
-                     output_dir, device, dependency_root=None):
+                     output_dir, device, dependency_root=None, cache_format='npy'):
     """Generate only the exact manifest's legal training-camera priors."""
+    _validate_cache_format(cache_format)
     manifest, rows = training_manifest(checked(config["manifest"]), verify_pixels=True)
     source = _upstream(upstream_root)
     swinir, depth = load_external_models(source, swinir_checkpoint, depth_checkpoint, device, dependency_root)
     root = _fresh_output(output_dir)
-    index = _base_index(config, manifest, [swinir_checkpoint, depth_checkpoint], "iesrgs_external")
+    index = _base_index(config, manifest, [swinir_checkpoint, depth_checkpoint], "iesrgs_external", cache_format)
     index["producer"] += [identity(source / "resolution.py"), identity(source / "submodules/Depth-Anything-V2/run.py")]
     index["producer"].append(identity(sys.modules["timm"].__file__))
     index["external_models"] = dict(swinir="classical_DF2K_SwinIR-M_x4", depth="DepthAnythingV2_vitl",
@@ -175,21 +195,22 @@ def prepare_external(config, upstream_root, swinir_checkpoint, depth_checkpoint,
         sr, inverse = external_tensors(lr.to(device), swinir, depth)
         key = f"{row['camera_id']}/{row['frame_index']:04d}"
         item = _entry(row)
-        item["external_rgb"] = _save_array(root, key + "_external_rgb.npy", sr)
-        item["external_inverse_depth"] = _save_array(root, key + "_external_inverse_depth.npy", inverse)
+        item["external_rgb"] = _save_array(root, key + "_external_rgb.npy", sr, cache_format)
+        item["external_inverse_depth"] = _save_array(root, key + "_external_inverse_depth.npy", inverse, cache_format)
         index["entries"].append(item)
     write_new(root / "index.json", index)
     return root / "index.json"
 
 
 @torch.no_grad()
-def prepare_internal(backend, checkpoint_identity, output_dir, require_stage="iesrgs_internal"):
+def prepare_internal(backend, checkpoint_identity, output_dir, require_stage="iesrgs_internal", cache_format='npy'):
     """Freeze a trained internal Wu+Mip teacher and render HR at training views.
 
     LR cameras determine the filter; HR cameras determine image rasterization.
     Nothing is rendered or loaded from the held-out camera, even if its poses
     are available in the surrounding dataset manifest.
     """
+    _validate_cache_format(cache_format)
     checkpoint = checked(checkpoint_identity)
     if getattr(backend, "loaded_checkpoint_identity", None) != identity(checkpoint):
         raise ValueError("backend must be freshly loaded from the indexed internal checkpoint")
@@ -204,7 +225,7 @@ def prepare_internal(backend, checkpoint_identity, output_dir, require_stage="ie
     del payload
     manifest, rows = training_manifest(checked(backend.config["manifest"]), verify_pixels=True)
     root = _fresh_output(output_dir)
-    index = _base_index(backend.config, manifest, [checkpoint_identity], "iesrgs_internal")
+    index = _base_index(backend.config, manifest, [checkpoint_identity], "iesrgs_internal", cache_format)
     index["producer"].append(identity(Path(__file__).with_name("iesrgs_renderer.py")))
     index["internal_teacher"] = dict(representation="Wu_4DGS_with_Mip_filter", checkpoint=checkpoint_identity,
                                     depth="RADE_median_depth", filter_reference_resolution="lr",
@@ -222,8 +243,8 @@ def prepare_internal(backend, checkpoint_identity, output_dir, require_stage="ie
                                   backend.g.active_sh_degree, cameras_lr, filter_3d=filt)
             key = f"{row['camera_id']}/{row['frame_index']:04d}"
             item = _entry(row)
-            item["internal_rgb"] = _save_array(root, key + "_internal_rgb.npy", packet["render"])
-            item["internal_depth"] = _save_array(root, key + "_internal_depth.npy", packet["median_depth"])
+            item["internal_rgb"] = _save_array(root, key + "_internal_rgb.npy", packet["render"], cache_format)
+            item["internal_depth"] = _save_array(root, key + "_internal_depth.npy", packet["median_depth"], cache_format)
             index["entries"].append(item)
     write_new(root / "index.json", index)
     return root / "index.json"
@@ -246,6 +267,9 @@ def merge_priors(external_index, internal_index, output_index):
         raise ValueError("prior keys are missing or duplicated")
     merged = dict(external)
     merged["kind"] = "iesrgs_complete"
+    merged['cache_formats'] = {'external': external.get('cache_format', 'npy'),
+                               'internal': internal.get('cache_format', 'npy')}
+    merged.pop('cache_format', None)  # Fields can legitimately use different lossless containers.
     merged["internal_teacher"] = internal["internal_teacher"]
     merged["producer"] = external["producer"] + internal["producer"]
     merged["model_identities"] = external["model_identities"] + internal["model_identities"]
@@ -263,5 +287,5 @@ def merge_priors(external_index, internal_index, output_index):
 
 def load_priors(entry, device):
     fields = ("internal_rgb", "internal_depth", "external_rgb", "external_inverse_depth")
-    return IESRGSPriors(**{key: torch.from_numpy(np.load(checked(entry[key]), allow_pickle=False)).to(device)
+    return IESRGSPriors(**{key: torch.from_numpy(load_prior_array(entry[key], require_float32=True)).to(device)
                            for key in fields})

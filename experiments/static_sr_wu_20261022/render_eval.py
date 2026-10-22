@@ -3,7 +3,7 @@ from __future__ import annotations
 import argparse
 import json
 from pathlib import Path
-from common import identity, read, resolve, write_new
+from common import ROOT, checked, identity, read, resolve, write_new
 
 
 def render_observation(backend, obs, allow_heldout=False):
@@ -49,7 +49,25 @@ def evaluate(backend, checkpoint, out, camera='cam00'):
     import torch
     from PIL import Image
     from utils.loss_utils import ssim
-    from lpipsPyTorch import lpips
+    import sys
+    evaluator_root = ROOT / 'third_party/static_sr_eval_20261022'
+    if not (evaluator_root / 'lpipsPyTorch/__init__.py').is_file():
+        raise FileNotFoundError('Prepare the pinned LPIPS evaluator dependency: ' + str(evaluator_root))
+    sys.path.insert(0, str(evaluator_root))
+    from lpipsPyTorch import LPIPS
+    cache = ROOT / 'weight/static_sr_wu_20261022/evaluation/torch/hub'
+    evaluator_weights = [
+        dict(path=str(cache / 'checkpoints/alexnet-owt-7be5be79.pth'),
+             sha256='7be5be791159472b1fbf3c69796f7cb30dca7ad8466c2df70058c37116cdee02'),
+        dict(path=str(cache / 'checkpoints/alex.pth'),
+             sha256='df73285e35b22355a2df87cdb6b70b343713b667eddbda73e1977e0c860835c0'),
+    ]
+    for asset in evaluator_weights:
+        checked(asset)
+    torch.hub.set_dir(str(cache))
+    # Same network and [0,1] input convention as the unified Wu scorer.
+    # Instantiate once; the former convenience function reloaded it per frame.
+    criterion = LPIPS(net_type='alex', version='0.1').to('cuda').eval()
     m = backend.manifest
     if camera not in m['splits']['test']:
         raise ValueError('This evaluator is only the fixed held-out split; train diagnostics must be labeled separately')
@@ -69,12 +87,15 @@ def evaluate(backend, checkpoint, out, camera='cam00'):
             if pred.shape!=gt.shape:
                 raise ValueError('Render/evaluation resolution differs')
             rows.append(dict(frame=obs['frame_index'],PSNR=float(-10*torch.log10((pred-gt).square().mean().clamp_min(1e-12))),
-                SSIM=float(ssim(pred,gt)),LPIPS=float(lpips(pred[None],gt[None],net_type='alex').mean()),
+                SSIM=float(ssim(pred,gt)),LPIPS=float(criterion(pred[None],gt[None]).mean()),
                 render=identity(p)))
     if len(rows)!=len(m['frame_indices']):
         raise ValueError('Held-out evaluation incomplete')
     result=dict(schema='static_sr_wu_uniform_png_metrics_v1',checkpoint=checkpoint,scene=m['scene'],camera=camera,
         quantization='np.rint(clip(rgb,0,1)*255), all methods same 8-bit PNG scorer',
+        lpips_implementation=identity(evaluator_root / 'lpipsPyTorch/modules/lpips.py'),
+        lpips_model_identities=evaluator_weights,
+        lpips_input_range='[0,1], unified Wu scorer convention',
         metrics={k:float(np.mean([r[k] for r in rows])) for k in ('PSNR','SSIM','LPIPS')},frames=rows,
         visual_temporal_acceptance=False, training_view_metrics=False)
     write_new(Path(out)/'metrics.json',result)

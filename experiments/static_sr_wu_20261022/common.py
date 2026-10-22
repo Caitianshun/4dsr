@@ -34,6 +34,48 @@ def checked(item):
     return p
 
 
+def load_prior_array(item, require_float32=False):
+    """Read one hashed NPY or single-member, lossless NPZ; never enable pickle.
+
+    Legacy NPY identities contain only path/sha256 and remain supported. New
+    storage metadata is optional, but every supplied value is verified. NPZ
+    is reserved for the float32 IE cache contract; no dtype conversion occurs.
+    """
+    import numpy as np
+    import zipfile
+    p = checked(item)
+    if p.suffix == '.npy':
+        storage_format = 'npy'
+        array = np.load(p, allow_pickle=False)
+    elif p.suffix == '.npz':
+        storage_format = 'npz_deflate'
+        with zipfile.ZipFile(p) as archive:
+            members = archive.infolist()
+            if (len(members) != 1 or members[0].filename != 'array.npy'
+                    or members[0].compress_type != zipfile.ZIP_DEFLATED):
+                raise ValueError('Prior NPZ must contain exactly one deflated array.npy member')
+        with np.load(p, allow_pickle=False) as archive:
+            array = archive['array']
+        require_float32 = True
+    else:
+        raise ValueError('Expected .npy or .npz prior array')
+    if not isinstance(array, np.ndarray) or array.dtype.hasobject:
+        raise ValueError('Prior cache must contain a numeric array')
+    if require_float32 and array.dtype != np.dtype('float32'):
+        raise ValueError('IE prior cache must preserve float32 dtype')
+    if not np.isfinite(array).all():
+        raise ValueError('Nonfinite prior array')
+    storage = item.get('storage', {})
+    expected = {'format': storage_format, 'dtype': str(array.dtype),
+                'shape': list(array.shape), 'array_order': 'C'}
+    if 'array_sha256' in storage:
+        expected['array_sha256'] = hashlib.sha256(array.tobytes(order='C')).hexdigest()
+    for key, value in storage.items():
+        if key not in expected or value != expected[key]:
+            raise ValueError(f'Prior storage metadata differs: {key}')
+    return array
+
+
 def read(path):
     return json.loads(resolve(path).read_text())
 

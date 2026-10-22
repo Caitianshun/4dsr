@@ -1,7 +1,7 @@
 """CPU acceptance of source semantics and protocol edge cases, not GPU approval.
 
 Run from project root:
-  CUDA_VISIBLE_DEVICES='' /home/cai_tianshun/Project/4dgs/.venv/bin/python -m \
+  CUDA_VISIBLE_DEVICES='' python -m \
     unittest experiments.static_sr_wu_20261022.methods.iesrgs_cpu_tests -v
 """
 from __future__ import annotations

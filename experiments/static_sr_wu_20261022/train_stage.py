@@ -12,7 +12,7 @@ import socket
 import time
 import traceback
 from pathlib import Path
-from common import METHODS, SCHEMA, checked, identity, read, resolve, training_manifest, verify_prior_index, write_new
+from common import METHODS, SCHEMA, checked, identity, load_prior_array, read, resolve, training_manifest, verify_prior_index, write_new
 
 FIELDS = {'splatsure': ('sr', 'weight'), 'iesrgs': ('internal_rgb', 'internal_depth', 'external_rgb', 'external_inverse_depth'),
           'sequence_matters': ('sr',), 'threedsr': ('sr',)}
@@ -22,15 +22,17 @@ def load_tensor(item, device='cuda'):
     import numpy as np
     import torch
     from PIL import Image
-    p = checked(item)
-    if p.suffix == '.npy':
-        value = torch.from_numpy(np.load(p, allow_pickle=False).copy()).float()
-    elif p.suffix in ('.pt', '.pty'):
-        value = torch.load(p, map_location='cpu', weights_only=True)
-        if not torch.is_tensor(value):
-            raise ValueError('Expected tensor cache')
+    p = resolve(item['path'])
+    if p.suffix in ('.npy', '.npz'):
+        value = torch.from_numpy(load_prior_array(item).copy()).float()
     else:
-        value = torch.from_numpy(np.asarray(Image.open(p).convert('RGB')).copy()).permute(2, 0, 1).float() / 255
+        p = checked(item)
+        if p.suffix in ('.pt', '.pty'):
+            value = torch.load(p, map_location='cpu', weights_only=True)
+            if not torch.is_tensor(value):
+                raise ValueError('Expected tensor cache')
+        else:
+            value = torch.from_numpy(np.asarray(Image.open(p).convert('RGB')).copy()).permute(2, 0, 1).float() / 255
     if not torch.isfinite(value).all():
         raise ValueError('Nonfinite prior')
     return value.to(device).detach()
