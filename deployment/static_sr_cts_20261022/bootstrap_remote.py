@@ -53,23 +53,44 @@ def load_bridge():
     spec=importlib.util.spec_from_file_location('cts_splatsure_stablesr_bridge',path)
     module=importlib.util.module_from_spec(spec);spec.loader.exec_module(module);return module
 
-def query_base(python):
+def cpu_subprocess_environment(base_python):
+    """Match run_job's private library prefix without changing shared installs.
+
+    Keep the venv launcher pathname: resolving its symlink can select /usr/bin
+    and lose the project root. Only subprocess environments are modified.
+    """
+    launcher=Path(base_python).absolute()
+    if launcher.parent.name!='bin':raise ValueError('Base Python must be a project venv bin/python launcher')
+    project=launcher.parents[2];libraries=project/'tools/runtime-libs'
+    required=libraries/'libBLT.2.5.so.8.6'
+    if not required.is_file():raise FileNotFoundError(f'Private Tk/BLT runtime library missing: {required}')
+    env=dict(os.environ,**CPU_ENV)
+    env.setdefault('CUDA_HOME',str(project/'tools/cuda-12.8-minimal'))
+    inherited=env.get('LD_LIBRARY_PATH','')
+    env['LD_LIBRARY_PATH']=':'.join([str(libraries),env['CUDA_HOME']+'/lib64',inherited])
+    record=dict(base_python_launcher=str(launcher),project_root=str(project),
+        private_library_directory=str(libraries),required_libraries=[dict(identity(required),bytes=required.stat().st_size)],
+        CUDA_HOME=env['CUDA_HOME'],LD_LIBRARY_PATH=env['LD_LIBRARY_PATH'],
+        inherited_LD_LIBRARY_PATH=inherited,CPU_ENV=dict(CPU_ENV),shared_environment_modified=False)
+    return env,record
+
+def query_base(python,env=None):
     code="""import json,sys,sysconfig,torch,torchvision,numpy
 assert not torch.cuda.is_initialized()
 print(json.dumps(dict(python=sys.executable,prefix=sys.prefix,purelib=sysconfig.get_paths()['purelib'],python_version=list(sys.version_info[:3]),torch=torch.__version__,torchvision=torchvision.__version__,numpy=numpy.__version__,CUDA_initialized=torch.cuda.is_initialized())))"""
-    env=dict(os.environ,**CPU_ENV)
+    env=dict(os.environ if env is None else env,**CPU_ENV)
     r=subprocess.run([str(python),'-c',code],env=env,text=True,capture_output=True,check=True)
     value=json.loads(r.stdout)
     if value['python_version'][:2]!=[3,10] or value['torch']!='2.7.1+cu128' or value['torchvision']!='0.22.1+cu128' or value['numpy']!='1.26.4':
         raise RuntimeError(f'Unaccepted base ABI/version: {value}')
     return value
 
-def overlay(python,base,name):
+def overlay(python,base,name,env=None):
     directory=RUNTIME/(name+'_env');site=directory/'lib/python3.10/site-packages'
     if not site.is_dir():raise FileNotFoundError(f'Transfer overlay site-packages first: {site}')
     if not (site/'sitecustomize.py').is_file():raise FileNotFoundError('Exact-function torchvision compatibility alias missing')
     if not (directory/'pyvenv.cfg').exists():
-        subprocess.run([str(python),'-m','venv','--copies','--without-pip',str(directory)],env=dict(os.environ,**CPU_ENV),check=True)
+        subprocess.run([str(python),'-m','venv','--copies','--without-pip',str(directory)],env=dict(os.environ if env is None else env,**CPU_ENV),check=True)
     config=(directory/'pyvenv.cfg').read_text()
     if 'include-system-site-packages = false' not in config:raise RuntimeError('Unexpected venv system package access')
     write_exact(site/'reuse_wu_torch.pth',base['purelib']+'\n')
@@ -156,20 +177,19 @@ def check(kind,assets_path):
     print(json.dumps(dict(status='CPU_imports_passed_GPU_unverified',kind=kind,root=str(ROOT),python=sys.executable,prefix=sys.prefix,versions=versions,checked=checked,CUDA_initialized=False,GPU_calls=0,checkpoint_loads=0,teacher_models_instantiated=0)))
 
 def apply(args):
-    out=Path(args.out).absolute();out.mkdir(parents=True,exist_ok=False);started=time.monotonic();record=dict(status='running',root=str(ROOT),script=identity(__file__),GPU_calls=0)
-    env=dict(os.environ,**CPU_ENV);os.environ.update(CPU_ENV)
+    out=Path(args.out).absolute();out.mkdir(parents=True,exist_ok=False);started=time.monotonic();record=dict(status='running',root=str(ROOT),script=identity(__file__),GPU_calls=0,checks={})
     try:
-        base=query_base(Path(args.base_python).absolute());record['base_environment']=base
-        envs={name:overlay(args.base_python,base,name) for name in ('stablesr','sequence')}
+        env,record['subprocess_environment']=cpu_subprocess_environment(args.base_python)
+        base=query_base(Path(args.base_python).absolute(),env=env);record['base_environment']=base
+        envs={name:overlay(args.base_python,base,name,env=env) for name in ('stablesr','sequence')}
         assets=runtime_assets(args.runtime_assets_template,out);record['runtime_assets']=identity(assets)
-        checks={}
+        checks=record['checks']  # Keep completed and failing checks even if a later subprocess fails.
         for kind in ('stablesr','threedsr','sequence','wu_extensions'):
             python=envs['stablesr' if kind in ('stablesr','threedsr') else 'sequence'] if kind!='wu_extensions' else args.base_python
             log=out/(kind+'_cpu_check.log')
             with log.open('x') as stream:r=subprocess.run([str(python),str(Path(__file__).absolute()),'check','--kind',kind,'--runtime-assets',str(assets)],env=env,stdout=stream,stderr=subprocess.STDOUT)
             checks[kind]=dict(returncode=r.returncode,log=identity(log))
             if r.returncode:raise RuntimeError(f'CPU import check failed; inspect {log}')
-        record['checks']=checks
         if args.register:
             command=[str(args.base_python),str(BASELINE/'prepare_suite.py'),'register','--prepared',str(ROOT/'output/static_sr_wu_20261022/cts_prepared'),'--plans',str(ROOT/'output/static_sr_wu_20261022/cts_cpu_prior_plans')]
             log=out/'registration.log'
