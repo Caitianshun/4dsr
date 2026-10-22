@@ -1015,7 +1015,7 @@
     "experiments/static_sr_wu_20261022/tests/test_teacher_acceptance.py": "f64825b606ddf39124706ad34ead8db2da9b6dd7fa41eccbcadbfa667f5598e4",
     "experiments/static_sr_wu_20261022/tests/test_teacher_tiling.py": "31c3403492d40f7e9d21e786ad3bab385a223c0e14ee1d7b6cca3f154c726bb1",
     "experiments/static_sr_wu_20261022/train_stage.py": "98ac27574fb42ce7b99984d058c64ed9174e9e2bfd9a45c3088d8b80e08bab6a",
-    "scripts/publish_generic_sr.py": "e2f8c8c628caa72455140b28c8c60101d229441edf1861db4f234a3b8065a02f",
+    "scripts/publish_generic_sr.py": "b05507a9bf28ed1ca515ff7ddb0dc24a9c3a26c76f7bca40b099308d33d6beef",
     "scripts/summarize_quality_headroom_20260923.py": "bbc8e37ad918ec6055f4b79df37ec8d9b50db4828ab2f8587155d6d0a1d468b2"
   }
 }

@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import argparse
 import hashlib
+import io
 import json
 from pathlib import Path
 import re
@@ -482,6 +483,56 @@ def safe_destination(target: Path, relative: str) -> Path:
     return candidate
 
 
+def stage_selected_sources(target: Path, selected: dict[str, bytes]) -> None:
+    """Override ignore rules only for this call's exact reviewed source paths."""
+    names = sorted(selected)
+    for offset in range(0, len(names), 128):
+        git(target, "--literal-pathspecs", "add", "-f", "--", *names[offset:offset + 128])
+
+
+def verify_head_sources(target: Path, selected: dict[str, bytes], removed: set[str]) -> str:
+    """Verify committed regular-file blobs, never the worktree or manifest alone."""
+    head = git(target, "rev-parse", "HEAD")
+    listing = subprocess.run(
+        ["git", "-C", str(target), "ls-tree", "-r", "-z", head],
+        check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+    ).stdout
+    entries = {}
+    for item in listing.split(b"\0"):
+        if not item:
+            continue
+        metadata, name = item.split(b"\t", 1)
+        mode, kind, oid = metadata.split()
+        entries[name.decode("utf-8", errors="surrogateescape")] = (mode, kind, oid)
+    for name in removed:
+        if name in entries:
+            raise RuntimeError(f"Deleted publication path is still in HEAD: {name}")
+    names = sorted(selected)
+    for name in names:
+        entry = entries.get(name)
+        if entry is None or entry[0] not in (b"100644", b"100755") or entry[1] != b"blob":
+            raise RuntimeError(f"Selected source is not a committed regular file in HEAD: {name}")
+    for offset in range(0, len(names), 128):
+        batch = names[offset:offset + 128]
+        request = b"".join(entries[name][2] + b"\n" for name in batch)
+        result = subprocess.run(
+            ["git", "-C", str(target), "cat-file", "--batch"], input=request,
+            check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+        )
+        stream = io.BytesIO(result.stdout)
+        for name in batch:
+            header = stream.readline().split()
+            if len(header) != 3 or header[:2] != [entries[name][2], b"blob"]:
+                raise RuntimeError(f"Cannot read committed source blob: {name}")
+            size = int(header[2])
+            content = stream.read(size)
+            if len(content) != size or stream.read(1) != b"\n" or digest(content) != digest(selected[name]):
+                raise RuntimeError(f"Committed HEAD bytes differ from selected source: {name}")
+        if stream.read(1):
+            raise RuntimeError("Unexpected trailing Git blob response")
+    return head
+
+
 def publish(target: Path, selected: dict[str, bytes], message: str, prefixes: list[str] | None = None) -> None:
     if not (target / ".git").is_dir():
         raise ValueError(f"Not a Git clone: {target}")
@@ -508,7 +559,8 @@ def publish(target: Path, selected: dict[str, bytes], message: str, prefixes: li
             raise ValueError("No allowlisted source matches the requested publication scope")
         selected = {name: safe_destination(target, name).read_bytes() for name in old_paths if not in_scope(name)}
         selected.update(source_selected)
-    for relative in sorted(old_paths - selected.keys()):
+    removed = old_paths - selected.keys()
+    for relative in sorted(removed):
         old_file = safe_destination(target, relative)
         if old_file.is_file():
             old_file.unlink()
@@ -529,22 +581,30 @@ def publish(target: Path, selected: dict[str, bytes], message: str, prefixes: li
     if {name: content for name, content in select_sources().items() if in_scope(name)} != source_selected:
         raise RuntimeError("Source changed during publication; rerun after it settles")
     git(target, "add", "-A")
+    # Directory-wide ignore rules such as tests/ still protect private files.
+    # Only source_selected is authoritative for force-add; scoped publication
+    # must not recover old ignored phantom entries outside the requested scope.
+    stage_selected_sources(target, source_selected)
     staged = set(git(target, "diff", "--cached", "--name-only").splitlines())
-    permitted = set(selected) | old_paths | {MANIFEST}
+    permitted = set(source_selected) | {name for name in old_paths if in_scope(name)} | {MANIFEST}
     unexpected = staged - permitted
     if unexpected:
         git(target, "reset")
         raise ValueError(f"Unexpected staged paths: {sorted(unexpected)}")
     if not staged:
-        print("No source changes to publish; remote main is current.")
+        head = verify_head_sources(target, source_selected, removed)
+        remote_head = git(target, "ls-remote", "origin", "refs/heads/main").split()[0]
+        if remote_head != head:
+            raise RuntimeError(f"No staged changes, but remote main differs: local {head}, remote {remote_head}")
+        print(f"No source changes; verified {len(source_selected)} source blobs in HEAD and remote main at {head}.")
         return
     git(target, "commit", "-m", message)
-    head = git(target, "rev-parse", "HEAD")
+    head = verify_head_sources(target, source_selected, removed)
     git(target, "push", "origin", "main")
     remote_head = git(target, "ls-remote", "origin", "refs/heads/main").split()[0]
     if remote_head != head:
         raise RuntimeError(f"Push verification failed: local {head}, remote {remote_head}")
-    print(f"Published {len(staged)} changed paths at {head}")
+    print(f"Published {len(staged)} changed paths at {head}; verified {len(source_selected)} selected source blobs.")
 
 
 def main() -> None:
