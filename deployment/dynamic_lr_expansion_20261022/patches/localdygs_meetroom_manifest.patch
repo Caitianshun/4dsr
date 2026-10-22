@@ -1,0 +1,27 @@
+--- a/scene/dataset_readers.py
++++ b/scene/dataset_readers.py
+@@ -180,6 +180,9 @@
+ 
+ 
+ def readColmapSceneInfo(path, images, eval, lod, frames_start_end=[0,300],llffhold=8):
++    if os.environ.get("DYNAMIC_LR_PROTOCOL_MANIFEST"):
++        from meetroom_adapter import local_colmap_scene
++        return local_colmap_scene(path, frames_start_end, globals())
+     
+     try:
+         cameras_extrinsic_file = os.path.join(path, "sparse/0", "images.bin")
+--- a/scene/__init__.py
++++ b/scene/__init__.py
+@@ -43,7 +43,11 @@
+         self.train_cameras = {}
+         self.test_cameras = {}
+ 
+-        if os.path.exists(os.path.join(args.source_path, "sparse")): # For VRU baseketball, MeetRoom and other Mutil-view datasets 
++        if os.environ.get("DYNAMIC_LR_PROTOCOL_MANIFEST"):
++            # This isolated runtime is explicitly for MeetRoom.
++            scene_info = sceneLoadTypeCallbacks["Colmap"](args.source_path, args.images, args.eval, args.lod, frames_start_end)
++            dataset_type = "colmap"
++        elif os.path.exists(os.path.join(args.source_path, "sparse")): # For VRU baseketball, MeetRoom and other Mutil-view datasets 
+             scene_info = sceneLoadTypeCallbacks["Colmap"](args.source_path, args.images, args.eval, args.lod, frames_start_end )
+             dataset_type = "colmap"
+         elif os.path.exists(os.path.join(args.source_path, "poses_bounds.npy")):  # just for N3DV dataset

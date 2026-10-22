@@ -57,6 +57,7 @@ EXPERIMENTS = (
     "sr4d_20260922",
 )
 DEPLOYMENTS = (
+    "dynamic_lr_expansion_20261022",
     "dynamic_sr_cem_backbone_20261020",
     "dynamic_lr_baselines_20261020",
     "a100_20260920",
@@ -74,6 +75,9 @@ DEPLOYMENTS = (
     "return_terminal_inventory_20261011",
 )
 EXPERIMENT_INSTRUCTIONS = (
+    "deployment/dynamic_lr_expansion_20261022/README.md",
+    "deployment/dynamic_lr_expansion_20261022/patches/localdygs_meetroom_manifest.patch",
+    "deployment/dynamic_lr_expansion_20261022/patches/cem_meetroom_manifest.patch",
     "deployment/dynamic_sr_cem_backbone_20261020/README.md",
     "experiments/dynamic_sr_cem_area_20261020/README.md",
     "deployment/dynamic_lr_baselines_20261020/README.md",

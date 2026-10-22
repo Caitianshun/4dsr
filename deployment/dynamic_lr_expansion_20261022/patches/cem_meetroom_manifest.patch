@@ -1,0 +1,12 @@
+--- a/scene/dataset_readers.py
++++ b/scene/dataset_readers.py
+@@ -518,6 +518,9 @@
+ 
+ 
+ def readColmapSceneInfoNeural3DVideo(path, images, eval, args):
++    if os.environ.get("DYNAMIC_LR_PROTOCOL_MANIFEST"):
++        from meetroom_adapter import initialization_contract
++        initialization_contract(path, "cem")
+     colmap_path = os.path.join(path, "colmap_" + str(int(args.start_timestamp)))
+     try:
+         cameras_extrinsic_file = os.path.join(colmap_path, "sparse", "0", "images.bin")
