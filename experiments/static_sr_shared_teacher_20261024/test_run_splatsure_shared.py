@@ -58,6 +58,17 @@ class SharedPipeline(unittest.TestCase):
             self.assertTrue(re.fullmatch('[a-z][a-z0-9-]{0,63}',value))
             self.assertTrue(value.startswith('ss-shared-'))
 
+    def test_broker_parent_prefix_preserves_launcher_and_child_isolation(self):
+        parent = runner.outer(self.profile, self.root/'plan.json')
+        self.assertEqual(parent[:6], [sys.executable, '-B', str(self.launcher), '--mode', 'base', '--'])
+        for child in self.stages():
+            self.assertEqual(child['argv'][:3], [sys.executable, '-s', '-B'])
+
+    def test_remote_entry_removes_only_interpreter_flag(self):
+        plain = dict(base_python='/task/.venv/bin/python', base_launcher=None, launcher_arguments=[])
+        self.assertEqual(runner.remote_entry(plain, '/task/script.py', '-s', 'literal'),
+                         ['/task/.venv/bin/python', '-B', '/task/script.py', '-s', 'literal'])
+
     def test_additional_storage_covers_raw_maps_and_one_evaluation_set(self):
         stages = self.stages()
         self.assertGreater(stages[0]['additional_bytes'], 6000*336*252*4)

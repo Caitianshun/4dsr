@@ -102,6 +102,17 @@ def launch(profile, script, *args):
     return [*argv, str(script), *map(str, args)]
 
 
+def remote_entry(profile, script, *args):
+    """Broker-facing parent argv; scientific children keep launch() unchanged.
+
+    The fixed supervisor sets PYTHONNOUSERSITE=1 before starting Python.
+    Its project-script parser accepts -B/-u and does not accept outer -s.
+    """
+    argv = launch(profile, script, *args)
+    del argv[1]  # Only the interpreter's -s; preserve all script arguments.
+    return argv
+
+
 def commands(run, profile, config, shared_cache, lr_completion, parent):
     def call(script, *args):
         return launch(profile, script, *args)
@@ -165,7 +176,7 @@ def dependencies(config, cache_path, lr_completion, cfg, manifest, parent, profi
 
 
 def outer(profile, plan_path):
-    return launch(profile, Path(__file__).absolute(), 'run', '--plan', Path(plan_path).absolute())
+    return remote_entry(profile, Path(__file__).absolute(), 'run', '--plan', Path(plan_path).absolute())
 
 
 def gate_files(gates):
