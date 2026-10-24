@@ -46,3 +46,42 @@ CUDA_VISIBLE_DEVICES='' PYTHONDONTWRITEBYTECODE=1 \
 ```
 
 CPU 测试不代表本机真实前后向、正式训练收敛或方法比较完成。
+
+## Sequence Matters 的独立完整链
+
+`run_sequence.py` 使用同一 Cook07 area4×4 协议。它先执行帧 0 的全部 20 个训练相机 PSRT（Pseudo Sequence Recurrent Transformer）GPU 验收，再生成正式 6000 张训练教师图。相机按既有 ALS 序列计划组织：每组固定同一时刻，跨训练相机组成伪视频；不把真实时间视频替代作者的跨视角序列。完整计划包含 300 组、2100 条最多 8 张图的序列。旧 CPU 计划必须通过记录、全部 LR、作者版本及源码 SHA 核验，才可跳过 ORB/ALS 重算。
+
+```text
+20 相机同步组 GPU 验收（独立目录，不能作为正式先验）
+  → 6000 张正式 PSRT 教师图
+  → 正式 producer、逐图 SHA、模型和 LR 绑定检查
+  → bundle + 训练入口 check-only
+  → 全新 Wu SR 30000 迭代（29999 次更新）
+  → 内置 cam00 全 300 帧 PSNR / SSIM / LPIPS
+```
+
+PSRT 与 SpyNet 使用已核验的作者权重；保留作者 FP32、色彩处理、序列长度与模型设置。Sequence SR 从新模型开始，不读取 SplatSuRe 的 LR 检查点。单组验收必须证明真实 GPU 执行、全部 ALS 前向顺序、×4 输出尺寸、有限数值和完整 20 张图；旧 CTS 收据与纯 CPU 计划均不能代替此步骤。
+
+CPU 计划命令如下。`--out` 必须在未来运行目录外，且必须是新文件。
+
+```bash
+CUDA_VISIBLE_DEVICES='' PYTHONDONTWRITEBYTECODE=1 \
+  /home/cai_tianshun/miniconda3/envs/sr4d/bin/python -B \
+  deployment/static_sr_local_20261024/run_sequence.py plan \
+  --run-id cook07-sequence-v1 \
+  --gpu-uuid GPU_UUID_FROM_RESOURCE_OWNER \
+  --wiring-receipt LOCAL_WIRING_RECEIPT \
+  --metric-receipt LOCAL_METRIC_RECEIPT \
+  --out NEW_SEQUENCE_PLAN_JSON
+```
+
+执行只由主控经既有本机 broker 准入；须使用计划生成的完整 job ID、相同 PRO6000 UUID、`role=local` 和 `env_id=sr4d`，由 broker 持久服务串行运行：
+
+```text
+/home/cai_tianshun/miniconda3/envs/sr4d/bin/python -s
+ABS_PROJECT/deployment/static_sr_local_20261024/run_sequence.py run --plan ABS_SEQUENCE_PLAN_JSON
+```
+
+默认 base launcher 为任务内已冻结的 `launch_v2.py`；教师使用 `sequence_python`，不改变已有环境。新目录固定在 `output/static_sr_wu_20261024/local_sequence_runs/Cook07/RUN_ID`。每个子进程前重验源码、权重、overlay 文件与剩余磁盘预算。失败保留 `execution/status.json`、`diagnostics.json`、各阶段日志和耗时；成功才写 `execution/complete.json`。没有自动提交、续跑、删除、远端访问或方法替换。
+
+全链初始要求 **61,115,334,656 字节（56.917 GiB）** 可用空间，其中包括 20 GiB 预留。PNG 每张上界为 4,743,168 字节，分别计入 6000 张正式教师、20 张验收图和 300 张评价图。其余空间计入阶段日志与受每文件上界约束的检查点；不使用样本压缩率承诺容量。`blocked_storage` 计划不能执行；资源改变后须由主控生成新计划，不能改旧 JSON 绕过门槛。单组教师成本仅用于估计，不能视为全场景实测成本或训练收益。
