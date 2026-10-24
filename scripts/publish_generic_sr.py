@@ -204,6 +204,14 @@ HIGHRES_REQUIRED_TEXT = (
     "experiments/dynamic_sr_modules_20261010/perframe_20261021/eval_train_resid.py",
     "experiments/dynamic_sr_modules_20261010/motion_20261021/warp_endpoint_check.py",
     "experiments/dynamic_sr_modules_20261010/motion_20261021/phase_eval.py",
+    # third module (sessions 4dsr-46 / 4dsr-f3, 2026-10-23): pseudo-view consensus distillation (PVCD, s = 4, K = 3) on the w4 recipe
+    # and the 10-15 S1-③b sampler / loss it imports, the P+C v3 position-smoothing variants (LOCO rule), the training-view evaluator
+    # that also scores no-field (tm) checkpoints for the ablation table, and the JSON smoke gate used in the lane lists
+    "experiments/dynamic_sr_cull_retrain_20261009/variance_20261014/consistency_distill.py",
+    "experiments/dynamic_sr_modules_20261010/third_20261022/pvcd_modkit.py",
+    "experiments/dynamic_sr_modules_20261010/third_20261022/resid_temporal_variants2.py",
+    "experiments/dynamic_sr_modules_20261010/third_20261022/eval_train_resid_f3ab2.py",
+    "experiments/dynamic_sr_modules_20261010/third_20261022/gate_json.py",
     # third-party notice for experiments/dynamic_sr_physlr_20261016/hat_arch_local.py (derived from XPixelGroup/HAT,
     # Apache-2.0; notice plus the verbatim license text, 2026-10-18)
     "experiments/dynamic_sr_physlr_20261016/THIRD_PARTY_HAT_LICENSE.txt",

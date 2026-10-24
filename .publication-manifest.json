@@ -435,6 +435,7 @@
     "experiments/dynamic_sr_cull_retrain_20261009/smoke_runtime.py": "8c224058eb85d68581d691dfa013237dbb5f6f69447ff2ea3d825ad3128a9d83",
     "experiments/dynamic_sr_cull_retrain_20261009/summarize.py": "46dafefa44b3d1750100d822eaafe10a679ca4f83044fb5f6a2f06ec99620e12",
     "experiments/dynamic_sr_cull_retrain_20261009/tasks.py": "88f5128daffb1ab16ceed605a43832dd506e85e0247a162effd0304ca0cd384f",
+    "experiments/dynamic_sr_cull_retrain_20261009/variance_20261014/consistency_distill.py": "50fd3e9797a39b44a0944391e29dd410d721b73ea2f7d1e801e4fa902b076cf4",
     "experiments/dynamic_sr_cull_retrain_20261009/variance_20261014/ens_eval_view.py": "b3c67fa3301ddfb9a54a67629376247fd29c19b0b3ea6c4b9d9edf7b9bf3e125",
     "experiments/dynamic_sr_detail_supervision_20260924/calibrate.py": "b2306bfa23d8320fd77309677b014955fa59a4b57da101987054438aaa923018",
     "experiments/dynamic_sr_detail_supervision_20260924/detail_loss.py": "ff899066cc31850486f9d6cead1f5fc7c90e6e071d217b6d21ca5a293c7e048f",
@@ -605,6 +606,10 @@
     "experiments/dynamic_sr_modules_20261010/perframe_20261021/jobs/cuta100_laneD.txt": "9dd67b4b3d12da8b25050d72c4553e626c0089cde3d2186189ed722f9ecc35c3",
     "experiments/dynamic_sr_modules_20261010/refs.py": "c589ca0eb9ec49772f5b77089027e00966f2c69e50f0444a9a3ac4094459c107",
     "experiments/dynamic_sr_modules_20261010/srfix.py": "ae0a509605b9088575664ade8b88f3a5ba3ecba0a0086271a987222c1a07f8ee",
+    "experiments/dynamic_sr_modules_20261010/third_20261022/eval_train_resid_f3ab2.py": "eb7473bf95de9d006bc75c0b68dee9f6cf1a5331db135eb861e1166e2aaceb18",
+    "experiments/dynamic_sr_modules_20261010/third_20261022/gate_json.py": "68e6797b90ed95dcc143684e0f799cc10058b95b622a561c352c077b3e1c2cd6",
+    "experiments/dynamic_sr_modules_20261010/third_20261022/pvcd_modkit.py": "81090870de7ffe9b5e906a0ceae3eb1702e3b9307750314e0ef27449effc186c",
+    "experiments/dynamic_sr_modules_20261010/third_20261022/resid_temporal_variants2.py": "2ec0b5a045b8574870f114b9b5a9acb22c86fab98459bc4784642cd00fb7a67d",
     "experiments/dynamic_sr_motion_bound_20260923/acquire_vrheadset.py": "df349af6ee8ce12cef4106e387939f5a3c1eb6e7f15b3816e3ae33f6453ab558",
     "experiments/dynamic_sr_motion_bound_20260923/check_initialization.py": "4f931cf0e3ed9071d4812767c842320ce2cdaadd908b0905c919ccb80507a4ea",
     "experiments/dynamic_sr_motion_bound_20260923/evaluate.py": "1dee07fce9ecdfaa1ee600cf5b2a2850dfa4c83147557490a0fe53394d2dbf33",
@@ -1015,7 +1020,7 @@
     "experiments/static_sr_wu_20261022/tests/test_teacher_acceptance.py": "f64825b606ddf39124706ad34ead8db2da9b6dd7fa41eccbcadbfa667f5598e4",
     "experiments/static_sr_wu_20261022/tests/test_teacher_tiling.py": "31c3403492d40f7e9d21e786ad3bab385a223c0e14ee1d7b6cca3f154c726bb1",
     "experiments/static_sr_wu_20261022/train_stage.py": "98ac27574fb42ce7b99984d058c64ed9174e9e2bfd9a45c3088d8b80e08bab6a",
-    "scripts/publish_generic_sr.py": "b05507a9bf28ed1ca515ff7ddb0dc24a9c3a26c76f7bca40b099308d33d6beef",
+    "scripts/publish_generic_sr.py": "a95f8ccf87ab441021c0469f140a800dd4c36434a403c442265676c0cedc9b17",
     "scripts/summarize_quality_headroom_20260923.py": "bbc8e37ad918ec6055f4b79df37ec8d9b50db4828ab2f8587155d6d0a1d468b2"
   }
 }
