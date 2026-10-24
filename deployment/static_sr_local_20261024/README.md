@@ -79,9 +79,44 @@ CUDA_VISIBLE_DEVICES='' PYTHONDONTWRITEBYTECODE=1 \
 
 ```text
 /home/cai_tianshun/miniconda3/envs/sr4d/bin/python -s
+ABS_PROJECT/output/static_sr_wu_20261024/local_runtime/launch_v2.py --mode base --
 ABS_PROJECT/deployment/static_sr_local_20261024/run_sequence.py run --plan ABS_SEQUENCE_PLAN_JSON
 ```
 
-默认 base launcher 为任务内已冻结的 `launch_v2.py`；教师使用 `sequence_python`，不改变已有环境。新目录固定在 `output/static_sr_wu_20261024/local_sequence_runs/Cook07/RUN_ID`。每个子进程前重验源码、权重、overlay 文件与剩余磁盘预算。失败保留 `execution/status.json`、`diagnostics.json`、各阶段日志和耗时；成功才写 `execution/complete.json`。没有自动提交、续跑、删除、远端访问或方法替换。
+外层也必须使用已冻结的 `launch_v2.py`。运行器在启动教师前会读取作者 Git 清单；broker 使用隔离用户，直接调用运行器会触发 Git 目录所有权保护。该 launcher 只在本进程及子进程中信任逐一核对版本的项目目录，不修改全局 Git 配置。默认 base launcher 同为该文件；教师使用 `sequence_python`，不改变已有环境。新目录固定在 `output/static_sr_wu_20261024/local_sequence_runs/Cook07/RUN_ID`。每个子进程前重验源码、权重、overlay 文件与剩余磁盘预算。失败保留 `execution/status.json`、`diagnostics.json`、各阶段日志和耗时；成功才写 `execution/complete.json`。没有自动提交、续跑、删除、远端访问或方法替换。
 
 全链初始要求 **61,115,334,656 字节（56.917 GiB）** 可用空间，其中包括 20 GiB 预留。PNG 每张上界为 4,743,168 字节，分别计入 6000 张正式教师、20 张验收图和 300 张评价图。其余空间计入阶段日志与受每文件上界约束的检查点；不使用样本压缩率承诺容量。`blocked_storage` 计划不能执行；资源改变后须由主控生成新计划，不能改旧 JSON 绕过门槛。单组教师成本仅用于估计，不能视为全场景实测成本或训练收益。
+
+## 用完整 StableSR 分片接续 SplatSuRe
+
+`run_splatsure_from_shards.py` 是独立入口。它要求原 `run_splatsure.py` 的同一 Cook07 LR 运行已经完成 30000 次迭代，并已有 cam00 全 300 帧评价。它只消费已回传的完整 StableSR 分片聚合收据，不重训 LR，也不重新生成教师图。
+
+```text
+同场景正式 LR 完成收据 + 全部 6000 张 StableSR 分片聚合收据
+  → 核对原始计划、分片执行、模型、LR 与逐 PNG SHA
+  → 原贡献图生成器（冻结 LR 父模型，同一时刻 20 个训练相机）
+  → 完整 bundle + 训练入口 check-only
+  → 全新 Wu SR 30000 迭代（29999 次更新）
+  → 内置 cam00 全 300 帧 PSNR / SSIM / LPIPS
+```
+
+原分片收据保留原字节。聚合收据的显式路径映射用于验证本机返回文件；原远端绝对路径只作来源记录。入口调用分片模块的只读 `verify_aggregate` 重新验证整个聚合结果，要求原配方、固定两项本机模型身份、完整训练键、每张原始 LR 和 SR 的 SHA、成功执行收据以及对应源码。分片数按封闭 roster 核验，不接受单图 fixture、缺片、重复键或 held-out 图像。分片 seed 重置和跨硬件信息保留在 provenance；不声称与一次串行生成逐位相同。
+
+```bash
+CUDA_VISIBLE_DEVICES='' PYTHONDONTWRITEBYTECODE=1 \
+  /home/cai_tianshun/miniconda3/envs/sr4d/bin/python -B \
+  deployment/static_sr_local_20261024/run_splatsure_from_shards.py plan \
+  --run-id SAME_COMPLETED_LR_RUN_ID \
+  --lr-completion SAME_RUN/lr_phase/complete.json \
+  --aggregate-receipt COMPLETE_LOCAL_AGGREGATE_JSON \
+  --wiring-receipt LOCAL_WIRING_RECEIPT \
+  --metric-receipt LOCAL_METRIC_RECEIPT \
+  --gpu-uuid GPU-ddc2c5d8-3507-6293-837c-b1ea6b5e1cc5 \
+  --out NEW_CONTINUATION_PLAN_JSON
+```
+
+主控仅可将计划内 `broker_entry_argv` 原样作为已有本机 broker 的执行参数。该命令的外层也是 `sr4d/bin/python -s launch_v2.py --mode base --`，随后才是新入口的 `run --plan`。运行器要求匹配的本机 PRO6000 UUID 和精确 broker cgroup；所有阶段串行，不访问远端、不提交作业。
+
+已存在的教师 PNG 不重复计入新增写入量，但其实际占用会反映在当前磁盘余量中。接续阶段新增保守预算为 **11,918,475,264 字节**，另保留 **21,474,836,480 字节（20 GiB）**，因此启动时要求至少 **33,393,311,744 字节（31.100 GiB）** 可用空间。每个阶段再次检查全部剩余预算。每文件上界仍是资源失败边界，不改变方法步数、数值或点数。贡献图、bundle 与 check-only 收据生成后立即冻结身份，后续子进程前复核。
+
+已有 `full_phase`、`shards_sr_phase`、`teacher`、`contribution`、`bundle.json`、`bundle_gate` 或 `sr` 任一产物都会拒绝接续，避免覆盖或重放失败。状态和日志保存在同一 LR 运行内的 `shards_sr_phase/`。只有完整 SR 与 300 帧评价成功、最终源码和输入 SHA 再次核对后，才写该阶段的 `complete.json`。CPU 测试通过只证明入口约束；完整分片尚未生成时，不能据此宣称可执行正式接续计划已经具备。
