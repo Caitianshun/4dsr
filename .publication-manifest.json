@@ -975,6 +975,14 @@
     "experiments/sr4d_20260922/summarize_minimal.py": "8e2e3e7c1c331e6651b72a1dc84db585d88bc85e0007a7aca44e700d0145d057",
     "experiments/sr4d_20260922/train_sr4d.py": "0f12fb92c513b135a31d3578dc11b36fcb15ae9101a848361ccc9f184f22ae8f",
     "experiments/sr4d_20260922/wu_entry.py": "57e74af4ea68ef3c485735179d0d15f7b2eec5245d670e9aa88e4fd7eabd05a9",
+    "experiments/static_sr_shared_teacher_20261024/README.md": "2b37d812244d5389efbf6b4faadbe2151398842d165af93076743217c5e92415",
+    "experiments/static_sr_shared_teacher_20261024/build_splatsure_bundle.py": "b50d0d2c6f0b329996c5e759be93d66408e8521a7138c98ca25f766cc5a52d3f",
+    "experiments/static_sr_shared_teacher_20261024/prepare_ie_shared.py": "5faf4dfae200a5b54c7feb2ad2bd4f228f6d1fc94100131f3d38c1a81654ba3d",
+    "experiments/static_sr_shared_teacher_20261024/run_splatsure_shared.py": "c94c0bd03be714a829148c207957e729435702d65c1c9fe5afe6c56a96f6ab10",
+    "experiments/static_sr_shared_teacher_20261024/shared_cache.py": "33b9a5dd55b6442d29439ea677a7227c3bd5e9b5bf534d4b2d5d47448499832b",
+    "experiments/static_sr_shared_teacher_20261024/test_prepare_ie_shared.py": "6186eda2dbee73ce712f3849d17ed109f8522d0f18e21e30a0d7991380967b09",
+    "experiments/static_sr_shared_teacher_20261024/test_run_splatsure_shared.py": "048def6cb38faf2f31003be2b46fb0a83653d5561ac11fafa4334d602cd2b2ae",
+    "experiments/static_sr_shared_teacher_20261024/test_shared_cache.py": "0143be8436820187062bfa257a7d87d7c86a3eb5986ee14c251348b57b85a05a",
     "experiments/static_sr_wu_20261022/README.md": "14799fccde89ae3c9cd1ea06212f98c01c149359b4cd81104dd7098484f9c1ef",
     "experiments/static_sr_wu_20261022/THIRD_PARTY_NOTICES.md": "dda0c0d02e58d827db8d1f7b8c0cdd9d8a5f150943651c06564be1a564001f93",
     "experiments/static_sr_wu_20261022/backend.py": "3fd57c9ee7c0f11b0e920a6dab71930c5dd25b257b445a513f8768e32f09d8c9",
@@ -1031,7 +1039,7 @@
     "experiments/static_sr_wu_20261022/tests/test_teacher_acceptance.py": "f64825b606ddf39124706ad34ead8db2da9b6dd7fa41eccbcadbfa667f5598e4",
     "experiments/static_sr_wu_20261022/tests/test_teacher_tiling.py": "31c3403492d40f7e9d21e786ad3bab385a223c0e14ee1d7b6cca3f154c726bb1",
     "experiments/static_sr_wu_20261022/train_stage.py": "98ac27574fb42ce7b99984d058c64ed9174e9e2bfd9a45c3088d8b80e08bab6a",
-    "scripts/publish_generic_sr.py": "d889dc047a3ad83cc6e2da0c9dfefe8be99bd3a23c71a2dc3412c79961d97de0",
+    "scripts/publish_generic_sr.py": "95cc0c98041799fb2ff57c4ba564a61a12fe9c7069f4a686abe545f5cc6219d0",
     "scripts/summarize_quality_headroom_20260923.py": "bbc8e37ad918ec6055f4b79df37ec8d9b50db4828ab2f8587155d6d0a1d468b2"
   }
 }

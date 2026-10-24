@@ -217,6 +217,14 @@ HIGHRES_REQUIRED_TEXT = (
     "experiments/dynamic_sr_physlr_20261016/THIRD_PARTY_HAT_LICENSE.txt",
 )
 STATIC_SR_WU_SOURCES = (
+    'experiments/static_sr_shared_teacher_20261024/README.md',
+    'experiments/static_sr_shared_teacher_20261024/shared_cache.py',
+    'experiments/static_sr_shared_teacher_20261024/test_shared_cache.py',
+    'experiments/static_sr_shared_teacher_20261024/build_splatsure_bundle.py',
+    'experiments/static_sr_shared_teacher_20261024/prepare_ie_shared.py',
+    'experiments/static_sr_shared_teacher_20261024/test_prepare_ie_shared.py',
+    'experiments/static_sr_shared_teacher_20261024/run_splatsure_shared.py',
+    'experiments/static_sr_shared_teacher_20261024/test_run_splatsure_shared.py',
     'deployment/static_sr_local_20261024/README.md',
     'deployment/static_sr_local_20261024/run_splatsure.py',
     'deployment/static_sr_local_20261024/test_run_splatsure.py',
