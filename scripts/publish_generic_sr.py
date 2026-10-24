@@ -217,6 +217,9 @@ HIGHRES_REQUIRED_TEXT = (
     "experiments/dynamic_sr_physlr_20261016/THIRD_PARTY_HAT_LICENSE.txt",
 )
 STATIC_SR_WU_SOURCES = (
+    'deployment/static_sr_local_20261024/README.md',
+    'deployment/static_sr_local_20261024/run_splatsure.py',
+    'deployment/static_sr_local_20261024/test_run_splatsure.py',
     'deployment/static_sr_cts_20261022/README.md',
     'deployment/static_sr_cts_20261022/asset_inventory.py',
     'deployment/static_sr_cts_20261022/bootstrap_remote.py',
