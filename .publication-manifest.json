@@ -782,6 +782,7 @@
     "experiments/dynamic_sr_physlr_20261016/physlin2.py": "bce65950b4084719371de4efb88927400918e08234fe7d9fdaa059050e104df3",
     "experiments/dynamic_sr_physlr_20261016/physlr.py": "5da86fbf688d98cd1f97c1bf241edd8402b845818d298b091517cc11a303672e",
     "experiments/dynamic_sr_physlr_20261016/physlr_lrstage.py": "4caa30fec9c3b53367ad6df7a625fafc33e8e02d13c50e929c672c7532d60b3c",
+    "experiments/dynamic_sr_physlr_20261016/physlr_x2.py": "de7728b4e753d65b990f5a6ebafc8f317bd372e4aa5e0e85dd9db3e06b49d2e2",
     "experiments/dynamic_sr_physlr_20261016/physpaired.py": "f83cf65428a2b7196bf894bb62ae0fbd4499f5d821ac45bf185b23dba7ef68dc",
     "experiments/dynamic_sr_physlr_20261016/physsr.py": "6e01e3371a1f4eeb69f4053448a58944cafa2acd88f3fb452f827c0e57333bcc",
     "experiments/dynamic_sr_physlr_20261016/physsr2.py": "63b461fc26b6c511db58642c221954ef6242a0a0b2e78ff87c027d41e45bf2d7",
