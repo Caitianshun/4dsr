@@ -209,6 +209,7 @@ HIGHRES_REQUIRED_TEXT = (
     # that also scores no-field (tm) checkpoints for the ablation table, and the JSON smoke gate used in the lane lists
     "experiments/dynamic_sr_cull_retrain_20261009/variance_20261014/consistency_distill.py",
     "experiments/dynamic_sr_modules_20261010/third_20261022/pvcd_modkit.py",
+    "experiments/dynamic_sr_modules_20261010/third_20261022/sched24k.py",
     "experiments/dynamic_sr_modules_20261010/third_20261022/resid_temporal_variants2.py",
     "experiments/dynamic_sr_modules_20261010/third_20261022/eval_train_resid_f3ab2.py",
     "experiments/dynamic_sr_modules_20261010/third_20261022/gate_json.py",
