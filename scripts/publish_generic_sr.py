@@ -213,6 +213,10 @@ HIGHRES_REQUIRED_TEXT = (
     "experiments/dynamic_sr_modules_20261010/third_20261022/resid_temporal_variants2.py",
     "experiments/dynamic_sr_modules_20261010/third_20261022/eval_train_resid_f3ab2.py",
     "experiments/dynamic_sr_modules_20261010/third_20261022/gate_json.py",
+    # PVCD supplements (session 4dsr-33, 2026-10-26): training-view pose ablation wrapper and the zero-training K-curve /
+    # run-disagreement diagnostic (tmp prereg_k45.md); both ran on A100 / CTS
+    "experiments/dynamic_sr_modules_20261010/third_20261022/pvcd_tv.py",
+    "experiments/dynamic_sr_modules_20261010/third_20261022/pvcd_kdiag.py",
     # third-party notice for experiments/dynamic_sr_physlr_20261016/hat_arch_local.py (derived from XPixelGroup/HAT,
     # Apache-2.0; notice plus the verbatim license text, 2026-10-18)
     "experiments/dynamic_sr_physlr_20261016/THIRD_PARTY_HAT_LICENSE.txt",
