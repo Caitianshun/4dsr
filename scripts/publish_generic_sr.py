@@ -217,6 +217,35 @@ HIGHRES_REQUIRED_TEXT = (
     # run-disagreement diagnostic (tmp prereg_k45.md); both ran on A100 / CTS
     "experiments/dynamic_sr_modules_20261010/third_20261022/pvcd_tv.py",
     "experiments/dynamic_sr_modules_20261010/third_20261022/pvcd_kdiag.py",
+    # module audit (session 4dsr-4e, 2026-11-01; tmp prereg_U1/U3/U4/M2gate.md): temporal B-spline residual coding and its
+    # held-out selection (U1, not adopted), disagreement-guided pseudo-view sampling (U3, not adopted), CoR-GS-style
+    # pseudo-view co-regularisation control (U4) and its smoke check, A1 renders, held-out-camera P+C diagnostics
+    "experiments/dynamic_sr_modules_20261010/moduleaudit_20261101/resid_bspline.py",
+    "experiments/dynamic_sr_modules_20261010/moduleaudit_20261101/u1_select.py",
+    "experiments/dynamic_sr_modules_20261010/moduleaudit_20261101/u1_confirm.py",
+    "experiments/dynamic_sr_modules_20261010/moduleaudit_20261101/pvcd_dgps.py",
+    "experiments/dynamic_sr_modules_20261010/moduleaudit_20261101/u4/cotrain_modkit.py",
+    "experiments/dynamic_sr_modules_20261010/moduleaudit_20261101/u4/u4check.py",
+    "experiments/dynamic_sr_modules_20261010/moduleaudit_20261101/render_a1.py",
+    "experiments/dynamic_sr_modules_20261010/moduleaudit_20261101/pc_heldout_diag.py",
+    "experiments/dynamic_sr_modules_20261010/moduleaudit_20261101/pc_gate_diag.py",
+    "experiments/dynamic_sr_modules_20261010/moduleaudit_20261101/gate_verdict.py",
+    # render-speed benchmark and qualitative comparison figure (session 4dsr-ac, 2026-11-02): same-GPU FPS timing of the final
+    # model and the baselines, per-window metric maps, crop selection, blind-review sheets and decoding, figure builder, and the
+    # AGENTS.md 0.3 acceptability-gate sheets for the final method
+    "experiments/dynamic_sr_modules_20261010/qualfig_20261102/bench_core.py",
+    "experiments/dynamic_sr_modules_20261010/qualfig_20261102/fps_bench.py",
+    "experiments/dynamic_sr_modules_20261010/qualfig_20261102/fps_sr4d.py",
+    "experiments/dynamic_sr_modules_20261010/qualfig_20261102/fps_table.py",
+    "experiments/dynamic_sr_modules_20261010/qualfig_20261102/make_spec.py",
+    "experiments/dynamic_sr_modules_20261010/qualfig_20261102/render_sv2_local.py",
+    "experiments/dynamic_sr_modules_20261010/qualfig_20261102/patch_maps.py",
+    "experiments/dynamic_sr_modules_20261010/qualfig_20261102/select_crops.py",
+    "experiments/dynamic_sr_modules_20261010/qualfig_20261102/select_motion.py",
+    "experiments/dynamic_sr_modules_20261010/qualfig_20261102/review_sheets.py",
+    "experiments/dynamic_sr_modules_20261010/qualfig_20261102/decode_blind.py",
+    "experiments/dynamic_sr_modules_20261010/qualfig_20261102/make_figure.py",
+    "experiments/dynamic_sr_modules_20261010/qualfig_20261102/gate_build.py",
     # third-party notice for experiments/dynamic_sr_physlr_20261016/hat_arch_local.py (derived from XPixelGroup/HAT,
     # Apache-2.0; notice plus the verbatim license text, 2026-10-18)
     "experiments/dynamic_sr_physlr_20261016/THIRD_PARTY_HAT_LICENSE.txt",
