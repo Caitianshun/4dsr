@@ -553,6 +553,7 @@
     "experiments/dynamic_sr_modules_20261010/absorb_20261021/run_scenes2.py": "5148723c07938a70462864c2d5914925c6e495b377003f027337c864d9c09e67",
     "experiments/dynamic_sr_modules_20261010/absorb_20261021/static_pin_probe.py": "ed73711462d5ab4a1315e1ef2a29e4c4a791ab9fa34c0569aca3ed3b80bf4c04",
     "experiments/dynamic_sr_modules_20261010/costtime_20261102/temporal_png.py": "f5d76e68608b0015217e5cf6ded5c3e3cad30dc6ae85eb230f6921f7119c1650",
+    "experiments/dynamic_sr_modules_20261010/costtime_20261102/temporal_tof_tlp.py": "96cc787287fd454f74e69afa270ef77c959a1f841c1ffcd87e2683e5e39bf79a",
     "experiments/dynamic_sr_modules_20261010/geoprobe_20261017/appearance_refit_v2.py": "9c930d48e35fd787974e669236f222e03e0636365368e25084c8a16756dbe570",
     "experiments/dynamic_sr_modules_20261010/geoprobe_20261017/calibsr.py": "93cd09f1987fc151099af4d8514a40af0ed990fff3b003363c8507360affa757",
     "experiments/dynamic_sr_modules_20261010/geoprobe_20261017/calibsr_v2.py": "900c3f6305e92718a1643c4fe9f80baf5b8c4d0b15e62c0cbecbbcb19f2130f5",
@@ -1106,7 +1107,7 @@
     "experiments/static_sr_wu_20261022/tests/test_teacher_acceptance.py": "f64825b606ddf39124706ad34ead8db2da9b6dd7fa41eccbcadbfa667f5598e4",
     "experiments/static_sr_wu_20261022/tests/test_teacher_tiling.py": "31c3403492d40f7e9d21e786ad3bab385a223c0e14ee1d7b6cca3f154c726bb1",
     "experiments/static_sr_wu_20261022/train_stage.py": "98ac27574fb42ce7b99984d058c64ed9174e9e2bfd9a45c3088d8b80e08bab6a",
-    "scripts/publish_generic_sr.py": "4719867234f418f00200d1af5064b569476f8c07b5db99b590111b77b7b0b053",
+    "scripts/publish_generic_sr.py": "c19664741cbea07ff4c46968ea5d0574047483e3454f6ef42d54c1f6a06394aa",
     "scripts/summarize_quality_headroom_20260923.py": "bbc8e37ad918ec6055f4b79df37ec8d9b50db4828ab2f8587155d6d0a1d468b2"
   }
 }

@@ -288,6 +288,7 @@ HIGHRES_REQUIRED_TEXT = (
     "experiments/dynamic_sr_modules_20261010/newscenes_bl_20261103/lanes_a4/make_lanes_a4.py",
     "experiments/dynamic_sr_modules_20261010/qualfig_rerender_20261103/rerender_bl4.py",
     "experiments/dynamic_sr_modules_20261010/costtime_20261102/temporal_png.py",
+    "experiments/dynamic_sr_modules_20261010/costtime_20261102/temporal_tof_tlp.py",
     # third-party notice for experiments/dynamic_sr_physlr_20261016/hat_arch_local.py (derived from XPixelGroup/HAT,
     # Apache-2.0; notice plus the verbatim license text, 2026-10-18)
     "experiments/dynamic_sr_physlr_20261016/THIRD_PARTY_HAT_LICENSE.txt",
