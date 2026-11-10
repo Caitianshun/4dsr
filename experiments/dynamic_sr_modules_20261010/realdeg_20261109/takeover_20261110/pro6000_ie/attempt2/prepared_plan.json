@@ -1,0 +1,918 @@
+{
+  "schema": "rd4_pro6000_original_IE_plan_v2",
+  "project_id": "4dsr",
+  "gpu_uuid": "GPU-ddc2c5d8-3507-6293-837c-b1ea6b5e1cc5",
+  "original_gpu_uuid": "GPU-c40035c3-0f06-e88b-73f5-fa40d62ec4ec",
+  "python": "/home/cai_tianshun/miniconda3/envs/mml_bw/bin/python",
+  "env_id": "mml_bw",
+  "runner_path": "experiments/dynamic_sr_modules_20261010/realdeg_20261109/takeover_20261110/pro6000_ie/attempt2/runner.py",
+  "source_lock": {
+    "path": "experiments/dynamic_sr_modules_20261010/realdeg_20261109/baselines/source_lock.json",
+    "sha256": "3cfb4725d2f913608933d6292c384e1062f892496c0b97b546c07d86f34a9459"
+  },
+  "artifact_lock": {
+    "path": "experiments/dynamic_sr_modules_20261010/realdeg_20261109/baselines/artifact_lock.json",
+    "sha256": "ca3cf57af7c9ddb2ecc983934cce65bbde4707b7112b66affe63e42c81086384"
+  },
+  "original_owner_plan": {
+    "path": "docs/rd4_takeover_20261110/local_baselines/sequence.json",
+    "sha256": "b3f135e3d7f9a03194cbc0e0dddf55f45f445c40ec520acb8cdebede2ba600c6"
+  },
+  "predecessor_controller": {
+    "path": "docs/rd4_takeover_20261110/local_baselines/v6_pro6000_split/controller.py",
+    "sha256": "3a397dfa16d547aa1bc7a56cb55690f9d5e8f039dfb8ffcad895410eebb5424c"
+  },
+  "source_bindings": [
+    {
+      "path": "experiments/dynamic_sr_modules_20261010/realdeg_20261109/baselines/source_lock.json",
+      "sha256": "3cfb4725d2f913608933d6292c384e1062f892496c0b97b546c07d86f34a9459"
+    },
+    {
+      "path": "experiments/dynamic_sr_modules_20261010/realdeg_20261109/baselines/artifact_lock.json",
+      "sha256": "ca3cf57af7c9ddb2ecc983934cce65bbde4707b7112b66affe63e42c81086384"
+    },
+    {
+      "path": "experiments/dynamic_sr_modules_20261010/realdeg_20261109/baselines/run_lane.py",
+      "sha256": "b95e05146993f1ed18ebd6221ac87f15e3f10560e0257d45365a14a4f98685af"
+    },
+    {
+      "path": "experiments/dynamic_sr_modules_20261010/realdeg_20261109/baselines/runtime_rd.py",
+      "sha256": "fcb7c2313af474f7ce6d8280ec2c13637cf76c073a817388d479c6769e10f5bf"
+    },
+    {
+      "path": "experiments/dynamic_sr_modules_20261010/realdeg_20261109/baselines/rd_common.py",
+      "sha256": "ab59e5b93106bba44d4e203530fa355f080a1e70f4b46213600716f03c5daec9"
+    },
+    {
+      "path": "experiments/dynamic_sr_modules_20261010/realdeg_20261109/baselines/disk_guard.py",
+      "sha256": "bc9ee810e3a541f1da170d0faeb1339e3d5e6fbb4cf650c8be6a819ef0a42318"
+    },
+    {
+      "path": "experiments/dynamic_sr_modules_20261010/realdeg_20261109/baselines/teacher_rd.py",
+      "sha256": "8ddcb2063383a5186af15dae30c5e0ef47b94be3ce4891e0b1d4d4bc6ec66206"
+    },
+    {
+      "path": "experiments/dynamic_sr_modules_20261010/realdeg_20261109/baselines/score_rd.py",
+      "sha256": "49bb051fecfff4bd6ab2924bbce5d4bd69d7aa145030b9cd6c196139459ed87d"
+    },
+    {
+      "path": "experiments/dynamic_sr_modules_20261010/realdeg_20261109/baselines/returns_rd.py",
+      "sha256": "3c1cd3da973f5bc1a7f8e4cd19e2b161e88d8456d33bf9ceb98b4f2c935480e1"
+    },
+    {
+      "path": "experiments/static_sr_wu_20261022/cts_method_build.py",
+      "sha256": "27f0d95275db0a027a4d367c0a3abeb7212a46d253cedce06ea9939ee6749e13"
+    },
+    {
+      "path": "experiments/static_sr_wu_20261022/run_threedsr.py",
+      "sha256": "e72986b202e868a28f5abf93637fef0da4d29624709f3c9d4c7e82f8b1ac3720"
+    },
+    {
+      "path": "experiments/static_sr_wu_20261022/prepare.py",
+      "sha256": "195db4c7fae38ba94d9af81c85945fa87ebfca79355c45651c60a17bf5620b00"
+    },
+    {
+      "path": "experiments/static_sr_wu_20261022/gpu_acceptance.py",
+      "sha256": "af551cf938b6ced51e8d15274bacfc96fd0e65b270abdc1c5349e042beede8a0"
+    },
+    {
+      "path": "experiments/static_sr_wu_20261022/lossless_cache_probe.py",
+      "sha256": "7ad56fbe07570a45ce4b31c1a054413a57bf4fb69a8a3b9546c6b14f524207eb"
+    },
+    {
+      "path": "experiments/static_sr_wu_20261022/render_eval.py",
+      "sha256": "1927b75dc02467080a0a2cb4e97b4dbb41b4991ee452ab38691bad7c2e7a13bf"
+    },
+    {
+      "path": "experiments/static_sr_wu_20261022/backend.py",
+      "sha256": "3fd57c9ee7c0f11b0e920a6dab71930c5dd25b257b445a513f8768e32f09d8c9"
+    },
+    {
+      "path": "experiments/static_sr_wu_20261022/metric_acceptance.py",
+      "sha256": "8572cd53728220085a23453d3be27be3af0a42353f7b9b17d481e5bdcccccf17"
+    },
+    {
+      "path": "experiments/static_sr_wu_20261022/teacher_acceptance.py",
+      "sha256": "4b22553de9a112139c2f76858f2e4cc1ca998cf247bcd8011786de10ca9cd04f"
+    },
+    {
+      "path": "experiments/static_sr_wu_20261022/external_teacher_acceptance.py",
+      "sha256": "4378eee66698249c0a3f02bd4ca77311c54bf75680e5610e711ebb9d0d84153b"
+    },
+    {
+      "path": "experiments/static_sr_wu_20261022/check_cpu.py",
+      "sha256": "eaf19ad618037539aa7f9ad4c2963774586d588e26fb158dc82d1e9f9fceedb9"
+    },
+    {
+      "path": "experiments/static_sr_wu_20261022/train_stage.py",
+      "sha256": "98ac27574fb42ce7b99984d058c64ed9174e9e2bfd9a45c3088d8b80e08bab6a"
+    },
+    {
+      "path": "experiments/static_sr_wu_20261022/prepare_priors.py",
+      "sha256": "1cbf097e2f581300abb27d47c27bbcb8736b7302eedc9d5837d57ef99bd7eff8"
+    },
+    {
+      "path": "experiments/static_sr_wu_20261022/common.py",
+      "sha256": "3e195fe4f3b02438cd1f3e8379d895853bc2e5634eae74cf143e8db70efe5b7d"
+    },
+    {
+      "path": "experiments/static_sr_wu_20261022/cts_native_build.py",
+      "sha256": "e74a3239bfc0870f448ca3d71ef3bb4e39423f0a071104348b046f530e21618e"
+    },
+    {
+      "path": "experiments/static_sr_wu_20261022/prepare_suite.py",
+      "sha256": "4edd923d1698e439b1b22a5e612b9e8981682a9352969abc95d994eb67132260"
+    },
+    {
+      "path": "experiments/static_sr_wu_20261022/bundle_priors.py",
+      "sha256": "5081affad2636781b912c236408f407a4ec9ec83ecdbc3bc03e887fec8ab894e"
+    },
+    {
+      "path": "experiments/static_sr_wu_20261022/methods/splatsure_teacher_test.py",
+      "sha256": "8234a6c5e707a069ccbc724030270a32323c8bcff56e75fcfe29df8d6577b500"
+    },
+    {
+      "path": "experiments/static_sr_wu_20261022/methods/iesrgs.py",
+      "sha256": "df64f5ec107b7471f2db2ae6bd3db66572fbcfce13e55c3f09f36c2d80ab6d23"
+    },
+    {
+      "path": "experiments/static_sr_wu_20261022/methods/threedsr_renderer.py",
+      "sha256": "848c38de435f353afe2099e2143206ca64c53eda5ebfe16950b719c197406326"
+    },
+    {
+      "path": "experiments/static_sr_wu_20261022/methods/splatsure_stablesr.py",
+      "sha256": "7cdf1ecbf088577a7493351d7848e58e3125d673c260a32c66de756a24f3c802"
+    },
+    {
+      "path": "experiments/static_sr_wu_20261022/methods/splatsure.py",
+      "sha256": "1eb153c2422d74aefa3cd31bdc242416a81c712696169dfaae5da57be3c75be6"
+    },
+    {
+      "path": "experiments/static_sr_wu_20261022/methods/splatsure_stablesr_test.py",
+      "sha256": "425bd333af4f7ecc9731a0dab268f00419e401f88cf4382e9c69e81332538a3f"
+    },
+    {
+      "path": "experiments/static_sr_wu_20261022/methods/iesrgs_build_runtime.py",
+      "sha256": "811fd7e8fc0b7be30773e929278f692591d032919c615f5447eeee3af56038e7"
+    },
+    {
+      "path": "experiments/static_sr_wu_20261022/methods/sequence_matters.py",
+      "sha256": "59932d5bc825e05f5c37fad7e2b7614970aa4283bc94eaa9eb9a409c9ec2747a"
+    },
+    {
+      "path": "experiments/static_sr_wu_20261022/methods/iesrgs_priors.py",
+      "sha256": "b389d4ec64542f6ad66dbfa47059214c374433e8e5287dacaab8f2cbabd663b1"
+    },
+    {
+      "path": "experiments/static_sr_wu_20261022/methods/splatsure_test.py",
+      "sha256": "c1c352df1679ab7f40ff007fc7c78c41525e2b0100e3a3f5f28d888e39eca2e3"
+    },
+    {
+      "path": "experiments/static_sr_wu_20261022/methods/splatsure_prepare.py",
+      "sha256": "2292ead5148158735e9664b2a0ac0f3c578d1a363ead4eb076aaab47acd9121b"
+    },
+    {
+      "path": "experiments/static_sr_wu_20261022/methods/iesrgs_renderer.py",
+      "sha256": "0975cfc125b676845cdd77660d97833f256d1d6a05b499149d50165154ed29fb"
+    },
+    {
+      "path": "experiments/static_sr_wu_20261022/methods/threedsr.py",
+      "sha256": "95a662b243e9d4c683b8e5324c7309ecec12eb4f6406406f6e50c7ae41f04e28"
+    },
+    {
+      "path": "experiments/static_sr_wu_20261022/methods/splatsure_teacher.py",
+      "sha256": "f630f330fe4ef1e240cc53b2c41b18385586c41a9f08f0e9f8270d1dd26614cb"
+    },
+    {
+      "path": "experiments/static_sr_wu_20261022/methods/iesrgs_cpu_tests.py",
+      "sha256": "13e9e75538e65f0821e94817f7df44f54f646a1dad363a22081bbd233e1f1b8a"
+    },
+    {
+      "path": "experiments/dynamic_sr_modules_20261010/realdeg_20261109/baselines/jobs/rd-ie-cook.json",
+      "sha256": "bb24b91500c779a1422a0e51355b044430a57789a5d55726178706a3cbb25e49"
+    },
+    {
+      "path": "experiments/dynamic_sr_modules_20261010/realdeg_20261109/baselines/lanes/rd-ie-cook.json",
+      "sha256": "09f7f86c39555a1a0e7830e3e002376b94732ceeda5f15eaf5ccd4833fc9bcb9"
+    },
+    {
+      "path": "experiments/dynamic_sr_modules_20261010/realdeg_20261109/baselines/configs/cook_spinach/iesrgs.json",
+      "sha256": "5112eea7fc9c8350fc79b8d2b59bbb73273425d9d9dae04bd4d6e8cdde091bfd"
+    },
+    {
+      "path": "experiments/dynamic_sr_modules_20261010/realdeg_20261109/baselines/jobs/rd-ie-cut.json",
+      "sha256": "3efb5b9b85d7943d214d195088b39115c69e7f036b587861f6fbde2ec271a492"
+    },
+    {
+      "path": "experiments/dynamic_sr_modules_20261010/realdeg_20261109/baselines/lanes/rd-ie-cut.json",
+      "sha256": "5d3bc490e49fb664eb453d1889cfe4f7f4deb880e8cafa2c87b73745dc612aa0"
+    },
+    {
+      "path": "experiments/dynamic_sr_modules_20261010/realdeg_20261109/baselines/configs/cut_roasted_beef/iesrgs.json",
+      "sha256": "52eac4d46a1b26013c45404142af3c63293bb6a3bd9b997a4e9e3a691236f2a6"
+    },
+    {
+      "path": "experiments/dynamic_sr_modules_20261010/realdeg_20261109/baselines/jobs/rd-ie-flame.json",
+      "sha256": "442e927829f26b08609a30d5a4b0e2009462590656b257166bba4e6916e0a103"
+    },
+    {
+      "path": "experiments/dynamic_sr_modules_20261010/realdeg_20261109/baselines/lanes/rd-ie-flame.json",
+      "sha256": "06c35af22916fcdfa44021a9142e33c19d975bfd307e4e50e06617df023fc500"
+    },
+    {
+      "path": "experiments/dynamic_sr_modules_20261010/realdeg_20261109/baselines/configs/flame_steak/iesrgs.json",
+      "sha256": "ffdac6b361bbf7de651f2d8c2db9d30355d7c0e88f882e2ca0be929590db5a44"
+    },
+    {
+      "path": "experiments/dynamic_sr_modules_20261010/realdeg_20261109/baselines/jobs/rd-ie-coffee.json",
+      "sha256": "f5340d0f86bb0f1ab157f1f41257d52e2507a558c3d89d27c9f621d91b51eb4e"
+    },
+    {
+      "path": "experiments/dynamic_sr_modules_20261010/realdeg_20261109/baselines/lanes/rd-ie-coffee.json",
+      "sha256": "53c34f210157d566161bd4db7a526186e394815163fff9a6cce2a3c5d742aecf"
+    },
+    {
+      "path": "experiments/dynamic_sr_modules_20261010/realdeg_20261109/baselines/configs/coffee_martini/iesrgs.json",
+      "sha256": "427dcc4783e55a0603cd4a94792c033bbece24262cda9593ccdbf3a10cfa9fb1"
+    },
+    {
+      "path": "experiments/dynamic_sr_modules_20261010/realdeg_20261109/baselines/jobs/rd-ie-sear.json",
+      "sha256": "4b67c7ed173e6ec852509af4ca9a5c3abaf1e6fa748b210fbc4bfbdf984106bc"
+    },
+    {
+      "path": "experiments/dynamic_sr_modules_20261010/realdeg_20261109/baselines/lanes/rd-ie-sear.json",
+      "sha256": "67e22e2c3eac4b235736aa1aa2248ec7b5f530bfe4421ca23b420c40c341d922"
+    },
+    {
+      "path": "experiments/dynamic_sr_modules_20261010/realdeg_20261109/baselines/configs/sear_steak/iesrgs.json",
+      "sha256": "12d5e9109dc3d15804b08146f1f5b7bfabfd07099d11c0b737ef28e4e62727ac"
+    },
+    {
+      "path": "experiments/dynamic_sr_modules_20261010/realdeg_20261109/baselines/jobs/rd-ie-salmon.json",
+      "sha256": "51fb70ddfcfecec8824b1184a79a81da2a99b9f8bb1f1d48231b0290e8b26899"
+    },
+    {
+      "path": "experiments/dynamic_sr_modules_20261010/realdeg_20261109/baselines/lanes/rd-ie-salmon.json",
+      "sha256": "dab3ae08f5493c63ffc629b7c6c4fdc13fc01364fc2331e38238eb2e2a6e51c5"
+    },
+    {
+      "path": "experiments/dynamic_sr_modules_20261010/realdeg_20261109/baselines/configs/flame_salmon/iesrgs.json",
+      "sha256": "29294533267a185fe97366c7dcd8a61bce987248d79ee370dfb2798eaaaba09a"
+    },
+    {
+      "path": "experiments/dynamic_sr_modules_20261010/realdeg_20261109/baselines/jobs/rd-ie-disc.json",
+      "sha256": "45b5a12a800be68feb06c95d63b8be8e43772b2d54fe8b7900ed6d6952badf90"
+    },
+    {
+      "path": "experiments/dynamic_sr_modules_20261010/realdeg_20261109/baselines/lanes/rd-ie-disc.json",
+      "sha256": "2993b80229eda61e3d947b1c016290c60f044bf10f04590828c7e121e61f44c3"
+    },
+    {
+      "path": "experiments/dynamic_sr_modules_20261010/realdeg_20261109/baselines/configs/meetroom_discussion/iesrgs.json",
+      "sha256": "b37484d42a0edff809bd82f63da66c8c41e1d7a3f1ba89e6a050b7e8b4440b05"
+    },
+    {
+      "path": "experiments/dynamic_sr_modules_20261010/realdeg_20261109/baselines/jobs/rd-ie-vr.json",
+      "sha256": "51f92b37594423c71f925e5e94e7a2d410530a5e29fd63001471e2fbe57472d0"
+    },
+    {
+      "path": "experiments/dynamic_sr_modules_20261010/realdeg_20261109/baselines/lanes/rd-ie-vr.json",
+      "sha256": "9a84adb2ac03e15cf4c8c321e450b3f6f792a6c6e9a69098fe4c222fd81990d1"
+    },
+    {
+      "path": "experiments/dynamic_sr_modules_20261010/realdeg_20261109/baselines/configs/meetroom_vrheadset/iesrgs.json",
+      "sha256": "92cb36ebc952e14b2cf615d9315cb94a175d6765e6f2e41ce75a5420e0c5bc50"
+    },
+    {
+      "path": "output/static_sr_wu_20261024/next_teacher_gates_cpu_v1/iesrgs_clean_74d60d5/submodules/Depth-Anything-V2/depth_anything_v2/dpt.py",
+      "sha256": "7cc9a29b41d31e1628e5c8b8705e25ae95bc6490f779dbb695297ce2341566f5"
+    },
+    {
+      "path": "output/static_sr_wu_20261024/next_teacher_gates_cpu_v1/iesrgs_clean_74d60d5/submodules/Depth-Anything-V2/depth_anything_v2/dinov2.py",
+      "sha256": "d22df8d0da44c8525ebed898fd9c33b3acfcda919a84d577cc2a08bfd3d50ac1"
+    },
+    {
+      "path": "output/static_sr_wu_20261024/next_teacher_gates_cpu_v1/iesrgs_clean_74d60d5/submodules/Depth-Anything-V2/depth_anything_v2/util/blocks.py",
+      "sha256": "351aa24b8af4bef923ebe3bed5e5e8503b08e39bf06ee045d6444a485a2036a8"
+    },
+    {
+      "path": "output/static_sr_wu_20261024/next_teacher_gates_cpu_v1/iesrgs_clean_74d60d5/submodules/Depth-Anything-V2/depth_anything_v2/util/transform.py",
+      "sha256": "a97df1dbb687457a40c387fdc3482edee7ddc5c142c7d2735ca6235a8ae2885f"
+    },
+    {
+      "path": "output/static_sr_wu_20261024/next_teacher_gates_cpu_v1/iesrgs_clean_74d60d5/submodules/Depth-Anything-V2/depth_anything_v2/dinov2_layers/block.py",
+      "sha256": "093266ea08084c7cce7b8ddd779ecfaaa13055735faa8a7d68b5924f385b395b"
+    },
+    {
+      "path": "output/static_sr_wu_20261024/next_teacher_gates_cpu_v1/iesrgs_clean_74d60d5/submodules/Depth-Anything-V2/depth_anything_v2/dinov2_layers/layer_scale.py",
+      "sha256": "356817b5d1390737128cbcc03a5333fd3060b73beae478772282ccb851d0ef85"
+    },
+    {
+      "path": "output/static_sr_wu_20261024/next_teacher_gates_cpu_v1/iesrgs_clean_74d60d5/submodules/Depth-Anything-V2/depth_anything_v2/dinov2_layers/mlp.py",
+      "sha256": "c18c5b3f021408597a473bb710070ec3fb3b39f5a2e42e88ae83ced425a608b5"
+    },
+    {
+      "path": "output/static_sr_wu_20261024/next_teacher_gates_cpu_v1/iesrgs_clean_74d60d5/submodules/Depth-Anything-V2/depth_anything_v2/dinov2_layers/patch_embed.py",
+      "sha256": "b3f82e19926c9cfb63f10136aca5e8a723bde1ad62dae1d04f90d405f9439baf"
+    },
+    {
+      "path": "output/static_sr_wu_20261024/next_teacher_gates_cpu_v1/iesrgs_clean_74d60d5/submodules/Depth-Anything-V2/depth_anything_v2/dinov2_layers/__init__.py",
+      "sha256": "e3c28c7b775165b6844000eb69f44d104d6c3803ac7da5d59f6ac3ecfb46d9d8"
+    },
+    {
+      "path": "output/static_sr_wu_20261024/next_teacher_gates_cpu_v1/iesrgs_clean_74d60d5/submodules/Depth-Anything-V2/depth_anything_v2/dinov2_layers/swiglu_ffn.py",
+      "sha256": "df81d9901240214edc1831ce1b77558dcd6227b29a2f000fc5f546df55d2d09a"
+    },
+    {
+      "path": "output/static_sr_wu_20261024/next_teacher_gates_cpu_v1/iesrgs_clean_74d60d5/submodules/Depth-Anything-V2/depth_anything_v2/dinov2_layers/drop_path.py",
+      "sha256": "949100aac4d9c19c9d65319dbd362886c5d46a72d7586ba4fd500e9f1d51570c"
+    },
+    {
+      "path": "output/static_sr_wu_20261024/next_teacher_gates_cpu_v1/iesrgs_clean_74d60d5/submodules/Depth-Anything-V2/depth_anything_v2/dinov2_layers/attention.py",
+      "sha256": "0d2410ce8b8b4499a6b0cdab939ae2bceab8971efd8660d999b0f3088f28cbf7"
+    },
+    {
+      "path": "third_party/4dgs_843d5ac_runtime/diff_gaussian_rasterization/_C.cpython-310-x86_64-linux-gnu.so",
+      "sha256": "c82c68242766d2e1c695acc1d6256191de52d1f9899dbe7d93b8334b68b7039d"
+    },
+    {
+      "path": "third_party/4dgs_843d5ac_runtime/simple_knn/_C.cpython-310-x86_64-linux-gnu.so",
+      "sha256": "26247ec5926854bfc40698fb684274f9d1187ff112ff8fd213684f20c7b7b898"
+    },
+    {
+      "path": "experiments/dynamic_sr_cull_retrain_20261009/rt.py",
+      "sha256": "01b75733238fca3c764678c7161c432f36cdb1e7ec829c4a2fc96f648bdb4400"
+    }
+  ],
+  "jobs": [
+    {
+      "original_job_id": "rd-ie-cook",
+      "service_job_id": "rd4-p6-ie-cook-02",
+      "scene": "cook_spinach",
+      "original_request": {
+        "path": "experiments/dynamic_sr_modules_20261010/realdeg_20261109/baselines/jobs/rd-ie-cook.json",
+        "sha256": "bb24b91500c779a1422a0e51355b044430a57789a5d55726178706a3cbb25e49"
+      },
+      "lane": {
+        "path": "experiments/dynamic_sr_modules_20261010/realdeg_20261109/baselines/lanes/rd-ie-cook.json",
+        "sha256": "09f7f86c39555a1a0e7830e3e002376b94732ceeda5f15eaf5ccd4833fc9bcb9"
+      },
+      "config": {
+        "path": "experiments/dynamic_sr_modules_20261010/realdeg_20261109/baselines/configs/cook_spinach/iesrgs.json",
+        "sha256": "5112eea7fc9c8350fc79b8d2b59bbb73273425d9d9dae04bd4d6e8cdde091bfd"
+      },
+      "original_request_value": {
+        "version": 1,
+        "job_id": "rd-ie-cook",
+        "project_id": "4dsr",
+        "role": "local",
+        "operation": "run",
+        "argv": [
+          "/home/cai_tianshun/miniconda3/envs/mml_bw/bin/python",
+          "-u",
+          "/home/cai_tianshun/Project/4dsr/experiments/dynamic_sr_modules_20261010/realdeg_20261109/baselines/run_lane.py",
+          "--lane",
+          "experiments/dynamic_sr_modules_20261010/realdeg_20261109/baselines/lanes/rd-ie-cook.json",
+          "--execute"
+        ],
+        "gpu_memory_mib": 22000,
+        "timeout_seconds": 32400,
+        "env_id": "mml_bw",
+        "cwd": "/home/cai_tianshun/Project/4dsr",
+        "gpu_uuids": [
+          "GPU-c40035c3-0f06-e88b-73f5-fa40d62ec4ec"
+        ]
+      },
+      "service_manifest": {
+        "version": 1,
+        "job_id": "rd4-p6-ie-cook-02",
+        "project_id": "4dsr",
+        "role": "local",
+        "operation": "run",
+        "argv": [
+          "/home/cai_tianshun/miniconda3/envs/mml_bw/bin/python",
+          "-u",
+          "/home/cai_tianshun/Project/4dsr/experiments/dynamic_sr_modules_20261010/realdeg_20261109/takeover_20261110/pro6000_ie/attempt2/runner.py",
+          "--lane",
+          "experiments/dynamic_sr_modules_20261010/realdeg_20261109/baselines/lanes/rd-ie-cook.json",
+          "--execute"
+        ],
+        "gpu_memory_mib": 22000,
+        "timeout_seconds": 32400,
+        "env_id": "mml_bw",
+        "cwd": "/home/cai_tianshun/Project/4dsr",
+        "gpu_uuids": [
+          "GPU-ddc2c5d8-3507-6293-837c-b1ea6b5e1cc5"
+        ]
+      },
+      "output_root": "output/dynamic_sr_modules_20261010/realdeg_20261109/baselines/iesrgs/cook_spinach"
+    },
+    {
+      "original_job_id": "rd-ie-cut",
+      "service_job_id": "rd4-p6-ie-cut-01",
+      "scene": "cut_roasted_beef",
+      "original_request": {
+        "path": "experiments/dynamic_sr_modules_20261010/realdeg_20261109/baselines/jobs/rd-ie-cut.json",
+        "sha256": "3efb5b9b85d7943d214d195088b39115c69e7f036b587861f6fbde2ec271a492"
+      },
+      "lane": {
+        "path": "experiments/dynamic_sr_modules_20261010/realdeg_20261109/baselines/lanes/rd-ie-cut.json",
+        "sha256": "5d3bc490e49fb664eb453d1889cfe4f7f4deb880e8cafa2c87b73745dc612aa0"
+      },
+      "config": {
+        "path": "experiments/dynamic_sr_modules_20261010/realdeg_20261109/baselines/configs/cut_roasted_beef/iesrgs.json",
+        "sha256": "52eac4d46a1b26013c45404142af3c63293bb6a3bd9b997a4e9e3a691236f2a6"
+      },
+      "original_request_value": {
+        "version": 1,
+        "job_id": "rd-ie-cut",
+        "project_id": "4dsr",
+        "role": "local",
+        "operation": "run",
+        "argv": [
+          "/home/cai_tianshun/miniconda3/envs/mml_bw/bin/python",
+          "-u",
+          "/home/cai_tianshun/Project/4dsr/experiments/dynamic_sr_modules_20261010/realdeg_20261109/baselines/run_lane.py",
+          "--lane",
+          "experiments/dynamic_sr_modules_20261010/realdeg_20261109/baselines/lanes/rd-ie-cut.json",
+          "--execute"
+        ],
+        "gpu_memory_mib": 22000,
+        "timeout_seconds": 32400,
+        "env_id": "mml_bw",
+        "cwd": "/home/cai_tianshun/Project/4dsr",
+        "gpu_uuids": [
+          "GPU-c40035c3-0f06-e88b-73f5-fa40d62ec4ec"
+        ]
+      },
+      "service_manifest": {
+        "version": 1,
+        "job_id": "rd4-p6-ie-cut-01",
+        "project_id": "4dsr",
+        "role": "local",
+        "operation": "run",
+        "argv": [
+          "/home/cai_tianshun/miniconda3/envs/mml_bw/bin/python",
+          "-u",
+          "/home/cai_tianshun/Project/4dsr/experiments/dynamic_sr_modules_20261010/realdeg_20261109/takeover_20261110/pro6000_ie/attempt2/runner.py",
+          "--lane",
+          "experiments/dynamic_sr_modules_20261010/realdeg_20261109/baselines/lanes/rd-ie-cut.json",
+          "--execute"
+        ],
+        "gpu_memory_mib": 22000,
+        "timeout_seconds": 32400,
+        "env_id": "mml_bw",
+        "cwd": "/home/cai_tianshun/Project/4dsr",
+        "gpu_uuids": [
+          "GPU-ddc2c5d8-3507-6293-837c-b1ea6b5e1cc5"
+        ]
+      },
+      "output_root": "output/dynamic_sr_modules_20261010/realdeg_20261109/baselines/iesrgs/cut_roasted_beef"
+    },
+    {
+      "original_job_id": "rd-ie-flame",
+      "service_job_id": "rd4-p6-ie-flame-01",
+      "scene": "flame_steak",
+      "original_request": {
+        "path": "experiments/dynamic_sr_modules_20261010/realdeg_20261109/baselines/jobs/rd-ie-flame.json",
+        "sha256": "442e927829f26b08609a30d5a4b0e2009462590656b257166bba4e6916e0a103"
+      },
+      "lane": {
+        "path": "experiments/dynamic_sr_modules_20261010/realdeg_20261109/baselines/lanes/rd-ie-flame.json",
+        "sha256": "06c35af22916fcdfa44021a9142e33c19d975bfd307e4e50e06617df023fc500"
+      },
+      "config": {
+        "path": "experiments/dynamic_sr_modules_20261010/realdeg_20261109/baselines/configs/flame_steak/iesrgs.json",
+        "sha256": "ffdac6b361bbf7de651f2d8c2db9d30355d7c0e88f882e2ca0be929590db5a44"
+      },
+      "original_request_value": {
+        "version": 1,
+        "job_id": "rd-ie-flame",
+        "project_id": "4dsr",
+        "role": "local",
+        "operation": "run",
+        "argv": [
+          "/home/cai_tianshun/miniconda3/envs/mml_bw/bin/python",
+          "-u",
+          "/home/cai_tianshun/Project/4dsr/experiments/dynamic_sr_modules_20261010/realdeg_20261109/baselines/run_lane.py",
+          "--lane",
+          "experiments/dynamic_sr_modules_20261010/realdeg_20261109/baselines/lanes/rd-ie-flame.json",
+          "--execute"
+        ],
+        "gpu_memory_mib": 22000,
+        "timeout_seconds": 32400,
+        "env_id": "mml_bw",
+        "cwd": "/home/cai_tianshun/Project/4dsr",
+        "gpu_uuids": [
+          "GPU-c40035c3-0f06-e88b-73f5-fa40d62ec4ec"
+        ]
+      },
+      "service_manifest": {
+        "version": 1,
+        "job_id": "rd4-p6-ie-flame-01",
+        "project_id": "4dsr",
+        "role": "local",
+        "operation": "run",
+        "argv": [
+          "/home/cai_tianshun/miniconda3/envs/mml_bw/bin/python",
+          "-u",
+          "/home/cai_tianshun/Project/4dsr/experiments/dynamic_sr_modules_20261010/realdeg_20261109/takeover_20261110/pro6000_ie/attempt2/runner.py",
+          "--lane",
+          "experiments/dynamic_sr_modules_20261010/realdeg_20261109/baselines/lanes/rd-ie-flame.json",
+          "--execute"
+        ],
+        "gpu_memory_mib": 22000,
+        "timeout_seconds": 32400,
+        "env_id": "mml_bw",
+        "cwd": "/home/cai_tianshun/Project/4dsr",
+        "gpu_uuids": [
+          "GPU-ddc2c5d8-3507-6293-837c-b1ea6b5e1cc5"
+        ]
+      },
+      "output_root": "output/dynamic_sr_modules_20261010/realdeg_20261109/baselines/iesrgs/flame_steak"
+    },
+    {
+      "original_job_id": "rd-ie-coffee",
+      "service_job_id": "rd4-p6-ie-coffee-01",
+      "scene": "coffee_martini",
+      "original_request": {
+        "path": "experiments/dynamic_sr_modules_20261010/realdeg_20261109/baselines/jobs/rd-ie-coffee.json",
+        "sha256": "f5340d0f86bb0f1ab157f1f41257d52e2507a558c3d89d27c9f621d91b51eb4e"
+      },
+      "lane": {
+        "path": "experiments/dynamic_sr_modules_20261010/realdeg_20261109/baselines/lanes/rd-ie-coffee.json",
+        "sha256": "53c34f210157d566161bd4db7a526186e394815163fff9a6cce2a3c5d742aecf"
+      },
+      "config": {
+        "path": "experiments/dynamic_sr_modules_20261010/realdeg_20261109/baselines/configs/coffee_martini/iesrgs.json",
+        "sha256": "427dcc4783e55a0603cd4a94792c033bbece24262cda9593ccdbf3a10cfa9fb1"
+      },
+      "original_request_value": {
+        "version": 1,
+        "job_id": "rd-ie-coffee",
+        "project_id": "4dsr",
+        "role": "local",
+        "operation": "run",
+        "argv": [
+          "/home/cai_tianshun/miniconda3/envs/mml_bw/bin/python",
+          "-u",
+          "/home/cai_tianshun/Project/4dsr/experiments/dynamic_sr_modules_20261010/realdeg_20261109/baselines/run_lane.py",
+          "--lane",
+          "experiments/dynamic_sr_modules_20261010/realdeg_20261109/baselines/lanes/rd-ie-coffee.json",
+          "--execute"
+        ],
+        "gpu_memory_mib": 22000,
+        "timeout_seconds": 32400,
+        "env_id": "mml_bw",
+        "cwd": "/home/cai_tianshun/Project/4dsr",
+        "gpu_uuids": [
+          "GPU-c40035c3-0f06-e88b-73f5-fa40d62ec4ec"
+        ]
+      },
+      "service_manifest": {
+        "version": 1,
+        "job_id": "rd4-p6-ie-coffee-01",
+        "project_id": "4dsr",
+        "role": "local",
+        "operation": "run",
+        "argv": [
+          "/home/cai_tianshun/miniconda3/envs/mml_bw/bin/python",
+          "-u",
+          "/home/cai_tianshun/Project/4dsr/experiments/dynamic_sr_modules_20261010/realdeg_20261109/takeover_20261110/pro6000_ie/attempt2/runner.py",
+          "--lane",
+          "experiments/dynamic_sr_modules_20261010/realdeg_20261109/baselines/lanes/rd-ie-coffee.json",
+          "--execute"
+        ],
+        "gpu_memory_mib": 22000,
+        "timeout_seconds": 32400,
+        "env_id": "mml_bw",
+        "cwd": "/home/cai_tianshun/Project/4dsr",
+        "gpu_uuids": [
+          "GPU-ddc2c5d8-3507-6293-837c-b1ea6b5e1cc5"
+        ]
+      },
+      "output_root": "output/dynamic_sr_modules_20261010/realdeg_20261109/baselines/iesrgs/coffee_martini"
+    },
+    {
+      "original_job_id": "rd-ie-sear",
+      "service_job_id": "rd4-p6-ie-sear-01",
+      "scene": "sear_steak",
+      "original_request": {
+        "path": "experiments/dynamic_sr_modules_20261010/realdeg_20261109/baselines/jobs/rd-ie-sear.json",
+        "sha256": "4b67c7ed173e6ec852509af4ca9a5c3abaf1e6fa748b210fbc4bfbdf984106bc"
+      },
+      "lane": {
+        "path": "experiments/dynamic_sr_modules_20261010/realdeg_20261109/baselines/lanes/rd-ie-sear.json",
+        "sha256": "67e22e2c3eac4b235736aa1aa2248ec7b5f530bfe4421ca23b420c40c341d922"
+      },
+      "config": {
+        "path": "experiments/dynamic_sr_modules_20261010/realdeg_20261109/baselines/configs/sear_steak/iesrgs.json",
+        "sha256": "12d5e9109dc3d15804b08146f1f5b7bfabfd07099d11c0b737ef28e4e62727ac"
+      },
+      "original_request_value": {
+        "version": 1,
+        "job_id": "rd-ie-sear",
+        "project_id": "4dsr",
+        "role": "local",
+        "operation": "run",
+        "argv": [
+          "/home/cai_tianshun/miniconda3/envs/mml_bw/bin/python",
+          "-u",
+          "/home/cai_tianshun/Project/4dsr/experiments/dynamic_sr_modules_20261010/realdeg_20261109/baselines/run_lane.py",
+          "--lane",
+          "experiments/dynamic_sr_modules_20261010/realdeg_20261109/baselines/lanes/rd-ie-sear.json",
+          "--execute"
+        ],
+        "gpu_memory_mib": 22000,
+        "timeout_seconds": 32400,
+        "env_id": "mml_bw",
+        "cwd": "/home/cai_tianshun/Project/4dsr",
+        "gpu_uuids": [
+          "GPU-c40035c3-0f06-e88b-73f5-fa40d62ec4ec"
+        ]
+      },
+      "service_manifest": {
+        "version": 1,
+        "job_id": "rd4-p6-ie-sear-01",
+        "project_id": "4dsr",
+        "role": "local",
+        "operation": "run",
+        "argv": [
+          "/home/cai_tianshun/miniconda3/envs/mml_bw/bin/python",
+          "-u",
+          "/home/cai_tianshun/Project/4dsr/experiments/dynamic_sr_modules_20261010/realdeg_20261109/takeover_20261110/pro6000_ie/attempt2/runner.py",
+          "--lane",
+          "experiments/dynamic_sr_modules_20261010/realdeg_20261109/baselines/lanes/rd-ie-sear.json",
+          "--execute"
+        ],
+        "gpu_memory_mib": 22000,
+        "timeout_seconds": 32400,
+        "env_id": "mml_bw",
+        "cwd": "/home/cai_tianshun/Project/4dsr",
+        "gpu_uuids": [
+          "GPU-ddc2c5d8-3507-6293-837c-b1ea6b5e1cc5"
+        ]
+      },
+      "output_root": "output/dynamic_sr_modules_20261010/realdeg_20261109/baselines/iesrgs/sear_steak"
+    },
+    {
+      "original_job_id": "rd-ie-salmon",
+      "service_job_id": "rd4-p6-ie-salmon-01",
+      "scene": "flame_salmon",
+      "original_request": {
+        "path": "experiments/dynamic_sr_modules_20261010/realdeg_20261109/baselines/jobs/rd-ie-salmon.json",
+        "sha256": "51fb70ddfcfecec8824b1184a79a81da2a99b9f8bb1f1d48231b0290e8b26899"
+      },
+      "lane": {
+        "path": "experiments/dynamic_sr_modules_20261010/realdeg_20261109/baselines/lanes/rd-ie-salmon.json",
+        "sha256": "dab3ae08f5493c63ffc629b7c6c4fdc13fc01364fc2331e38238eb2e2a6e51c5"
+      },
+      "config": {
+        "path": "experiments/dynamic_sr_modules_20261010/realdeg_20261109/baselines/configs/flame_salmon/iesrgs.json",
+        "sha256": "29294533267a185fe97366c7dcd8a61bce987248d79ee370dfb2798eaaaba09a"
+      },
+      "original_request_value": {
+        "version": 1,
+        "job_id": "rd-ie-salmon",
+        "project_id": "4dsr",
+        "role": "local",
+        "operation": "run",
+        "argv": [
+          "/home/cai_tianshun/miniconda3/envs/mml_bw/bin/python",
+          "-u",
+          "/home/cai_tianshun/Project/4dsr/experiments/dynamic_sr_modules_20261010/realdeg_20261109/baselines/run_lane.py",
+          "--lane",
+          "experiments/dynamic_sr_modules_20261010/realdeg_20261109/baselines/lanes/rd-ie-salmon.json",
+          "--execute"
+        ],
+        "gpu_memory_mib": 22000,
+        "timeout_seconds": 32400,
+        "env_id": "mml_bw",
+        "cwd": "/home/cai_tianshun/Project/4dsr",
+        "gpu_uuids": [
+          "GPU-c40035c3-0f06-e88b-73f5-fa40d62ec4ec"
+        ]
+      },
+      "service_manifest": {
+        "version": 1,
+        "job_id": "rd4-p6-ie-salmon-01",
+        "project_id": "4dsr",
+        "role": "local",
+        "operation": "run",
+        "argv": [
+          "/home/cai_tianshun/miniconda3/envs/mml_bw/bin/python",
+          "-u",
+          "/home/cai_tianshun/Project/4dsr/experiments/dynamic_sr_modules_20261010/realdeg_20261109/takeover_20261110/pro6000_ie/attempt2/runner.py",
+          "--lane",
+          "experiments/dynamic_sr_modules_20261010/realdeg_20261109/baselines/lanes/rd-ie-salmon.json",
+          "--execute"
+        ],
+        "gpu_memory_mib": 22000,
+        "timeout_seconds": 32400,
+        "env_id": "mml_bw",
+        "cwd": "/home/cai_tianshun/Project/4dsr",
+        "gpu_uuids": [
+          "GPU-ddc2c5d8-3507-6293-837c-b1ea6b5e1cc5"
+        ]
+      },
+      "output_root": "output/dynamic_sr_modules_20261010/realdeg_20261109/baselines/iesrgs/flame_salmon"
+    },
+    {
+      "original_job_id": "rd-ie-disc",
+      "service_job_id": "rd4-p6-ie-disc-01",
+      "scene": "meetroom_discussion",
+      "original_request": {
+        "path": "experiments/dynamic_sr_modules_20261010/realdeg_20261109/baselines/jobs/rd-ie-disc.json",
+        "sha256": "45b5a12a800be68feb06c95d63b8be8e43772b2d54fe8b7900ed6d6952badf90"
+      },
+      "lane": {
+        "path": "experiments/dynamic_sr_modules_20261010/realdeg_20261109/baselines/lanes/rd-ie-disc.json",
+        "sha256": "2993b80229eda61e3d947b1c016290c60f044bf10f04590828c7e121e61f44c3"
+      },
+      "config": {
+        "path": "experiments/dynamic_sr_modules_20261010/realdeg_20261109/baselines/configs/meetroom_discussion/iesrgs.json",
+        "sha256": "b37484d42a0edff809bd82f63da66c8c41e1d7a3f1ba89e6a050b7e8b4440b05"
+      },
+      "original_request_value": {
+        "version": 1,
+        "job_id": "rd-ie-disc",
+        "project_id": "4dsr",
+        "role": "local",
+        "operation": "run",
+        "argv": [
+          "/home/cai_tianshun/miniconda3/envs/mml_bw/bin/python",
+          "-u",
+          "/home/cai_tianshun/Project/4dsr/experiments/dynamic_sr_modules_20261010/realdeg_20261109/baselines/run_lane.py",
+          "--lane",
+          "experiments/dynamic_sr_modules_20261010/realdeg_20261109/baselines/lanes/rd-ie-disc.json",
+          "--execute"
+        ],
+        "gpu_memory_mib": 22000,
+        "timeout_seconds": 32400,
+        "env_id": "mml_bw",
+        "cwd": "/home/cai_tianshun/Project/4dsr",
+        "gpu_uuids": [
+          "GPU-c40035c3-0f06-e88b-73f5-fa40d62ec4ec"
+        ]
+      },
+      "service_manifest": {
+        "version": 1,
+        "job_id": "rd4-p6-ie-disc-01",
+        "project_id": "4dsr",
+        "role": "local",
+        "operation": "run",
+        "argv": [
+          "/home/cai_tianshun/miniconda3/envs/mml_bw/bin/python",
+          "-u",
+          "/home/cai_tianshun/Project/4dsr/experiments/dynamic_sr_modules_20261010/realdeg_20261109/takeover_20261110/pro6000_ie/attempt2/runner.py",
+          "--lane",
+          "experiments/dynamic_sr_modules_20261010/realdeg_20261109/baselines/lanes/rd-ie-disc.json",
+          "--execute"
+        ],
+        "gpu_memory_mib": 22000,
+        "timeout_seconds": 32400,
+        "env_id": "mml_bw",
+        "cwd": "/home/cai_tianshun/Project/4dsr",
+        "gpu_uuids": [
+          "GPU-ddc2c5d8-3507-6293-837c-b1ea6b5e1cc5"
+        ]
+      },
+      "output_root": "output/dynamic_sr_modules_20261010/realdeg_20261109/baselines/iesrgs/meetroom_discussion"
+    },
+    {
+      "original_job_id": "rd-ie-vr",
+      "service_job_id": "rd4-p6-ie-vr-01",
+      "scene": "meetroom_vrheadset",
+      "original_request": {
+        "path": "experiments/dynamic_sr_modules_20261010/realdeg_20261109/baselines/jobs/rd-ie-vr.json",
+        "sha256": "51f92b37594423c71f925e5e94e7a2d410530a5e29fd63001471e2fbe57472d0"
+      },
+      "lane": {
+        "path": "experiments/dynamic_sr_modules_20261010/realdeg_20261109/baselines/lanes/rd-ie-vr.json",
+        "sha256": "9a84adb2ac03e15cf4c8c321e450b3f6f792a6c6e9a69098fe4c222fd81990d1"
+      },
+      "config": {
+        "path": "experiments/dynamic_sr_modules_20261010/realdeg_20261109/baselines/configs/meetroom_vrheadset/iesrgs.json",
+        "sha256": "92cb36ebc952e14b2cf615d9315cb94a175d6765e6f2e41ce75a5420e0c5bc50"
+      },
+      "original_request_value": {
+        "version": 1,
+        "job_id": "rd-ie-vr",
+        "project_id": "4dsr",
+        "role": "local",
+        "operation": "run",
+        "argv": [
+          "/home/cai_tianshun/miniconda3/envs/mml_bw/bin/python",
+          "-u",
+          "/home/cai_tianshun/Project/4dsr/experiments/dynamic_sr_modules_20261010/realdeg_20261109/baselines/run_lane.py",
+          "--lane",
+          "experiments/dynamic_sr_modules_20261010/realdeg_20261109/baselines/lanes/rd-ie-vr.json",
+          "--execute"
+        ],
+        "gpu_memory_mib": 22000,
+        "timeout_seconds": 32400,
+        "env_id": "mml_bw",
+        "cwd": "/home/cai_tianshun/Project/4dsr",
+        "gpu_uuids": [
+          "GPU-c40035c3-0f06-e88b-73f5-fa40d62ec4ec"
+        ]
+      },
+      "service_manifest": {
+        "version": 1,
+        "job_id": "rd4-p6-ie-vr-01",
+        "project_id": "4dsr",
+        "role": "local",
+        "operation": "run",
+        "argv": [
+          "/home/cai_tianshun/miniconda3/envs/mml_bw/bin/python",
+          "-u",
+          "/home/cai_tianshun/Project/4dsr/experiments/dynamic_sr_modules_20261010/realdeg_20261109/takeover_20261110/pro6000_ie/attempt2/runner.py",
+          "--lane",
+          "experiments/dynamic_sr_modules_20261010/realdeg_20261109/baselines/lanes/rd-ie-vr.json",
+          "--execute"
+        ],
+        "gpu_memory_mib": 22000,
+        "timeout_seconds": 32400,
+        "env_id": "mml_bw",
+        "cwd": "/home/cai_tianshun/Project/4dsr",
+        "gpu_uuids": [
+          "GPU-ddc2c5d8-3507-6293-837c-b1ea6b5e1cc5"
+        ]
+      },
+      "output_root": "output/dynamic_sr_modules_20261010/realdeg_20261109/baselines/iesrgs/meetroom_vrheadset"
+    }
+  ],
+  "preflight_manifest": {
+    "version": 1,
+    "job_id": "rd4-p6-ie-preflight-02",
+    "project_id": "4dsr",
+    "role": "local",
+    "operation": "run",
+    "env_id": "mml_bw",
+    "cwd": "/home/cai_tianshun/Project/4dsr",
+    "gpu_uuids": [
+      "GPU-ddc2c5d8-3507-6293-837c-b1ea6b5e1cc5"
+    ],
+    "gpu_memory_mib": 16384,
+    "timeout_seconds": 600,
+    "argv": [
+      "/home/cai_tianshun/miniconda3/envs/mml_bw/bin/python",
+      "-u",
+      "/home/cai_tianshun/Project/4dsr/experiments/dynamic_sr_modules_20261010/realdeg_20261109/takeover_20261110/pro6000_ie/attempt2/runner.py",
+      "--preflight"
+    ]
+  },
+  "preflight_driver": {
+    "path": "experiments/dynamic_sr_modules_20261010/static_sr_v2_20261026/sv2c.py",
+    "sha256": "a3be155e3865a1dfb5856294112bbe31e3f47b112a544803b7d12fc3e3f55764"
+  },
+  "rade_receipt": {
+    "path": "output/static_sr_wu_20261022/runtime/iesrgs/build_receipt.json",
+    "sha256": "ff017b9b566b4adf74f1235cca2b4b4bfa756949b231cd99da03e83c15eaec6f"
+  },
+  "rade_binary": {
+    "path": "output/static_sr_wu_20261022/runtime/iesrgs/lib/diff_gaussian_rasterization_rade/_C.cpython-310-x86_64-linux-gnu.so",
+    "sha256": "c9bbc9457b8c9fc229ddf6bf7a450170b7b8f114791e59a6a52efd554b457651"
+  },
+  "depth_weights": {
+    "path": "weight/static_sr_wu_20261022/depth_anything_v2_large/depth_anything_v2_vitl.pth",
+    "sha256": "a7ea19fa0ed99244e67b624c72b8580b7e9553043245905be58796a608eb9345"
+  },
+  "depth_package": "output/static_sr_wu_20261024/next_teacher_gates_cpu_v1/iesrgs_clean_74d60d5/submodules/Depth-Anything-V2",
+  "authorization": {
+    "delegation_path": "docs/rd4_takeover_20261110/dispatch_update_20261110/pro6000/attempt2/owner_delegation.json",
+    "activation_path": "docs/rd4_takeover_20261110/dispatch_update_20261110/pro6000/attempt2/activation.json",
+    "partition_path": "docs/rd4_takeover_20261110/local_baselines/v7_pro6000_split/partition.json",
+    "preflight_mirror_directory": "docs/rd4_takeover_20261110/dispatch_update_20261110/pro6000/attempt2/preflight_gpu_visible"
+  },
+  "resource_gate_reassignment": {
+    "path": "docs/rd4_takeover_20261110/dispatch_update_20261110/pro6000/resource_gate_reassignment.json",
+    "sha256": "1d3fdb694f09ca7468c12e09e1fd40fda271f9755023f5de22b3fdfe8f3d4e81"
+  },
+  "recovery": {
+    "previous_controller": {
+      "path": "docs/rd4_takeover_20261110/local_baselines/v6_pro6000_split/controller.py",
+      "sha256": "3a397dfa16d547aa1bc7a56cb55690f9d5e8f039dfb8ffcad895410eebb5424c"
+    },
+    "previous_partition": {
+      "path": "docs/rd4_takeover_20261110/local_baselines/v6_pro6000_split/partition.json",
+      "sha256": "43df225809033e268a60b3798927df4e2466c5a1b8c37e33bc58fc1a8556d526"
+    },
+    "previous_activation": {
+      "path": "docs/rd4_takeover_20261110/dispatch_update_20261110/pro6000/activation.json",
+      "sha256": "514ed32831c84ee5b7500eccfc7512f33648180c3b98139ad356eeeaa22de18c"
+    },
+    "failed_pro_state": {
+      "path": "docs/rd4_takeover_20261110/dispatch_update_20261110/pro6000/attempt2/history/pro_state.json",
+      "sha256": "e56224c41d59fd04b3a11f31d3e1e9fecf2f080b8751311a8919375c5b5dd20c"
+    },
+    "failed_pro_events": {
+      "path": "docs/rd4_takeover_20261110/dispatch_update_20261110/pro6000/attempt2/history/pro_events.jsonl",
+      "sha256": "c61267f13077ac50f88d45f75099ddb25f06f8d931d4ce40c646ad214676cec5"
+    },
+    "reconciliation": {
+      "path": "docs/rd4_takeover_20261110/dispatch_update_20261110/pro6000/attempt2/failed_attempt_reconciliation.json",
+      "sha256": "2542fef8ae8e78b8642d21f5258fe4e6bef92f54af94c49196e879bf60329bbb"
+    }
+  }
+}
