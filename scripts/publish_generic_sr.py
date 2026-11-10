@@ -297,6 +297,10 @@ HIGHRES_REQUIRED_TEXT = (
     "experiments/dynamic_sr_modules_20261010/realdeg_20261109/takeover_20261110/a100/queue_plan.json",
     "experiments/dynamic_sr_modules_20261010/realdeg_20261109/takeover_20261110/a100/verify_inputs.py",
     "experiments/dynamic_sr_modules_20261010/realdeg_20261109/takeover_20261110/a100/expected_assets.json",
+    "experiments/dynamic_sr_modules_20261010/realdeg_20261109/takeover_20261110/a100_gpu0_ie/inventory.py",
+    "experiments/dynamic_sr_modules_20261010/realdeg_20261109/takeover_20261110/a100_gpu0_ie/owner.py",
+    "experiments/dynamic_sr_modules_20261010/realdeg_20261109/takeover_20261110/a100_gpu0_ie/plan.json",
+    "experiments/dynamic_sr_modules_20261010/realdeg_20261109/takeover_20261110/a100_gpu0_ie/test_owner.py",
     # third-party notice for experiments/dynamic_sr_physlr_20261016/hat_arch_local.py (derived from XPixelGroup/HAT,
     # Apache-2.0; notice plus the verbatim license text, 2026-10-18)
     "experiments/dynamic_sr_physlr_20261016/THIRD_PARTY_HAT_LICENSE.txt",

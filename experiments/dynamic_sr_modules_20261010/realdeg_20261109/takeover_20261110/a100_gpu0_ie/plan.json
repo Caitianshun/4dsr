@@ -1,0 +1,356 @@
+{
+  "schema": "rd4_ie_cook_gpu0_owner_plan_v1",
+  "job_id": "rd4-g0-ie-cook-01",
+  "original_job_id": "rd-ie-cook",
+  "method": "iesrgs",
+  "scene": "cook_spinach",
+  "project_root": "/home/ubuntu/3DGS/4dsr",
+  "python": "/home/ubuntu/3DGS/4dsr/.venv/bin/python",
+  "gpu_uuid": "GPU-5c08f287-3ffd-edf9-91ed-cd6db2690f3b",
+  "cuda_visible_devices": "0",
+  "task_root": "/home/ubuntu/3DGS/4dsr/tasks/static_sr_shared_wu_20261024_a100",
+  "original_task_root": "/home/cai_tianshun/Project/4dsr",
+  "min_free_bytes": 21474836480,
+  "coarse_iterations": 3000,
+  "fine_iterations": 14000,
+  "original_lane": {
+    "path": "experiments/dynamic_sr_modules_20261010/realdeg_20261109/baselines/lanes/rd-ie-cook.json",
+    "sha256": "09f7f86c39555a1a0e7830e3e002376b94732ceeda5f15eaf5ccd4833fc9bcb9"
+  },
+  "config": {
+    "path": "experiments/dynamic_sr_modules_20261010/realdeg_20261109/baselines/configs/cook_spinach/iesrgs.json",
+    "sha256": "5112eea7fc9c8350fc79b8d2b59bbb73273425d9d9dae04bd4d6e8cdde091bfd"
+  },
+  "source_bindings": [
+    {
+      "path": "experiments/dynamic_sr_modules_20261010/realdeg_20261109/baselines/runtime_rd.py",
+      "sha256": "fcb7c2313af474f7ce6d8280ec2c13637cf76c073a817388d479c6769e10f5bf"
+    },
+    {
+      "path": "experiments/dynamic_sr_modules_20261010/realdeg_20261109/baselines/rd_common.py",
+      "sha256": "ab59e5b93106bba44d4e203530fa355f080a1e70f4b46213600716f03c5daec9"
+    },
+    {
+      "path": "experiments/dynamic_sr_modules_20261010/realdeg_20261109/baselines/teacher_rd.py",
+      "sha256": "8ddcb2063383a5186af15dae30c5e0ef47b94be3ce4891e0b1d4d4bc6ec66206"
+    },
+    {
+      "path": "experiments/dynamic_sr_modules_20261010/realdeg_20261109/baselines/score_rd.py",
+      "sha256": "49bb051fecfff4bd6ab2924bbce5d4bd69d7aa145030b9cd6c196139459ed87d"
+    },
+    {
+      "path": "experiments/dynamic_sr_modules_20261010/realdeg_20261109/baselines/disk_guard.py",
+      "sha256": "bc9ee810e3a541f1da170d0faeb1339e3d5e6fbb4cf650c8be6a819ef0a42318"
+    },
+    {
+      "path": "experiments/dynamic_sr_modules_20261010/realdeg_20261109/baselines/returns_rd.py",
+      "sha256": "3c1cd3da973f5bc1a7f8e4cd19e2b161e88d8456d33bf9ceb98b4f2c935480e1"
+    },
+    {
+      "path": "experiments/dynamic_sr_modules_20261010/realdeg_20261109/baselines/make_sync_rd.py",
+      "sha256": "3eaa4d1ee7221a8935c072136612d846e0b2d7349bd5ed9a84066c11a34b5a1a"
+    },
+    {
+      "path": "experiments/dynamic_sr_modules_20261010/realdeg_20261109/baselines/source_lock.json",
+      "sha256": "3cfb4725d2f913608933d6292c384e1062f892496c0b97b546c07d86f34a9459"
+    },
+    {
+      "path": "experiments/dynamic_sr_modules_20261010/realdeg_20261109/baselines/artifact_lock.json",
+      "sha256": "ca3cf57af7c9ddb2ecc983934cce65bbde4707b7112b66affe63e42c81086384"
+    },
+    {
+      "path": "experiments/dynamic_sr_modules_20261010/realdeg_20261109/baselines/dataset_lock.json",
+      "sha256": "fb9bf07cda17cfcb633a63fbec34fdc791f39698e8f87edd250462bfd7faa8f5"
+    },
+    {
+      "path": "experiments/dynamic_sr_modules_20261010/realdeg_20261109/baselines/matrix.json",
+      "sha256": "c7154f1387370e39bc5579f72c7206680482408a07392e255b259f8591d71ca4"
+    },
+    {
+      "path": "experiments/dynamic_sr_modules_20261010/static_sr_v2_20261026/sv2c.py",
+      "sha256": "a3be155e3865a1dfb5856294112bbe31e3f47b112a544803b7d12fc3e3f55764"
+    },
+    {
+      "path": "experiments/dynamic_sr_modules_20261010/static_sr_v2_20261026/sv2.py",
+      "sha256": "7bbdc547050663b66d48481c3caf448b1edd1e8f3ae4b69314ce5ea7143e367d"
+    },
+    {
+      "path": "experiments/dynamic_sr_modules_20261010/realdeg_20261109/baselines/configs/cook_spinach/iesrgs.json",
+      "sha256": "5112eea7fc9c8350fc79b8d2b59bbb73273425d9d9dae04bd4d6e8cdde091bfd"
+    },
+    {
+      "path": "experiments/dynamic_sr_modules_20261010/realdeg_20261109/baselines/teacher_indexes/cook_spinach/rd4ft_index.json",
+      "sha256": "83ef42897a52e04b4d49fa66e72fb47dd6671de25429cbd5a992002efd8fb3a6"
+    },
+    {
+      "path": "experiments/dynamic_sr_cull_retrain_20261009/rt.py",
+      "sha256": "01b75733238fca3c764678c7161c432f36cdb1e7ec829c4a2fc96f648bdb4400"
+    },
+    {
+      "path": "experiments/dynamic_sr_cull_retrain_20261009/cullretrain.py",
+      "sha256": "83f0b4d983ab2c4944e801f186bc6db45490fd909916fa260e1d8dc34b287ee8"
+    },
+    {
+      "path": "experiments/dynamic_sr_modules_20261010/area4_baselines_20261024/score_views_area4.py",
+      "sha256": "fa339ec1a93f59cc7ce19cf727b3832abdc7e46fe91cab4efba36071aeefa343"
+    },
+    {
+      "path": "experiments/dynamic_sr_modules_20261010/area4_baselines_20261024/frozen/score_views.py",
+      "sha256": "b9d9f59bb84e5239b1f34725468ac2950b0d8f632ec3c636afb0646235578547"
+    },
+    {
+      "path": "experiments/dynamic_sr_modules_20261010/area4_baselines_20261024/frozen/prepare_suite.py",
+      "sha256": "71bbf5652d986d8bc82bb7ca23f52d878eb1b37b66104563f9ff663dcc079cbe"
+    }
+  ],
+  "frozen_sources": [
+    {
+      "path": "tasks/static_sr_shared_wu_20261024_a100/experiments/static_sr_wu_20261022/common.py",
+      "sha256": "3e195fe4f3b02438cd1f3e8379d895853bc2e5634eae74cf143e8db70efe5b7d"
+    },
+    {
+      "path": "tasks/static_sr_shared_wu_20261024_a100/experiments/static_sr_wu_20261022/backend.py",
+      "sha256": "3fd57c9ee7c0f11b0e920a6dab71930c5dd25b257b445a513f8768e32f09d8c9"
+    },
+    {
+      "path": "tasks/static_sr_shared_wu_20261024_a100/experiments/static_sr_wu_20261022/methods/splatsure.py",
+      "sha256": "1eb153c2422d74aefa3cd31bdc242416a81c712696169dfaae5da57be3c75be6"
+    },
+    {
+      "path": "tasks/static_sr_shared_wu_20261024_a100/experiments/static_sr_wu_20261022/methods/splatsure_prepare.py",
+      "sha256": "2292ead5148158735e9664b2a0ac0f3c578d1a363ead4eb076aaab47acd9121b"
+    },
+    {
+      "path": "tasks/static_sr_shared_wu_20261024_a100/experiments/static_sr_wu_20261022/methods/iesrgs.py",
+      "sha256": "df64f5ec107b7471f2db2ae6bd3db66572fbcfce13e55c3f09f36c2d80ab6d23"
+    },
+    {
+      "path": "tasks/static_sr_shared_wu_20261024_a100/experiments/static_sr_wu_20261022/methods/iesrgs_renderer.py",
+      "sha256": "0975cfc125b676845cdd77660d97833f256d1d6a05b499149d50165154ed29fb"
+    },
+    {
+      "path": "tasks/static_sr_shared_wu_20261024_a100/experiments/static_sr_wu_20261022/methods/threedsr_renderer.py",
+      "sha256": "848c38de435f353afe2099e2143206ca64c53eda5ebfe16950b719c197406326"
+    },
+    {
+      "path": "tasks/static_sr_shared_wu_20261024_a100/experiments/static_sr_wu_20261022/methods/threedsr.py",
+      "sha256": "95a662b243e9d4c683b8e5324c7309ecec12eb4f6406406f6e50c7ae41f04e28"
+    },
+    {
+      "path": "tasks/static_sr_shared_wu_20261024_a100/experiments/static_sr_wu_20261022/methods/sequence_matters.py",
+      "sha256": "59932d5bc825e05f5c37fad7e2b7614970aa4283bc94eaa9eb9a409c9ec2747a"
+    }
+  ],
+  "asset_status": "accepted",
+  "GPU_dependency_smoke_pending": true,
+  "gpu_runtime_bindings": [
+    {
+      "path": "tasks/static_sr_shared_wu_20261024_a100/output/static_sr_wu_20261022/runtime/iesrgs/build_receipt.json",
+      "sha256": "65c6fc2f5a4d7cae900933811d1f03e9d03d30a028397f7691ec91c54bc53214"
+    },
+    {
+      "path": "tasks/static_sr_shared_wu_20261024_a100/output/static_sr_wu_20261022/runtime/iesrgs/lib/diff_gaussian_rasterization_rade/__init__.py",
+      "sha256": "c1d57f2c1f3c64a31d8d9f289c7e6e965cb4639dfec370474a7fb18d1996c8ec"
+    },
+    {
+      "path": "tasks/static_sr_shared_wu_20261024_a100/output/static_sr_wu_20261022/runtime/iesrgs/lib/diff_gaussian_rasterization_rade/_C.cpython-310-x86_64-linux-gnu.so",
+      "sha256": "b0170586d4047ca4ee7b585bbdba65b19f79bde031c14f6da9445554864e6c5c"
+    }
+  ],
+  "rade_runtime": "tasks/static_sr_shared_wu_20261024_a100/output/static_sr_wu_20261022/runtime/iesrgs",
+  "depth_package": "tasks/static_sr_shared_wu_20261024_a100/output/static_sr_wu_20261024/next_teacher_gates_cpu_v1/iesrgs_clean_74d60d5/submodules/Depth-Anything-V2",
+  "depth_source_bindings": [
+    {
+      "path": "tasks/static_sr_shared_wu_20261024_a100/output/static_sr_wu_20261024/next_teacher_gates_cpu_v1/iesrgs_clean_74d60d5/submodules/Depth-Anything-V2/depth_anything_v2/dinov2.py",
+      "sha256": "d22df8d0da44c8525ebed898fd9c33b3acfcda919a84d577cc2a08bfd3d50ac1"
+    },
+    {
+      "path": "tasks/static_sr_shared_wu_20261024_a100/output/static_sr_wu_20261024/next_teacher_gates_cpu_v1/iesrgs_clean_74d60d5/submodules/Depth-Anything-V2/depth_anything_v2/dinov2_layers/__init__.py",
+      "sha256": "e3c28c7b775165b6844000eb69f44d104d6c3803ac7da5d59f6ac3ecfb46d9d8"
+    },
+    {
+      "path": "tasks/static_sr_shared_wu_20261024_a100/output/static_sr_wu_20261024/next_teacher_gates_cpu_v1/iesrgs_clean_74d60d5/submodules/Depth-Anything-V2/depth_anything_v2/dinov2_layers/attention.py",
+      "sha256": "0d2410ce8b8b4499a6b0cdab939ae2bceab8971efd8660d999b0f3088f28cbf7"
+    },
+    {
+      "path": "tasks/static_sr_shared_wu_20261024_a100/output/static_sr_wu_20261024/next_teacher_gates_cpu_v1/iesrgs_clean_74d60d5/submodules/Depth-Anything-V2/depth_anything_v2/dinov2_layers/block.py",
+      "sha256": "093266ea08084c7cce7b8ddd779ecfaaa13055735faa8a7d68b5924f385b395b"
+    },
+    {
+      "path": "tasks/static_sr_shared_wu_20261024_a100/output/static_sr_wu_20261024/next_teacher_gates_cpu_v1/iesrgs_clean_74d60d5/submodules/Depth-Anything-V2/depth_anything_v2/dinov2_layers/drop_path.py",
+      "sha256": "949100aac4d9c19c9d65319dbd362886c5d46a72d7586ba4fd500e9f1d51570c"
+    },
+    {
+      "path": "tasks/static_sr_shared_wu_20261024_a100/output/static_sr_wu_20261024/next_teacher_gates_cpu_v1/iesrgs_clean_74d60d5/submodules/Depth-Anything-V2/depth_anything_v2/dinov2_layers/layer_scale.py",
+      "sha256": "356817b5d1390737128cbcc03a5333fd3060b73beae478772282ccb851d0ef85"
+    },
+    {
+      "path": "tasks/static_sr_shared_wu_20261024_a100/output/static_sr_wu_20261024/next_teacher_gates_cpu_v1/iesrgs_clean_74d60d5/submodules/Depth-Anything-V2/depth_anything_v2/dinov2_layers/mlp.py",
+      "sha256": "c18c5b3f021408597a473bb710070ec3fb3b39f5a2e42e88ae83ced425a608b5"
+    },
+    {
+      "path": "tasks/static_sr_shared_wu_20261024_a100/output/static_sr_wu_20261024/next_teacher_gates_cpu_v1/iesrgs_clean_74d60d5/submodules/Depth-Anything-V2/depth_anything_v2/dinov2_layers/patch_embed.py",
+      "sha256": "b3f82e19926c9cfb63f10136aca5e8a723bde1ad62dae1d04f90d405f9439baf"
+    },
+    {
+      "path": "tasks/static_sr_shared_wu_20261024_a100/output/static_sr_wu_20261024/next_teacher_gates_cpu_v1/iesrgs_clean_74d60d5/submodules/Depth-Anything-V2/depth_anything_v2/dinov2_layers/swiglu_ffn.py",
+      "sha256": "df81d9901240214edc1831ce1b77558dcd6227b29a2f000fc5f546df55d2d09a"
+    },
+    {
+      "path": "tasks/static_sr_shared_wu_20261024_a100/output/static_sr_wu_20261024/next_teacher_gates_cpu_v1/iesrgs_clean_74d60d5/submodules/Depth-Anything-V2/depth_anything_v2/dpt.py",
+      "sha256": "7cc9a29b41d31e1628e5c8b8705e25ae95bc6490f779dbb695297ce2341566f5"
+    },
+    {
+      "path": "tasks/static_sr_shared_wu_20261024_a100/output/static_sr_wu_20261024/next_teacher_gates_cpu_v1/iesrgs_clean_74d60d5/submodules/Depth-Anything-V2/depth_anything_v2/util/blocks.py",
+      "sha256": "351aa24b8af4bef923ebe3bed5e5e8503b08e39bf06ee045d6444a485a2036a8"
+    },
+    {
+      "path": "tasks/static_sr_shared_wu_20261024_a100/output/static_sr_wu_20261024/next_teacher_gates_cpu_v1/iesrgs_clean_74d60d5/submodules/Depth-Anything-V2/depth_anything_v2/util/transform.py",
+      "sha256": "a97df1dbb687457a40c387fdc3482edee7ddc5c142c7d2735ca6235a8ae2885f"
+    }
+  ],
+  "depth_weights": {
+    "path": "tasks/static_sr_shared_wu_20261024_a100/weight/static_sr_wu_20261022/depth_anything_v2_large/depth_anything_v2_vitl.pth",
+    "sha256": "a7ea19fa0ed99244e67b624c72b8580b7e9553043245905be58796a608eb9345"
+  },
+  "handoff": {
+    "delegation_path": "output/dynamic_sr_modules_20261010/realdeg_20261109/takeover_gpu0_ie_20261110/ownership/delegation.json",
+    "activation_path": "output/dynamic_sr_modules_20261010/realdeg_20261109/takeover_gpu0_ie_20261110/ownership/activation.json"
+  },
+  "output_root": "output/dynamic_sr_modules_20261010/realdeg_20261109/baselines/iesrgs/cook_spinach",
+  "ownership_file": "output/dynamic_sr_modules_20261010/realdeg_20261109/baselines/iesrgs/cook_spinach/owner_a100_gpu0.json",
+  "adapted_tasks": [
+    {
+      "id": "rd-ie-cook-teacher",
+      "method": "iesrgs",
+      "scene": "cook_spinach",
+      "host": "local",
+      "mode": "teacher_index",
+      "python": "/home/ubuntu/3DGS/4dsr/.venv/bin/python",
+      "argv": [],
+      "source": null,
+      "state": "prepared_not_executed",
+      "output_root": "output/dynamic_sr_modules_20261010/realdeg_20261109/baselines/iesrgs/cook_spinach"
+    },
+    {
+      "id": "rd-ie-cook-s0",
+      "method": "iesrgs",
+      "scene": "cook_spinach",
+      "host": "local",
+      "mode": "original",
+      "python": "/home/ubuntu/3DGS/4dsr/.venv/bin/python",
+      "argv": [
+        "experiments/dynamic_sr_modules_20261010/static_sr_v2_20261026/sv2c.py",
+        "train",
+        "--task-root",
+        "/home/ubuntu/3DGS/4dsr/tasks/static_sr_shared_wu_20261024_a100",
+        "--config",
+        "experiments/dynamic_sr_modules_20261010/realdeg_20261109/baselines/configs/cook_spinach/iesrgs.json",
+        "--stage",
+        "internal",
+        "--out",
+        "output/dynamic_sr_modules_20261010/realdeg_20261109/baselines/iesrgs/cook_spinach/internal"
+      ],
+      "source": {
+        "path": "experiments/dynamic_sr_modules_20261010/static_sr_v2_20261026/sv2c.py",
+        "sha256": "a3be155e3865a1dfb5856294112bbe31e3f47b112a544803b7d12fc3e3f55764"
+      },
+      "state": "prepared_not_executed",
+      "output_root": "output/dynamic_sr_modules_20261010/realdeg_20261109/baselines/iesrgs/cook_spinach"
+    },
+    {
+      "id": "rd-ie-cook-s1",
+      "method": "iesrgs",
+      "scene": "cook_spinach",
+      "host": "local",
+      "mode": "original",
+      "python": "/home/ubuntu/3DGS/4dsr/.venv/bin/python",
+      "argv": [
+        "experiments/dynamic_sr_modules_20261010/static_sr_v2_20261026/sv2.py",
+        "iedepth",
+        "--task-root",
+        "/home/ubuntu/3DGS/4dsr/tasks/static_sr_shared_wu_20261024_a100",
+        "--config",
+        "experiments/dynamic_sr_modules_20261010/realdeg_20261109/baselines/configs/cook_spinach/iesrgs.json",
+        "--teacher-index",
+        "experiments/dynamic_sr_modules_20261010/realdeg_20261109/baselines/teacher_indexes/cook_spinach/rd4ft_index.json",
+        "--out",
+        "output/dynamic_sr_modules_20261010/realdeg_20261109/baselines/iesrgs/cook_spinach/depth"
+      ],
+      "source": {
+        "path": "experiments/dynamic_sr_modules_20261010/static_sr_v2_20261026/sv2.py",
+        "sha256": "7bbdc547050663b66d48481c3caf448b1edd1e8f3ae4b69314ce5ea7143e367d"
+      },
+      "state": "prepared_not_executed",
+      "output_root": "output/dynamic_sr_modules_20261010/realdeg_20261109/baselines/iesrgs/cook_spinach"
+    },
+    {
+      "id": "rd-ie-cook-s2",
+      "method": "iesrgs",
+      "scene": "cook_spinach",
+      "host": "local",
+      "mode": "original",
+      "python": "/home/ubuntu/3DGS/4dsr/.venv/bin/python",
+      "argv": [
+        "experiments/dynamic_sr_modules_20261010/static_sr_v2_20261026/sv2c.py",
+        "train",
+        "--task-root",
+        "/home/ubuntu/3DGS/4dsr/tasks/static_sr_shared_wu_20261024_a100",
+        "--config",
+        "experiments/dynamic_sr_modules_20261010/realdeg_20261109/baselines/configs/cook_spinach/iesrgs.json",
+        "--stage",
+        "sr",
+        "--teacher-index",
+        "experiments/dynamic_sr_modules_20261010/realdeg_20261109/baselines/teacher_indexes/cook_spinach/rd4ft_index.json",
+        "--depth-index",
+        "output/dynamic_sr_modules_20261010/realdeg_20261109/baselines/iesrgs/cook_spinach/depth/index.json",
+        "--internal-checkpoint",
+        "output/dynamic_sr_modules_20261010/realdeg_20261109/baselines/iesrgs/cook_spinach/internal/checkpoint.pt",
+        "--out",
+        "output/dynamic_sr_modules_20261010/realdeg_20261109/baselines/iesrgs/cook_spinach/sr"
+      ],
+      "source": {
+        "path": "experiments/dynamic_sr_modules_20261010/static_sr_v2_20261026/sv2c.py",
+        "sha256": "a3be155e3865a1dfb5856294112bbe31e3f47b112a544803b7d12fc3e3f55764"
+      },
+      "state": "prepared_not_executed",
+      "output_root": "output/dynamic_sr_modules_20261010/realdeg_20261109/baselines/iesrgs/cook_spinach"
+    },
+    {
+      "id": "rd-ie-cook-s3",
+      "method": "iesrgs",
+      "scene": "cook_spinach",
+      "host": "local",
+      "mode": "original",
+      "python": "/home/ubuntu/3DGS/4dsr/.venv/bin/python",
+      "argv": [
+        "experiments/dynamic_sr_modules_20261010/static_sr_v2_20261026/sv2c.py",
+        "render",
+        "--task-root",
+        "/home/ubuntu/3DGS/4dsr/tasks/static_sr_shared_wu_20261024_a100",
+        "--config",
+        "experiments/dynamic_sr_modules_20261010/realdeg_20261109/baselines/configs/cook_spinach/iesrgs.json",
+        "--checkpoint",
+        "output/dynamic_sr_modules_20261010/realdeg_20261109/baselines/iesrgs/cook_spinach/sr/checkpoint.pt",
+        "--scope",
+        "test",
+        "--out",
+        "output/dynamic_sr_modules_20261010/realdeg_20261109/baselines/iesrgs/cook_spinach/renders_test"
+      ],
+      "source": {
+        "path": "experiments/dynamic_sr_modules_20261010/static_sr_v2_20261026/sv2c.py",
+        "sha256": "a3be155e3865a1dfb5856294112bbe31e3f47b112a544803b7d12fc3e3f55764"
+      },
+      "state": "prepared_not_executed",
+      "output_root": "output/dynamic_sr_modules_20261010/realdeg_20261109/baselines/iesrgs/cook_spinach"
+    }
+  ],
+  "original_request": {
+    "path": "experiments/dynamic_sr_modules_20261010/realdeg_20261109/baselines/jobs/rd-ie-cook.json",
+    "sha256": "bb24b91500c779a1422a0e51355b044430a57789a5d55726178706a3cbb25e49"
+  },
+  "original_source_lock": {
+    "path": "experiments/dynamic_sr_modules_20261010/realdeg_20261109/baselines/source_lock.json",
+    "sha256": "3cfb4725d2f913608933d6292c384e1062f892496c0b97b546c07d86f34a9459"
+  }
+}

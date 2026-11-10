@@ -683,6 +683,10 @@
     "experiments/dynamic_sr_modules_20261010/realdeg_20261109/takeover_20261110/a100/queue.py": "46b0cdbaeeeb94aa72f9580da7348616b16fb0795ae14546b18fdeb58d9fa69d",
     "experiments/dynamic_sr_modules_20261010/realdeg_20261109/takeover_20261110/a100/queue_plan.json": "9af687ca96a003b3be751f11937ccd55ee707dc81acec523c472a5b634125026",
     "experiments/dynamic_sr_modules_20261010/realdeg_20261109/takeover_20261110/a100/verify_inputs.py": "9e2d324fa5b367549dccbb187215f54822c2365aeaf8d16847ae357b9d334987",
+    "experiments/dynamic_sr_modules_20261010/realdeg_20261109/takeover_20261110/a100_gpu0_ie/inventory.py": "292c0675da05e401113036e3721cf6c5fba9cdbf2a269a43a424bfb29b7185f2",
+    "experiments/dynamic_sr_modules_20261010/realdeg_20261109/takeover_20261110/a100_gpu0_ie/owner.py": "ec44ea4117cca472ee5230bb01666a93c435f72f0e4aed92ff441caddb38ac5b",
+    "experiments/dynamic_sr_modules_20261010/realdeg_20261109/takeover_20261110/a100_gpu0_ie/plan.json": "205e3d5af0bf99702d56d93f3cb8b98cb046c85a22229b4cad622bfce52458c6",
+    "experiments/dynamic_sr_modules_20261010/realdeg_20261109/takeover_20261110/a100_gpu0_ie/test_owner.py": "9d8f207734f8c90065992365f5dfb3be113845321880c30ef8cfc8fe71bf5e83",
     "experiments/dynamic_sr_modules_20261010/realdeg_20261109/takeover_20261110/cts_queue.json": "a1dcf18ba068b2ba47e72a7b4e3bd2eed34178dc04c3fdeee3953e9a2330805f",
     "experiments/dynamic_sr_modules_20261010/realdeg_20261109/takeover_20261110/cts_queue.py": "e9746e3cc54bffab480f2317e12351dcc1b14d2a818f851d6eb764b28da6cef8",
     "experiments/dynamic_sr_modules_20261010/refs.py": "c589ca0eb9ec49772f5b77089027e00966f2c69e50f0444a9a3ac4094459c107",
@@ -1113,7 +1117,7 @@
     "experiments/static_sr_wu_20261022/tests/test_teacher_acceptance.py": "f64825b606ddf39124706ad34ead8db2da9b6dd7fa41eccbcadbfa667f5598e4",
     "experiments/static_sr_wu_20261022/tests/test_teacher_tiling.py": "31c3403492d40f7e9d21e786ad3bab385a223c0e14ee1d7b6cca3f154c726bb1",
     "experiments/static_sr_wu_20261022/train_stage.py": "98ac27574fb42ce7b99984d058c64ed9174e9e2bfd9a45c3088d8b80e08bab6a",
-    "scripts/publish_generic_sr.py": "3fd5f7285821d4b89dfd9099f73130f90b7d26a90e202fbcb37fad7f8e5708e6",
+    "scripts/publish_generic_sr.py": "20315928998be3543d0b28e5ab8c6c90fc5470cb6199fd95659096bfe9db50a7",
     "scripts/summarize_quality_headroom_20260923.py": "bbc8e37ad918ec6055f4b79df37ec8d9b50db4828ab2f8587155d6d0a1d468b2"
   }
 }
