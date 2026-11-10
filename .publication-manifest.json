@@ -679,6 +679,12 @@
     "experiments/dynamic_sr_modules_20261010/qualfig_20261102/select_crops.py": "290d9bb059b0c3ccb15da648fc5496b540ff48666024e5af97f0873a709eeba5",
     "experiments/dynamic_sr_modules_20261010/qualfig_20261102/select_motion.py": "b771e8557653250793f30713cef2da8ad48df13987a039a80c0e3df1c859ee0f",
     "experiments/dynamic_sr_modules_20261010/qualfig_rerender_20261103/rerender_bl4.py": "ffba521fa7d870d6070e5cd18d53b6e1719f92df8371ee75bc04c74553f2db09",
+    "experiments/dynamic_sr_modules_20261010/realdeg_20261109/takeover_20261110/a100/expected_assets.json": "2f59b2c8f748fbeb022939ca17e73178ca881537b6d2e48bf88f0fd5dff616d5",
+    "experiments/dynamic_sr_modules_20261010/realdeg_20261109/takeover_20261110/a100/queue.py": "46b0cdbaeeeb94aa72f9580da7348616b16fb0795ae14546b18fdeb58d9fa69d",
+    "experiments/dynamic_sr_modules_20261010/realdeg_20261109/takeover_20261110/a100/queue_plan.json": "9af687ca96a003b3be751f11937ccd55ee707dc81acec523c472a5b634125026",
+    "experiments/dynamic_sr_modules_20261010/realdeg_20261109/takeover_20261110/a100/verify_inputs.py": "9e2d324fa5b367549dccbb187215f54822c2365aeaf8d16847ae357b9d334987",
+    "experiments/dynamic_sr_modules_20261010/realdeg_20261109/takeover_20261110/cts_queue.json": "a1dcf18ba068b2ba47e72a7b4e3bd2eed34178dc04c3fdeee3953e9a2330805f",
+    "experiments/dynamic_sr_modules_20261010/realdeg_20261109/takeover_20261110/cts_queue.py": "e9746e3cc54bffab480f2317e12351dcc1b14d2a818f851d6eb764b28da6cef8",
     "experiments/dynamic_sr_modules_20261010/refs.py": "c589ca0eb9ec49772f5b77089027e00966f2c69e50f0444a9a3ac4094459c107",
     "experiments/dynamic_sr_modules_20261010/srfix.py": "ae0a509605b9088575664ade8b88f3a5ba3ecba0a0086271a987222c1a07f8ee",
     "experiments/dynamic_sr_modules_20261010/third_20261022/eval_train_resid_f3ab2.py": "eb7473bf95de9d006bc75c0b68dee9f6cf1a5331db135eb861e1166e2aaceb18",
@@ -1107,7 +1113,7 @@
     "experiments/static_sr_wu_20261022/tests/test_teacher_acceptance.py": "f64825b606ddf39124706ad34ead8db2da9b6dd7fa41eccbcadbfa667f5598e4",
     "experiments/static_sr_wu_20261022/tests/test_teacher_tiling.py": "31c3403492d40f7e9d21e786ad3bab385a223c0e14ee1d7b6cca3f154c726bb1",
     "experiments/static_sr_wu_20261022/train_stage.py": "98ac27574fb42ce7b99984d058c64ed9174e9e2bfd9a45c3088d8b80e08bab6a",
-    "scripts/publish_generic_sr.py": "c19664741cbea07ff4c46968ea5d0574047483e3454f6ef42d54c1f6a06394aa",
+    "scripts/publish_generic_sr.py": "3fd5f7285821d4b89dfd9099f73130f90b7d26a90e202fbcb37fad7f8e5708e6",
     "scripts/summarize_quality_headroom_20260923.py": "bbc8e37ad918ec6055f4b79df37ec8d9b50db4828ab2f8587155d6d0a1d468b2"
   }
 }

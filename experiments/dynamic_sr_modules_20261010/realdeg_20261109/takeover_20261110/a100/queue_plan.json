@@ -1,0 +1,153 @@
+{
+  "schema": "rd4_a100_frozen_queue_plan_v1",
+  "host": "a100",
+  "GPU": "GPU-b79cd3fe-81f0-f449-30be-432e2857e517",
+  "jobs": [
+    {
+      "job_id": "rd-3d-cook-lr",
+      "method": "threedsr",
+      "scene": "cook_spinach",
+      "lane_sha256": "4b7a4e7015d098b960fd67579daa3e7726cd0638fb3f224105326c8c2c25fbdc"
+    },
+    {
+      "job_id": "rd-3d-cook-r0",
+      "method": "threedsr",
+      "scene": "cook_spinach",
+      "lane_sha256": "a89e67665d362e6d6c825fb4e29f37212d1cad4924458360e1e1c20bb7addcd9"
+    },
+    {
+      "job_id": "rd-3d-cook-r1",
+      "method": "threedsr",
+      "scene": "cook_spinach",
+      "lane_sha256": "78421e1fddb9d950a9a39f4ad11f1fd4e96a66a620cfb1cca4aea990ce1fb46d"
+    },
+    {
+      "job_id": "rd-3d-cook-r2",
+      "method": "threedsr",
+      "scene": "cook_spinach",
+      "lane_sha256": "6234ca07c185c2cf83cb375f292d2ee381e50b0a2650c8be3281741835af38dd"
+    },
+    {
+      "job_id": "rd-3d-cook-r3",
+      "method": "threedsr",
+      "scene": "cook_spinach",
+      "lane_sha256": "e61718c56ea1c5c38e0a0239c224d7101b6929622fd870d426c1d1e9c4b0e819"
+    },
+    {
+      "job_id": "rd-3d-cook-render",
+      "method": "threedsr",
+      "scene": "cook_spinach",
+      "lane_sha256": "d8c398dbb3cdb711372355084e195df0ba031ad620cc492070cdcce93f9e60ff"
+    },
+    {
+      "job_id": "rd-3d-flame-lr",
+      "method": "threedsr",
+      "scene": "flame_steak",
+      "lane_sha256": "40cbba25c9943f142d63399c62f0f3a8d8bb84ffa43e4c991350fc80eb9cb4ae"
+    },
+    {
+      "job_id": "rd-3d-flame-r0",
+      "method": "threedsr",
+      "scene": "flame_steak",
+      "lane_sha256": "76941da16cc25a23228ced351d5c09eb0c11cb5e7ff1108bf20a73bec5ca3e75"
+    },
+    {
+      "job_id": "rd-3d-flame-r1",
+      "method": "threedsr",
+      "scene": "flame_steak",
+      "lane_sha256": "6a6ae3531690f778deb431689f0fffeef4cf6cafec538d7af232f2634d72bfa3"
+    },
+    {
+      "job_id": "rd-3d-flame-r2",
+      "method": "threedsr",
+      "scene": "flame_steak",
+      "lane_sha256": "01e70d2ace80bac011f74c85c1fa3a2550aaae0b673b4103d1b3a3733db8e4b7"
+    },
+    {
+      "job_id": "rd-3d-flame-r3",
+      "method": "threedsr",
+      "scene": "flame_steak",
+      "lane_sha256": "d1fa281331a288b359109ae65e98b681c6bf713b6377d098267d2f27f0904f43"
+    },
+    {
+      "job_id": "rd-3d-flame-render",
+      "method": "threedsr",
+      "scene": "flame_steak",
+      "lane_sha256": "933bd72f0dd55471b278a74612a839d4bf48d4f19441e29eac0e7ebc34e569ce"
+    },
+    {
+      "job_id": "rd-s4-cook",
+      "method": "sr4d",
+      "scene": "cook_spinach",
+      "lane_sha256": "5d2220b9772347dd6d9a23e678615c90b9870d430420e979b310ebee4be81115"
+    },
+    {
+      "job_id": "rd-s4-cut",
+      "method": "sr4d",
+      "scene": "cut_roasted_beef",
+      "lane_sha256": "6064874ce3e1612d2e5a242772c7774c9f1951132aacce9263af9392df3a462d"
+    },
+    {
+      "job_id": "rd-s4-flame",
+      "method": "sr4d",
+      "scene": "flame_steak",
+      "lane_sha256": "14ecb094db105ba6bef65fe8a16d037093bc141eb6207400f4a70fe92e96b824"
+    },
+    {
+      "job_id": "rd-s4-coffee",
+      "method": "sr4d",
+      "scene": "coffee_martini",
+      "lane_sha256": "097650322815bd85764e026acd3447fdd99ffddbfc308e2dd414c4895c278503"
+    },
+    {
+      "job_id": "rd-s4-sear",
+      "method": "sr4d",
+      "scene": "sear_steak",
+      "lane_sha256": "7c21442e9efff0a07afb62de7e5cdc32f395ba023198685ee8ea2a0cc34f9979"
+    },
+    {
+      "job_id": "rd-s4-salmon",
+      "method": "sr4d",
+      "scene": "flame_salmon",
+      "lane_sha256": "935ea15ff0825be29cad2f532f8d7c2f5c11efa0ec3ea9a6ed888f7dd4293439"
+    },
+    {
+      "job_id": "rd-s4-disc",
+      "method": "sr4d",
+      "scene": "meetroom_discussion",
+      "lane_sha256": "1d8b7e888506b8b0ffbbf76809d259d24772bdf03b43628a29b243623e204773"
+    },
+    {
+      "job_id": "rd-s4-vr",
+      "method": "sr4d",
+      "scene": "meetroom_vrheadset",
+      "lane_sha256": "6d66c7e8a105221750ccca44b13a531b4206fa48627c176adad7434890a996f5"
+    },
+    {
+      "job_id": "rd-ss-cook",
+      "method": "splatsure",
+      "scene": "cook_spinach",
+      "lane_sha256": "06c28809c79704a11e8c689a963640a0a52cb1348e6b581ca1248303fd44826d"
+    },
+    {
+      "job_id": "rd-ss-cut",
+      "method": "splatsure",
+      "scene": "cut_roasted_beef",
+      "lane_sha256": "fb6f93ce61b97a0bd8f2cf7a729c333deeeb444d7ee43f3e617235ac9141054a"
+    },
+    {
+      "job_id": "rd-ss-flame",
+      "method": "splatsure",
+      "scene": "flame_steak",
+      "lane_sha256": "cc687fafe75915ffcdc1a769cd63b768dfc6c0b4876235b376c04fc6368a2a30"
+    },
+    {
+      "job_id": "rd-ss-coffee",
+      "method": "splatsure",
+      "scene": "coffee_martini",
+      "lane_sha256": "8452a626b44b04f1038322510ccfe0c02ea9cf4233b383988802bde5f63564bb"
+    }
+  ],
+  "source_schedule": "experiments/dynamic_sr_modules_20261010/realdeg_20261109/baselines/schedule.json",
+  "source_schedule_sha256": "d0b0a9efcc770f70f13ee54e794a90343a0e9a15b707751696475137b60e9159"
+}

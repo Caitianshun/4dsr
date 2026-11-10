@@ -289,6 +289,14 @@ HIGHRES_REQUIRED_TEXT = (
     "experiments/dynamic_sr_modules_20261010/qualfig_rerender_20261103/rerender_bl4.py",
     "experiments/dynamic_sr_modules_20261010/costtime_20261102/temporal_png.py",
     "experiments/dynamic_sr_modules_20261010/costtime_20261102/temporal_tof_tlp.py",
+    # RD4 fixed-service sequential continuation; only source and fixed queue
+    # configuration, never execution receipts, inventories, caches or results.
+    "experiments/dynamic_sr_modules_20261010/realdeg_20261109/takeover_20261110/cts_queue.py",
+    "experiments/dynamic_sr_modules_20261010/realdeg_20261109/takeover_20261110/cts_queue.json",
+    "experiments/dynamic_sr_modules_20261010/realdeg_20261109/takeover_20261110/a100/queue.py",
+    "experiments/dynamic_sr_modules_20261010/realdeg_20261109/takeover_20261110/a100/queue_plan.json",
+    "experiments/dynamic_sr_modules_20261010/realdeg_20261109/takeover_20261110/a100/verify_inputs.py",
+    "experiments/dynamic_sr_modules_20261010/realdeg_20261109/takeover_20261110/a100/expected_assets.json",
     # third-party notice for experiments/dynamic_sr_physlr_20261016/hat_arch_local.py (derived from XPixelGroup/HAT,
     # Apache-2.0; notice plus the verbatim license text, 2026-10-18)
     "experiments/dynamic_sr_physlr_20261016/THIRD_PARTY_HAT_LICENSE.txt",
