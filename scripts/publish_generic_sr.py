@@ -232,6 +232,15 @@ HIGHRES_REQUIRED_TEXT = (
     "experiments/dynamic_sr_modules_20261010/moduleaudit_20261101/gate_verdict.py",
     "experiments/dynamic_sr_modules_20261010/review_ctl_20261112/make_rc1.py",
     "experiments/dynamic_sr_modules_20261010/review_ctl_20261112/check_smoke_w1.py",
+    # eight-scene gain attribution and SplatSuRe on our base configuration (session 4dsr-b8, 2026-11-12): job lanes, summaries,
+    # SplatSuRe selection maps from our LR parent and the SR-stage layer that swaps in SplatSuRe's loss
+    "experiments/dynamic_sr_modules_20261010/attrib_20261112/make_attrib_jobs.py",
+    "experiments/dynamic_sr_modules_20261010/attrib_20261112/make_attrib_jobs2.py",
+    "experiments/dynamic_sr_modules_20261010/attrib_20261112/build_attrib_table.py",
+    "experiments/dynamic_sr_modules_20261010/sps_base_20261112/sps_weights.py",
+    "experiments/dynamic_sr_modules_20261010/sps_base_20261112/sps_layer.py",
+    "experiments/dynamic_sr_modules_20261010/sps_base_20261112/make_sps_jobs.py",
+    "experiments/dynamic_sr_modules_20261010/sps_base_20261112/build_sps_table.py",
     # render-speed benchmark and qualitative comparison figure (session 4dsr-ac, 2026-11-02): same-GPU FPS timing of the final
     # model and the baselines, per-window metric maps, crop selection, blind-review sheets and decoding, figure builder, and the
     # AGENTS.md 0.3 acceptability-gate sheets for the final method
