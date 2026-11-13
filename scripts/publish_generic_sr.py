@@ -241,6 +241,9 @@ HIGHRES_REQUIRED_TEXT = (
     "experiments/dynamic_sr_modules_20261010/sps_base_20261112/sps_layer.py",
     "experiments/dynamic_sr_modules_20261010/sps_base_20261112/make_sps_jobs.py",
     "experiments/dynamic_sr_modules_20261010/sps_base_20261112/build_sps_table.py",
+    "experiments/dynamic_sr_modules_20261010/sps_base_20261112/make_fill_tasks.py",
+    "experiments/dynamic_sr_modules_20261010/sps_base_20261112/queue_worker.py",
+    "experiments/dynamic_sr_modules_20261010/sps_base_20261112/build_t3fill.py",
     # render-speed benchmark and qualitative comparison figure (session 4dsr-ac, 2026-11-02): same-GPU FPS timing of the final
     # model and the baselines, per-window metric maps, crop selection, blind-review sheets and decoding, figure builder, and the
     # AGENTS.md 0.3 acceptability-gate sheets for the final method

@@ -12,7 +12,9 @@ changes (two exact source replacements, compiled in the cullretrain namespace):
     before the per-camera colour affine (SplatSuRe's renderer clamps its output);
   - teachers and selection maps are read for all three views.
 The maps come from sps_weights.py (our LR parent). sps.json in --out records the switches, hashes and replaced source.
-  sps_layer.py --weights RECEIPT [--gamma 0.4] -- <modkit6.py argv>"""
+For Sear Steak / Flame Salmon, --newscene-index maps the teacher paths exactly as newscenes_reg_20261103/teacher_paths_new.py
+does for its direct entries (same resolver, inventory checks and torch-hub directory); nothing else changes.
+  sps_layer.py --weights RECEIPT [--gamma 0.4] [--newscene-index INDEX] -- <modkit6.py argv>"""
 import argparse
 import hashlib
 import inspect
@@ -75,6 +77,7 @@ def main():
     p = argparse.ArgumentParser()
     p.add_argument('--weights', required=True)
     p.add_argument('--gamma', type=float, default=0.4)
+    p.add_argument('--newscene-index')
     a = p.parse_args(argv[:k])
     rest = argv[k + 1:]
     if '--' not in rest or 'sr' not in rest:
@@ -123,6 +126,29 @@ def main():
             raise SystemExit('run_sr source differs from the expected block: ' + old[:60])
         src = src.replace(old, new)
     exec(compile(src, '<sps_layer run_sr>', 'exec'), cr.__dict__)
+
+    if a.newscene_index:
+        sys.path.insert(0, str(MOD / 'newscenes_reg_20261103'))
+        import common_new as cn
+        import rt
+        import teacher_paths_new as tpn
+        index = cn.local(a.newscene_index)
+        inventory = cn.read(index)
+        scene = inventory['scene']
+        cn.require(scene in cn.NEW, 'Only new scenes use the teacher-path map')
+        manifest_path = cn.PREP / f'{scene}_area4/manifest_train_ready_seed{cn.SEED}.json'
+        files = tpn.teacher_files(index, cn.read(manifest_path), manifest_path)
+        mapping = {row['relative_path']: cn.local(f['path']) for row, f in zip(inventory['entries'], files)}
+        cr.native.safe_child = tpn.resolver(cr.native.safe_child, manifest_path.parent, mapping)
+        original_check = rt.check_runtime
+
+        def check_runtime():
+            value = original_check()
+            torch.hub.set_dir(str(cn.OUT / 'model_cache/torch_home'))
+            return value
+        rt.check_runtime = check_runtime
+        describe['newscene_teacher_map'] = dict(index=str(index.relative_to(ROOT)), files=len(mapping),
+                                                adapter=str((MOD / 'newscenes_reg_20261103/teacher_paths_new.py').relative_to(ROOT)))
 
     import modkit6
     sys.argv = [str(KIT / 'modkit6.py')] + rest
